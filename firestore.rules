@@ -1,0 +1,109 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isCoach() {
+      return isSignedIn()
+        && userDoc().data.role in ['coach', 'collaborator', 'admin'];
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isCoach();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isCoach();
+
+      match /trick_progress/{trickId} {
+        allow read: if isOwner(userId) || isCoach();
+        allow write: if isCoach();
+      }
+
+      match /progress_videos/{videoId} {
+        allow read: if isOwner(userId) || isCoach();
+        allow write: if isCoach();
+      }
+
+      match /fcm_tokens/{tokenId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if isSignedIn()
+        && (resource.data.userId == request.auth.uid || isCoach());
+      allow create: if false; // Solo servidor (webhooks Stripe / Cal.com)
+      allow update: if isCoach();
+    }
+
+    match /tribe_posts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid;
+      allow update, delete: if isSignedIn()
+        && (resource.data.authorId == request.auth.uid || isCoach());
+
+      match /comments/{commentId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn();
+        allow delete: if isCoach()
+          || resource.data.authorId == request.auth.uid;
+      }
+
+      match /fires/{userId} {
+        allow read: if isSignedIn();
+        allow create: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    match /marketplace_listings/{listingId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.sellerId == request.auth.uid;
+      allow update: if isSignedIn()
+        && (resource.data.sellerId == request.auth.uid || isCoach());
+    }
+
+    match /snow_reports/{reportId} {
+      allow read: if isSignedIn();
+      allow write: if isCoach();
+
+      match /contributions/{userId} {
+        allow read: if isSignedIn();
+        allow write: if isOwner(userId);
+      }
+    }
+
+    match /coach_daily_tips/{tipId} {
+      allow read: if true;
+      allow write: if isCoach();
+    }
+
+    match /tricks_catalog/{trickId} {
+      allow read: if isSignedIn();
+      allow write: if isCoach();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    match /system_config/{docId} {
+      allow read: if true;
+      allow write: if isCoach();
+    }
+  }
+}
