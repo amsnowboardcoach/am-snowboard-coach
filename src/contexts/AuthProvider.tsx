@@ -14,6 +14,7 @@ import {
   signOut as firebaseSignOut,
 } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import { ensureUserProfile } from "@/lib/auth/ensure-profile";
 import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase/client";
 import type { UserProfile } from "@/types/firestore";
 
@@ -26,14 +27,17 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const isFirebaseConfigured = Boolean(
+  process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+);
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(isFirebaseConfigured);
 
   useEffect(() => {
-    if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
-      setLoading(false);
+    if (!isFirebaseConfigured) {
       return;
     }
 
@@ -47,8 +51,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const snap = await getDoc(doc(getFirebaseDb(), "users", firebaseUser.uid));
-        setProfile(snap.exists() ? (snap.data() as UserProfile) : null);
+        const ref = doc(getFirebaseDb(), "users", firebaseUser.uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          setProfile(snap.data() as UserProfile);
+        } else {
+          const created = await ensureUserProfile(firebaseUser);
+          setProfile(created);
+        }
       } catch {
         setProfile(null);
       } finally {

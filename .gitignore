@@ -34,9 +34,18 @@ yarn-error.log*
 .env*
 !.env.example
 
+# Firebase Admin (nunca subir)
+/secrets/
+*firebase-adminsdk*.json
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
+
+.vercel
+
+.vercel
+
+.vercel

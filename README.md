@@ -6,8 +6,8 @@ Plataforma digital para clases de snowboard en Sierra Nevada — Alejandro Mart�
 
 - **Next.js 16** (App Router) + **TypeScript** + **Tailwind CSS 4**
 - **Firebase** — Auth, Firestore, Storage, FCM (próximo)
-- **Stripe** — pagos (próximo)
-- **Cal.com** — reservas (próximo)
+- **Stripe** — Checkout en reservas ([guía](docs/STRIPE.md))
+- **Google Calendar + Gmail SMTP** — reservas en `/reservar` ([guía](docs/GOOGLE_CALENDAR_EMAIL.md))
 
 ## Inicio rápido
 

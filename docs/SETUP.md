@@ -3,7 +3,10 @@
 ## 1. Firebase Console
 
 1. Entra en [Firebase Console](https://console.firebase.google.com/) → **Crear proyecto** (ej. `am-snowboard-coach`).
-2. **Authentication** → Activar **Correo/contraseña** y **Google** (opcional).
+2. **Authentication** → Activar **Correo/contraseña** y **Google**:
+   - Proveedor **Google** → Activar → elegir email de soporte del proyecto.
+   - Si falla con `invalid_client` o *client secret is invalid*, sigue [GOOGLE_SIGNIN_FIX.md](./GOOGLE_SIGNIN_FIX.md).
+   - En **Settings** → **Authorized domains**, deben figurar `localhost` y tu dominio de producción (ej. `am-snowboard-coach-green.vercel.app`).
 3. **Firestore** → Crear base de datos en modo producción (región `europe-west1` o `europe-west3`).
 4. **Storage** → Activar.
 5. **Configuración del proyecto** → Tu app → **Web** (`</>`) → copiar el objeto `firebaseConfig`.

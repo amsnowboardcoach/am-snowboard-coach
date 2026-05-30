@@ -19,6 +19,52 @@ service cloud.firestore {
         && userDoc().data.role in ['coach', 'collaborator', 'admin'];
     }
 
+    function isRegisteredStudent() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && userDoc().data.role == 'student';
+    }
+
+    function hasUserProfile() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function marketplaceListingValidCreate() {
+      return request.resource.data.sellerId == request.auth.uid
+        && request.resource.data.status == 'active'
+        && request.resource.data.title is string
+        && request.resource.data.title.size() >= 3
+        && request.resource.data.title.size() <= 80
+        && request.resource.data.description is string
+        && request.resource.data.description.size() >= 10
+        && request.resource.data.description.size() <= 2000
+        && request.resource.data.priceEuros is int
+        && request.resource.data.priceEuros >= 1
+        && request.resource.data.priceEuros <= 99999
+        && request.resource.data.condition in ['new', 'like_new', 'used']
+        && request.resource.data.category in ['tabla', 'fijaciones', 'botas', 'ropa', 'cascos', 'mochilas', 'accesorios', 'otros']
+        && request.resource.data.imageUrls is list
+        && request.resource.data.imageUrls.size() >= 1
+        && request.resource.data.imageUrls.size() <= 5;
+    }
+
+    function tribeCommentValidCreate() {
+      return request.resource.data.authorId == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 1
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.authorDisplayName is string
+        && request.resource.data.authorDisplayName.size() >= 1
+        && request.resource.data.authorDisplayName.size() <= 40;
+    }
+
+    function tribeCountsOnlyUpdate() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasOnly(['fireCount'])
+        || changed.hasOnly(['commentCount']);
+    }
+
     match /users/{userId} {
       allow read: if isOwner(userId) || isCoach();
       allow create: if isOwner(userId);
@@ -31,7 +77,11 @@ service cloud.firestore {
 
       match /progress_videos/{videoId} {
         allow read: if isOwner(userId) || isCoach();
-        allow write: if isCoach();
+        allow create: if isOwner(userId)
+          && request.resource.data.studentId == userId
+          && request.resource.data.status == 'pending_review';
+        allow update: if isCoach();
+        allow delete: if isCoach() || isOwner(userId);
       }
 
       match /fcm_tokens/{tokenId} {
@@ -42,37 +92,60 @@ service cloud.firestore {
     match /bookings/{bookingId} {
       allow read: if isSignedIn()
         && (resource.data.userId == request.auth.uid || isCoach());
-      allow create: if false; // Solo servidor (webhooks Stripe / Cal.com)
+      allow create: if isCoach()
+        && request.resource.data.coachId == request.auth.uid;
       allow update: if isCoach();
+      allow delete: if isCoach();
     }
 
     match /tribe_posts/{postId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn()
-        && request.resource.data.authorId == request.auth.uid;
-      allow update, delete: if isSignedIn()
+      allow read: if resource.data.moderationStatus == 'approved'
+        || (isSignedIn()
+          && (resource.data.authorId == request.auth.uid || isCoach()));
+      allow create: if isRegisteredStudent()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.legalConsent == true
+        && request.resource.data.fireCount == 0
+        && request.resource.data.commentCount == 0
+        && request.resource.data.mediaType in ['photo', 'video']
+        && request.resource.data.moderationStatus == 'pending';
+      allow update: if isCoach()
+        || (isSignedIn()
+          && resource.data.authorId == request.auth.uid
+          && request.resource.data.authorId == resource.data.authorId)
+        || (isSignedIn() && tribeCountsOnlyUpdate());
+      allow delete: if isSignedIn()
         && (resource.data.authorId == request.auth.uid || isCoach());
 
       match /comments/{commentId} {
-        allow read: if isSignedIn();
-        allow create: if isSignedIn();
+        allow read: if true;
+        allow create: if isSignedIn() && tribeCommentValidCreate();
         allow delete: if isCoach()
           || resource.data.authorId == request.auth.uid;
       }
 
       match /fires/{userId} {
-        allow read: if isSignedIn();
+        allow read: if true;
         allow create: if isOwner(userId);
         allow delete: if isOwner(userId);
       }
     }
 
     match /marketplace_listings/{listingId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn()
-        && request.resource.data.sellerId == request.auth.uid;
-      allow update: if isSignedIn()
-        && (resource.data.sellerId == request.auth.uid || isCoach());
+      allow read: if resource.data.status == 'active'
+        || (isSignedIn()
+          && resource.data.sellerId == request.auth.uid)
+        || isCoach();
+      allow create: if hasUserProfile()
+        && marketplaceListingValidCreate();
+      allow update: if isCoach()
+        || (hasUserProfile()
+          && resource.data.sellerId == request.auth.uid
+          && resource.data.status == 'active'
+          && request.resource.data.sellerId == resource.data.sellerId
+          && request.resource.data.status == 'active');
+      allow delete: if isCoach()
+        || (hasUserProfile() && resource.data.sellerId == request.auth.uid);
     }
 
     match /snow_reports/{reportId} {

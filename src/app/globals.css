@@ -1,22 +1,153 @@
 @import "tailwindcss";
 
+/* Paleta «Alpine dusk»: noche en pista, hielo suave y toque cálido de atardecer */
 :root {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --accent: #38bdf8;
-  --accent-muted: #0c4a6e;
+  --background: #1a2332;
+  --foreground: #f4f7fb;
+  --accent: #6eb0c8;
+  --accent-muted: #2a4d5e;
+  --accent-warm: #d4a574;
+  --card: rgba(36, 48, 68, 0.78);
+  --border: rgba(74, 92, 112, 0.5);
+  --cta-fg: #1a2332;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
+
+  /* Superficies: azul pizarra cálido (sustituye zinc frío) */
+  --color-zinc-50: #f7f9fc;
+  --color-zinc-100: #f0f4f9;
+  --color-zinc-200: #e4ebf4;
+  --color-zinc-300: #c8d4e3;
+  --color-zinc-400: #a8b8c9;
+  --color-zinc-500: #8499ad;
+  --color-zinc-600: #64788f;
+  --color-zinc-700: #4a5c70;
+  --color-zinc-800: #364558;
+  --color-zinc-900: #243044;
+  --color-zinc-950: #1a2332;
+
+  /* Acento principal: azul hielo suave (sustituye sky eléctrico) */
+  --color-sky-50: #f4fafd;
+  --color-sky-100: #e8f4fa;
+  --color-sky-200: #c9e6f2;
+  --color-sky-300: #a8d4e8;
+  --color-sky-400: #8ec5db;
+  --color-sky-500: #6eb0c8;
+  --color-sky-600: #5f97ad;
+  --color-sky-700: #4f7d92;
+  --color-sky-800: #3d6578;
+  --color-sky-900: #2a4d5e;
+  --color-sky-950: #1e3a4a;
+
+  /* Éxito: verde sage (menos neón) */
+  --color-emerald-300: #9dd4b3;
+  --color-emerald-400: #7bc49a;
+  --color-emerald-500: #5daa7a;
+
+  /* Video corrección: lavanda crepuscular */
+  --color-violet-300: #c9c4e8;
+  --color-violet-400: #b0a8d8;
+  --color-violet-500: #9a8ec4;
+
+  /* Avisos: ámbar atardecer en la montaña */
+  --color-amber-200: #f0d4b0;
+  --color-amber-300: #e8c49a;
+  --color-amber-400: #ddb87a;
+  --color-amber-500: #c9a066;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+html {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+@utility scroll-mt-header {
+  scroll-margin-top: 5.5rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: rgba(110, 176, 200, 0.18);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+select,
+textarea {
+  font-size: max(16px, 1rem);
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+@utility px-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+@utility min-h-dvh {
+  min-height: 100dvh;
+}
+
+@utility touch-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+@utility form-input {
+  @apply mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900/80 px-3 py-3 text-base text-zinc-100 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/25;
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+/* Cielo de montaña al atardecer */
+.site-mesh {
+  background-color: #1a2332;
+  background-image:
+    radial-gradient(
+      ellipse 85% 55% at 50% -15%,
+      rgba(110, 176, 200, 0.24),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 95% 15%,
+      rgba(212, 165, 116, 0.1),
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 45% 50% at 5% 70%,
+      rgba(94, 140, 168, 0.14),
+      transparent 55%
+    );
+}
+
+.glass-panel {
+  border: 1px solid var(--border);
+  background: var(--card);
+  backdrop-filter: blur(12px);
 }

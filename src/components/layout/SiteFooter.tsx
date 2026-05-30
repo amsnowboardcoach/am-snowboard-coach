@@ -1,0 +1,123 @@
+"use client";
+
+import Link from "next/link";
+import { useAuth } from "@/contexts/AuthProvider";
+import { getCoachWhatsAppUrl } from "@/constants/coach-contact";
+import { LEGAL_PATHS } from "@/constants/legal-site";
+import { COACH_ROLES } from "@/constants/roles";
+
+export function SiteFooter() {
+  const { user, profile, loading } = useAuth();
+  const isCoach = profile && COACH_ROLES.includes(profile.role);
+
+  const accountLinks = (() => {
+    if (loading) {
+      return [
+        { href: "/login", label: "Iniciar sesión" },
+        { href: "/registro", label: "Crear cuenta" },
+      ];
+    }
+    if (!user) {
+      return [
+        { href: "/login", label: "Iniciar sesión" },
+        { href: "/registro", label: "Crear cuenta" },
+        { href: "/reservar", label: "Reservar clase" },
+      ];
+    }
+    if (isCoach) {
+      return [
+        { href: "/coach", label: "Panel del coach" },
+        { href: "/reservar", label: "Nueva reserva" },
+      ];
+    }
+    return [
+      { href: "/perfil", label: "Mi perfil" },
+      { href: "/perfil/pasaporte", label: "Pasaporte de trucos" },
+      { href: "/perfil/videos", label: "Mis vídeos" },
+      { href: "/tribu", label: "La Tribu" },
+      { href: "/mercadillo", label: "Mercadillo" },
+    ];
+  })();
+
+  return (
+    <footer className="border-t border-zinc-800 bg-zinc-950 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-10 sm:grid-cols-2 sm:gap-10 lg:py-12">
+        <div>
+          <Link
+            href="/"
+            className="inline-block text-lg font-bold transition-colors duration-200 hover:text-zinc-200"
+          >
+            AM <span className="text-sky-400">Snowboard</span> Coach
+          </Link>
+          <p className="mt-3 max-w-sm text-sm text-zinc-400">
+            Clases de snowboard en Sierra Nevada (Granada). Técnica, seguridad
+            y seguimiento con Alejandro Martín, Head Coach AM.
+          </p>
+          <Link
+            href="/reservar"
+            className="mt-4 inline-flex rounded-full bg-sky-500/15 px-4 py-2 text-sm font-semibold text-sky-300 transition duration-200 hover:bg-sky-500/25"
+          >
+            Reservar clase →
+          </Link>
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+            {user ? (isCoach ? "Coach" : "Tu cuenta") : "Alumnos"}
+          </p>
+          <ul className="mt-4 space-y-2 text-sm text-zinc-400">
+            {accountLinks.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="inline-block min-h-8 py-0.5 transition-colors duration-200 hover:text-sky-400"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+            {user && !isCoach && (
+              <li>
+                <a
+                  href={getCoachWhatsAppUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block min-h-8 py-0.5 text-emerald-400/90 transition-colors duration-200 hover:text-emerald-300"
+                >
+                  WhatsApp con Alejandro
+                </a>
+              </li>
+            )}
+          </ul>
+        </div>
+      </div>
+      <div className="border-t border-zinc-800 px-4 py-6">
+        <nav
+          className="mx-auto flex max-w-6xl flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-zinc-500"
+          aria-label="Información legal"
+        >
+          <Link
+            href={LEGAL_PATHS.terms}
+            className="transition-colors duration-200 hover:text-sky-400"
+          >
+            Términos de uso
+          </Link>
+          <Link
+            href={LEGAL_PATHS.privacy}
+            className="transition-colors duration-200 hover:text-sky-400"
+          >
+            Privacidad
+          </Link>
+          <Link
+            href={LEGAL_PATHS.cookies}
+            className="transition-colors duration-200 hover:text-sky-400"
+          >
+            Cookies
+          </Link>
+        </nav>
+        <p className="mt-4 text-center text-xs text-zinc-600">
+          © {new Date().getFullYear()} AM Snowboard Coach · Sierra Nevada
+        </p>
+      </div>
+    </footer>
+  );
+}

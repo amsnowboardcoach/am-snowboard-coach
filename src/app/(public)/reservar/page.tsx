@@ -1,16 +1,49 @@
-export const metadata = { title: "Reservar" };
+import { Suspense } from "react";
+import { ReservarTabs } from "@/components/booking/ReservarTabs";
+import Link from "next/link";
+import { PageHero } from "@/components/layout/PageHero";
+import { getSiteMedia } from "@/lib/pexels/site-media";
 
-export default function ReservarPage() {
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+export const metadata = buildPageMetadata({
+  title: "Reservar clase de snowboard",
+  description:
+    "Reserva online: señal del 30% o pago total con tarjeta. Alejandro confirma tu plaza; el resto en efectivo o Bizum en pista si aplica.",
+  path: "/reservar",
+  keywords: ["reservar clase snowboard Sierra Nevada", "reservas online Granada"],
+});
+
+export default async function ReservarPage() {
+  const media = await getSiteMedia();
+
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="text-3xl font-bold">Reservar clase</h1>
-      <p className="mt-4 text-zinc-400">
-        Aquí integraremos el calendario de Cal.com sincronizado con Google
-        Calendar y el pago con Stripe.
-      </p>
-      <div className="mt-10 min-h-[400px] rounded-xl border border-dashed border-zinc-700 flex items-center justify-center text-zinc-500">
-        Widget Cal.com — próximamente
-      </div>
+    <div>
+      <PageHero
+        eyebrow="Reservas online"
+        title="Reserva en un minuto"
+        subtitle="Elige día y turno, paga la señal (30%) o el total con tarjeta y te confirmo la plaza. También puedes escribirme por WhatsApp."
+        imageSrc={media.reservar.image.src}
+        imageAlt={media.reservar.image.alt}
+        tall={false}
+      />
+
+      <section className="mx-auto max-w-4xl px-4 py-8 pb-24 sm:py-12 sm:pb-20">
+        <div className="glass-panel rounded-2xl p-6 sm:p-10">
+          <Suspense
+            fallback={
+              <p className="py-12 text-center text-zinc-500">Cargando reservas…</p>
+            }
+          >
+            <ReservarTabs />
+          </Suspense>
+        </div>
+        <p className="mt-8 text-center text-sm text-zinc-500">
+          También puedes reservar por WhatsApp (botón verde abajo a la izquierda).
+          En la web ves disponibilidad y precio sin cuenta; al enviar la solicitud
+          identifícate en un paso.
+        </p>
+      </section>
     </div>
   );
 }

@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthProvider";
+import { PwaShell } from "@/components/pwa/PwaShell";
+import { rootMetadata } from "@/lib/seo/metadata";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,13 +14,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "AM Snowboard Coach | Clases en Sierra Nevada",
-    template: "%s | AM Snowboard Coach",
+export const metadata = {
+  ...rootMetadata,
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent" as const,
+    title: "AM Coach",
   },
-  description:
-    "Clases premium de snowboard en Sierra Nevada con Alejandro Martín. Iniciación, carving y freestyle en Sulayr.",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -32,8 +38,11 @@ export default function RootLayout({
       lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-zinc-950 text-zinc-50">
-        <AuthProvider>{children}</AuthProvider>
+      <body className="flex min-h-dvh flex-col bg-zinc-950 text-zinc-50">
+        <AuthProvider>
+          {children}
+          <PwaShell />
+        </AuthProvider>
       </body>
     </html>
   );

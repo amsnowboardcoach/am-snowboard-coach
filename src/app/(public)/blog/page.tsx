@@ -1,0 +1,58 @@
+import Link from "next/link";
+import { BlogPostCard } from "@/components/blog/BlogPostCard";
+import { PageHero } from "@/components/layout/PageHero";
+import { getAllPosts } from "@/content/blog/posts";
+import { blogIndexJsonLd, JsonLd } from "@/lib/seo/json-ld";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+import { getSiteMedia } from "@/lib/pexels/site-media";
+
+export const metadata = buildPageMetadata({
+  title: "Blog de snowboard en Sierra Nevada",
+  description:
+    "Consejos, técnica, tarifas y temporada en Sierra Nevada y Sulayr. Artículos del monitor Alejandro Martín (AM Snowboard Coach).",
+  path: "/blog",
+  keywords: [
+    "blog snowboard Sierra Nevada",
+    "consejos snowboard Granada",
+    "técnica carving freestyle",
+  ],
+});
+
+export default async function BlogIndexPage() {
+  const posts = getAllPosts();
+  const media = await getSiteMedia();
+
+  return (
+    <div>
+      <JsonLd data={blogIndexJsonLd(posts.length)} />
+      <PageHero
+        eyebrow="Blog AM"
+        title="Snowboard en Sierra Nevada"
+        subtitle="Consejos de técnica, Sulayr, tarifas y temporada: todo para planificar tu clase en Sierra Nevada."
+        imageSrc={media.sierra.image.src}
+        imageAlt={media.sierra.image.alt}
+      />
+
+      <section className="mx-auto max-w-6xl px-4 py-16">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post) => (
+            <BlogPostCard key={post.slug} post={post} />
+          ))}
+        </div>
+
+        <div className="glass-panel mt-16 rounded-2xl p-8 text-center">
+          <h2 className="text-xl font-semibold">¿Listo para la pista?</h2>
+          <p className="mt-2 text-zinc-400">
+            Reserva tu turno en el calendario del coach y recibe confirmación por email.
+          </p>
+          <Link
+            href="/reservar"
+            className="mt-6 inline-block rounded-full bg-sky-500 px-8 py-3 font-semibold text-zinc-950 transition hover:bg-sky-400"
+          >
+            Reservar clase
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+}

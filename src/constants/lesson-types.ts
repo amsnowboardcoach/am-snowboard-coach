@@ -2,19 +2,22 @@ export const LESSON_TYPES = [
   {
     id: "iniciacion",
     name: "Iniciación",
-    description: "Primeros pasos en pista. Postura, control y seguridad.",
+    description:
+      "Tu primera experiencia en pista con bases sólidas: postura, frenado y confianza desde el primer día.",
     slug: "iniciacion",
   },
   {
     id: "carving",
     name: "Carving",
-    description: "Giros cerrados, cantos y velocidad controlada.",
+    description:
+      "Giros más cerrados, uso de cantos y velocidad con control en pistas azules y rojas.",
     slug: "carving",
   },
   {
     id: "freestyle-sulayr",
     name: "Freestyle en Sulayr",
-    description: "Park, saltos y progresión en el snowpark de Sierra Nevada.",
+    description:
+      "Saltos, rails y líneas en Sulayr con progresión segura en el snowpark de Sierra Nevada.",
     slug: "freestyle-sulayr",
   },
 ] as const;
