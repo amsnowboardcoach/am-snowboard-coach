@@ -5,7 +5,7 @@ import {
 } from "@/constants/session-schedules";
 import { getBookingCalendarAvailability } from "@/lib/booking/schedule";
 import { isGoogleCalendarConfigured } from "@/lib/google/calendar";
-import { BOOKING_AVAILABILITY_LOOKAHEAD_DAYS } from "@/constants/booking-availability";
+import { BOOKING_AVAILABILITY_FETCH_DAYS } from "@/constants/booking-availability";
 import { addDays, format } from "date-fns";
 
 export const runtime = "nodejs";
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     searchParams.get("start") ?? format(new Date(), "yyyy-MM-dd");
   const end =
     searchParams.get("end") ??
-    format(addDays(new Date(), BOOKING_AVAILABILITY_LOOKAHEAD_DAYS), "yyyy-MM-dd");
+    format(addDays(new Date(), BOOKING_AVAILABILITY_FETCH_DAYS), "yyyy-MM-dd");
 
   if (!durationId) {
     return NextResponse.json(

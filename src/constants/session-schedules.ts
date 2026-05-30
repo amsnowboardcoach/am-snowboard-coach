@@ -35,7 +35,7 @@ export const SESSION_DURATIONS: SessionDuration[] = [
     name: "Clase 2 horas",
     shortLabel: "2 h",
     description:
-      "Dos horas de pista para avanzar con foco. Elige turno de mañana o tarde (hora peninsular).",
+      "Dos horas de pista para avanzar con foco. Elige turno de mañana o tarde.",
     durationMinutes: 120,
     billableHours: 2,
     pricePerHourEuros: 55,
@@ -66,7 +66,7 @@ export const SESSION_DURATIONS: SessionDuration[] = [
     name: "Día completo en pista",
     shortLabel: "Día completo",
     description:
-      "Jornada completa de 10:00 a 16:00: seis horas en pista con pausa para comer (hora peninsular).",
+      "Jornada completa de 10:00 a 16:00: seis horas en pista con pausa para comer.",
     durationMinutes: 360,
     billableHours: 6,
     pricePerHourEuros: 35,

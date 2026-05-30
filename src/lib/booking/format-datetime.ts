@@ -16,11 +16,11 @@ export function formatBookingInTimeZone(
   });
 }
 
-/** Ej. «viernes 6 junio 2026, 10:00 – 12:00 (hora peninsular)» */
+/** Ej. «viernes 6 junio 2026, 10:00 – 12:00» */
 export function formatBookingWhen(start: Date, end: Date): string {
   const day = formatBookingInTimeZone(start, "EEEE d MMMM yyyy");
   const time = `${formatBookingInTimeZone(start, "HH:mm")} – ${formatBookingInTimeZone(end, "HH:mm")}`;
-  return `${day}, ${time} (hora peninsular)`;
+  return `${day}, ${time}`;
 }
 
 /** Para Google Calendar API: dateTime local sin offset Z */

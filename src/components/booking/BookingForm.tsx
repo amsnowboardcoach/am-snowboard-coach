@@ -8,7 +8,15 @@ import {
   useRef,
   useState,
 } from "react";
-import { format, parseISO } from "date-fns";
+import {
+  addDays,
+  endOfMonth,
+  format,
+  isAfter,
+  min,
+  parseISO,
+  startOfMonth,
+} from "date-fns";
 import { es } from "date-fns/locale";
 import { useSearchParams } from "next/navigation";
 import { BookingAuthGate } from "@/components/booking/BookingAuthGate";
@@ -52,8 +60,16 @@ import {
 import { computeBookingPaymentBreakdown } from "@/lib/booking/payment-amounts";
 import { formatReservationSummaryLines } from "@/lib/booking/format-reservation";
 import { scrollToId, scrollToTop } from "@/lib/navigation/scroll";
-import { countDaysWithFreeSlots } from "@/lib/booking/calendar-availability";
+import {
+  countDaysWithFreeSlots,
+  mergeAvailableSlots,
+  mergeCalendarDays,
+} from "@/lib/booking/calendar-availability";
 import type { CalendarDayInfo } from "@/lib/booking/calendar-availability";
+import {
+  BOOKING_AVAILABILITY_FETCH_DAYS,
+  BOOKING_AVAILABILITY_LOOKAHEAD_DAYS,
+} from "@/constants/booking-availability";
 import {
   formatSlotConflictMessage,
   freeSlotIdsForDate,
@@ -74,6 +90,21 @@ type DurationAvailEntry = {
   dayCount: number;
   error: string | null;
 };
+
+function bookingNavigationRangeEnd(): string {
+  return format(
+    addDays(new Date(), BOOKING_AVAILABILITY_LOOKAHEAD_DAYS),
+    "yyyy-MM-dd",
+  );
+}
+
+function defaultAvailabilityFetchRange(): { start: string; end: string } {
+  const start = format(new Date(), "yyyy-MM-dd");
+  return {
+    start,
+    end: format(addDays(new Date(), BOOKING_AVAILABILITY_FETCH_DAYS), "yyyy-MM-dd"),
+  };
+}
 
 function buildInitialAvailMap(): Record<SessionDurationId, DurationAvailEntry> {
   const map = {} as Record<SessionDurationId, DurationAvailEntry>;
@@ -310,40 +341,69 @@ export function BookingForm() {
     durationIdRef.current = durationId;
   }, [durationId]);
 
+  const availabilityFetchRef = useRef<string | null>(null);
+
   const fetchDurationAvailability = useCallback(
-    async (id: SessionDurationId) => {
+    async (
+      id: SessionDurationId,
+      range?: { start: string; end: string },
+      merge = false,
+    ) => {
+      const { start, end } = range ?? defaultAvailabilityFetchRange();
+      const fetchKey = `${id}:${start}:${end}:${merge}`;
+      if (availabilityFetchRef.current === fetchKey) return;
+      availabilityFetchRef.current = fetchKey;
+
       setAvailByDuration((prev) => ({
         ...prev,
-        [id]: { ...prev[id], status: "loading", error: null },
+        [id]: {
+          ...prev[id],
+          status: merge && prev[id]?.status === "ready" ? "ready" : "loading",
+          error: null,
+        },
       }));
       try {
-        const params = new URLSearchParams({ durationId: id });
+        const params = new URLSearchParams({ durationId: id, start, end });
         const res = await fetch(`/api/bookings/availability?${params}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Error de disponibilidad");
-        const slots: AvailableSlotOption[] = data.slots ?? [];
-        const days: CalendarDayInfo[] = data.days ?? [];
-        const dayCount = countDaysWithFreeSlots(days);
-        const status: DurationAvailabilityStatus =
-          dayCount > 0 ? "ready" : "empty";
-        setAvailByDuration((prev) => ({
-          ...prev,
-          [id]: {
-            status,
-            slots,
-            calendarDays: days,
-            rangeStart: data.rangeStart ?? "",
-            rangeEnd: data.rangeEnd ?? "",
-            dayCount,
-            error: null,
-          },
-        }));
-        if (durationIdRef.current === id) {
-          setPickedDateKeys((prev) =>
-            prev.filter((d) => slots.some((s) => s.date === d)),
+        const incomingSlots: AvailableSlotOption[] = data.slots ?? [];
+        const incomingDays: CalendarDayInfo[] = data.days ?? [];
+        let mergedSlots = incomingSlots;
+        setAvailByDuration((prev) => {
+          const prior = prev[id];
+          mergedSlots = merge
+            ? mergeAvailableSlots(prior?.slots ?? [], incomingSlots)
+            : incomingSlots;
+          const calendarDays = merge
+            ? mergeCalendarDays(prior?.calendarDays ?? [], incomingDays)
+            : incomingDays;
+          const dayCount = countDaysWithFreeSlots(calendarDays);
+          const status: DurationAvailabilityStatus =
+            dayCount > 0 ? "ready" : "empty";
+          return {
+            ...prev,
+            [id]: {
+              status,
+              slots: mergedSlots,
+              calendarDays,
+              rangeStart: merge
+                ? prior?.rangeStart || data.rangeStart || start
+                : data.rangeStart ?? start,
+              rangeEnd: end,
+              dayCount,
+              error: null,
+            },
+          };
+        });
+        if (durationIdRef.current === id && !merge) {
+          setPickedDateKeys((picked) =>
+            picked.filter((d) => mergedSlots.some((s) => s.date === d)),
           );
-          setSelectedDays((prev) =>
-            prev.filter((p) => slots.some((s) => s.startUtc === p.startUtc)),
+          setSelectedDays((days) =>
+            days.filter((p) =>
+              mergedSlots.some((s) => s.startUtc === p.startUtc),
+            ),
           );
         }
       } catch (err) {
@@ -351,32 +411,61 @@ export function BookingForm() {
           err instanceof Error
             ? err.message
             : "No se pudo cargar disponibilidad";
-        setAvailByDuration((prev) => ({
-          ...prev,
-          [id]: {
-            status: "error",
-            slots: [],
-            calendarDays: [],
-            rangeStart: "",
-            rangeEnd: "",
-            dayCount: 0,
-            error: message,
-          },
-        }));
-        if (durationIdRef.current === id) {
-          setPickedDateKeys([]);
-          setSelectedDays([]);
+        if (!merge) {
+          setAvailByDuration((prev) => ({
+            ...prev,
+            [id]: {
+              status: "error",
+              slots: [],
+              calendarDays: [],
+              rangeStart: "",
+              rangeEnd: "",
+              dayCount: 0,
+              error: message,
+            },
+          }));
+          if (durationIdRef.current === id) {
+            setPickedDateKeys([]);
+            setSelectedDays([]);
+          }
+        }
+      } finally {
+        if (availabilityFetchRef.current === fetchKey) {
+          availabilityFetchRef.current = null;
         }
       }
     },
     [],
   );
 
-  const refreshAllAvailability = useCallback(() => {
-    void Promise.all(
-      SESSION_DURATIONS.map((s) => fetchDurationAvailability(s.id)),
-    );
-  }, [fetchDurationAvailability]);
+  const navigationRangeEnd = useMemo(() => bookingNavigationRangeEnd(), []);
+
+  const handleVisibleMonth = useCallback(
+    (month: Date) => {
+      const id = durationIdRef.current;
+      const entry = availByDuration[id];
+      if (!entry?.rangeEnd || entry.status === "loading") return;
+
+      const loadedEnd = parseISO(entry.rangeEnd);
+      const navEnd = parseISO(navigationRangeEnd);
+      const monthEnd = endOfMonth(month);
+      if (isAfter(monthEnd, navEnd)) return;
+      if (!isAfter(monthEnd, addDays(loadedEnd, -45))) return;
+
+      const newEnd = format(
+        min(addDays(loadedEnd, BOOKING_AVAILABILITY_FETCH_DAYS), navEnd),
+        "yyyy-MM-dd",
+      );
+      if (newEnd <= entry.rangeEnd) return;
+
+      void fetchDurationAvailability(
+        id,
+        { start: entry.rangeStart || format(new Date(), "yyyy-MM-dd"), end: newEnd },
+        true,
+      );
+    },
+    [availByDuration, fetchDurationAvailability, navigationRangeEnd],
+  );
 
   useEffect(() => {
     if (searchParams.get("paid") === "1") {
@@ -543,8 +632,8 @@ export function BookingForm() {
   const datesPickedReady = pickedDateKeys.length >= 1;
 
   useEffect(() => {
-    refreshAllAvailability();
-  }, [refreshAllAvailability]);
+    void fetchDurationAvailability(durationId);
+  }, [durationId, fetchDurationAvailability]);
 
   useEffect(() => {
     if (!datesPickedReady || pickedDateKeys.length !== 1 || slotId) {
@@ -803,7 +892,46 @@ export function BookingForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <FieldBlock title="Duración en pista">
+      <FieldBlock
+        title="1. Día y turno"
+        hint="Elige fechas en el calendario y el horario de cada día. Puedes cambiar la duración en el siguiente paso."
+      >
+        {packError && (
+          <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+            {packError}
+          </p>
+        )}
+
+        <BookingAvailabilityCalendar
+          calendarDays={calendarDays}
+          rangeStart={calendarRangeStart}
+          rangeEnd={calendarRangeEnd}
+          navigationRangeEnd={navigationRangeEnd}
+          availableSlots={availability}
+          sessionSlots={session.slots}
+          selectedDates={pickedDateKeys}
+          selectedSlotByDate={selectedSlotByDate}
+          onSelectDate={pickDateKey}
+          onSelectSlotForDate={pickSlotForDate}
+          onSelectSlotForAllDates={applySlotToAllDates}
+          loadStatus={availStatus}
+          loadError={availError}
+          onRetry={() => void fetchDurationAvailability(durationId)}
+          onVisibleMonthChange={handleVisibleMonth}
+        />
+        {pickedDateKeys.length > 0 && (
+          <p className="text-sm text-zinc-400">
+            <span className="text-zinc-500">
+              {pickedDateKeys.length === 1 ? "Elegido: " : "Elegidos: "}
+            </span>
+            {pickedDateKeys
+              .map((d) => format(parseISO(d), "EEE d MMM", { locale: es }))
+              .join(" · ")}
+          </p>
+        )}
+      </FieldBlock>
+
+      <FieldBlock title="2. Duración en pista">
         <div className="grid gap-2 sm:grid-cols-3">
           {SESSION_DURATIONS.map((d) => (
             <ChoiceButton
@@ -820,41 +948,7 @@ export function BookingForm() {
         </div>
       </FieldBlock>
 
-      <FieldBlock title="1. Día y turno">
-        {packError && (
-          <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
-            {packError}
-          </p>
-        )}
-
-        <BookingAvailabilityCalendar
-          calendarDays={calendarDays}
-          rangeStart={calendarRangeStart}
-          rangeEnd={calendarRangeEnd}
-          availableSlots={availability}
-          sessionSlots={session.slots}
-          selectedDates={pickedDateKeys}
-          selectedSlotByDate={selectedSlotByDate}
-          onSelectDate={pickDateKey}
-          onSelectSlotForDate={pickSlotForDate}
-          onSelectSlotForAllDates={applySlotToAllDates}
-          loadStatus={availStatus}
-          loadError={availError}
-          onRetry={() => void fetchDurationAvailability(durationId)}
-        />
-        {pickedDateKeys.length > 0 && (
-          <p className="text-sm text-zinc-400">
-            <span className="text-zinc-500">
-              {pickedDateKeys.length === 1 ? "Elegido: " : "Elegidos: "}
-            </span>
-            {pickedDateKeys
-              .map((d) => format(parseISO(d), "EEE d MMM", { locale: es }))
-              .join(" · ")}
-          </p>
-        )}
-      </FieldBlock>
-
-      <FieldBlock title="2. Estilo de clase">
+      <FieldBlock title="3. Estilo de clase">
         <div className="grid gap-2 sm:grid-cols-3">
           {LESSON_TYPES.map((l) => (
             <ChoiceButton
@@ -870,7 +964,7 @@ export function BookingForm() {
       </FieldBlock>
 
       <FieldBlock
-        title="3. Número de personas"
+        title="4. Número de personas"
         hint={`En pista · máx. ${maxParticipants} con ${session.shortLabel}`}
       >
         <div className="flex flex-wrap gap-2">
@@ -890,7 +984,7 @@ export function BookingForm() {
         </p>
       </FieldBlock>
 
-      <FieldBlock title="4. Notas" hint="Opcional">
+      <FieldBlock title="5. Notas" hint="Opcional">
         <textarea
           rows={2}
           value={notes}
@@ -901,7 +995,7 @@ export function BookingForm() {
       </FieldBlock>
 
       <FieldBlock
-        title="5. Forma de pago"
+        title="6. Forma de pago"
         hint="El pago con tarjeta se completa justo después de enviar la solicitud"
       >
         <div className="grid gap-2 sm:grid-cols-2">

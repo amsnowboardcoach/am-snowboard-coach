@@ -54,7 +54,7 @@ export default async function HomePage() {
           <div>
             <SectionHeading
               title="En pista, a tu ritmo"
-              subtitle="Turnos de mañana y tarde en horario diurno (peninsular). Reserva en dos minutos, confirmación personal y tu espacio de alumno para seguir progresando."
+              subtitle="Turnos de mañana y tarde en horario diurno. Reserva en dos minutos, confirmación personal y tu espacio de alumno para seguir progresando."
             />
             <ul className="mt-8 space-y-4 text-zinc-300">
               <li className="flex gap-3">

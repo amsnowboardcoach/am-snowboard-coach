@@ -10,7 +10,7 @@ const STEPS = [
   {
     n: 2,
     title: "Marca día y turno",
-    body: "Calendario en vivo con huecos libres en horario peninsular.",
+    body: "Calendario en vivo con huecos libres.",
   },
   {
     n: 3,

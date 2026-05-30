@@ -86,7 +86,7 @@ export function CoachWhatsAppCard({
       </div>
       {showPhone && (
         <p className="mt-4 text-xs text-zinc-500">
-          {COACH_WHATSAPP_DISPLAY} · Respuesta en horario de clase (peninsular)
+          {COACH_WHATSAPP_DISPLAY} · Respuesta en horario de clase
         </p>
       )}
     </section>

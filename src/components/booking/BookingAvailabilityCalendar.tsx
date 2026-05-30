@@ -26,7 +26,10 @@ import {
 } from "@/lib/booking/calendar-availability";
 import type { AvailableSlotOption } from "@/lib/booking/availability";
 import { freeSlotIdsForDate, nearestFreeSlotId } from "@/lib/booking/slot-suggestions";
-import { BOOKING_AVAILABILITY_LOOKAHEAD_DAYS } from "@/constants/booking-availability";
+import {
+  BOOKING_AVAILABILITY_FETCH_DAYS,
+  BOOKING_AVAILABILITY_LOOKAHEAD_DAYS,
+} from "@/constants/booking-availability";
 import type { DurationAvailabilityStatus } from "@/lib/booking/duration-availability";
 import { cn } from "@/lib/utils/cn";
 
@@ -343,6 +346,8 @@ export function BookingAvailabilityCalendar({
   loadStatus = "ready",
   loadError,
   onRetry,
+  onVisibleMonthChange,
+  navigationRangeEnd,
   disabled,
   className,
 }: {
@@ -359,6 +364,9 @@ export function BookingAvailabilityCalendar({
   loadStatus?: DurationAvailabilityStatus;
   loadError?: string | null;
   onRetry?: () => void;
+  onVisibleMonthChange?: (month: Date) => void;
+  /** Último día navegable (p. ej. hoy + 365); puede ser mayor que rangeEnd cargado */
+  navigationRangeEnd?: string;
   disabled?: boolean;
   className?: string;
 }) {
@@ -381,9 +389,18 @@ export function BookingAvailabilityCalendar({
     () =>
       parseDateKeyOrFallback(
         rangeEnd,
-        addDays(fallbackMonth, BOOKING_AVAILABILITY_LOOKAHEAD_DAYS),
+        addDays(fallbackMonth, BOOKING_AVAILABILITY_FETCH_DAYS),
       ),
     [rangeEnd, fallbackMonth],
+  );
+
+  const navigationEndDate = useMemo(
+    () =>
+      parseDateKeyOrFallback(
+        navigationRangeEnd,
+        addDays(fallbackMonth, BOOKING_AVAILABILITY_LOOKAHEAD_DAYS),
+      ),
+    [navigationRangeEnd, fallbackMonth],
   );
 
   const initialMonth = useMemo(() => {
@@ -411,6 +428,12 @@ export function BookingAvailabilityCalendar({
     });
   }, [calendarDays, initialMonth]);
 
+  useEffect(() => {
+    if (!rangeStart?.trim() || calendarDays.length === 0) return;
+    setViewMonth(initialMonth);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- saltar al primer mes con huecos al cargar datos
+  }, [rangeStart]);
+
   const safeViewMonth = isValid(viewMonth)
     ? viewMonth
     : isValid(initialMonth)
@@ -419,11 +442,15 @@ export function BookingAvailabilityCalendar({
   const days = useMemo(() => monthGrid(safeViewMonth), [safeViewMonth]);
   const monthLabel = format(safeViewMonth, "LLLL yyyy", { locale: es });
 
+  useEffect(() => {
+    onVisibleMonthChange?.(safeViewMonth);
+  }, [safeViewMonth, onVisibleMonthChange]);
+
   const monthStart = startOfMonth(safeViewMonth);
   const monthEnd = endOfMonth(safeViewMonth);
 
   const canGoPrev = isAfter(monthStart, rangeStartDate);
-  const canGoNext = isBefore(monthEnd, rangeEndDate);
+  const canGoNext = isBefore(monthEnd, navigationEndDate);
 
   function dayStatusLabel(status: CalendarDayStatus | undefined): string {
     switch (status) {
@@ -510,15 +537,21 @@ export function BookingAvailabilityCalendar({
         ))}
         {days.map((day) => {
           const key = format(day, "yyyy-MM-dd");
-          const inMonth = isSameMonth(day, viewMonth);
+          const inMonth = isSameMonth(day, safeViewMonth);
           const info = dayMap.get(key);
           const status = info?.status;
           const selected = selectedSet.has(key);
           const hasFree = (info?.freeCount ?? 0) > 0;
           const inRange =
-            !isBefore(day, rangeStartDate) && !isAfter(day, rangeEndDate);
+            !isBefore(day, rangeStartDate) &&
+            !isAfter(day, navigationEndDate);
+          const dataLoaded = dayMap.has(key);
           const clickable =
-            inMonth && inRange && hasFree && !calendarDisabled;
+            inMonth &&
+            inRange &&
+            dataLoaded &&
+            hasFree &&
+            !calendarDisabled;
           const atMax =
             !selected &&
             selectedDates.length >= MAX_BOOKING_DAYS &&

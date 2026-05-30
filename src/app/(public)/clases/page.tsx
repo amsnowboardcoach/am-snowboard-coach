@@ -150,7 +150,7 @@ export default async function ClasesPage() {
       <section id="duraciones" className="scroll-mt-header mx-auto max-w-6xl px-4 py-12 sm:py-20">
         <SectionHeading
           title="Duración y turnos"
-          subtitle="Horario peninsular en pista. Los huecos libres salen del calendario al reservar."
+          subtitle="Los huecos libres salen del calendario al reservar."
         />
         <ul className="mt-10 grid gap-5 lg:grid-cols-3">
           {SESSION_DURATIONS.map((session) => (

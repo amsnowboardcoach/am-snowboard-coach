@@ -27,6 +27,32 @@ export function countDaysWithFreeSlots(days: CalendarDayInfo[]): number {
   return days.filter((d) => d.freeCount > 0).length;
 }
 
+/** Combina días al ampliar el rango cargado (sin duplicar fechas). */
+export function mergeCalendarDays(
+  existing: CalendarDayInfo[],
+  incoming: CalendarDayInfo[],
+): CalendarDayInfo[] {
+  const byDate = new Map(existing.map((d) => [d.date, d]));
+  for (const day of incoming) {
+    byDate.set(day.date, day);
+  }
+  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export function mergeAvailableSlots(
+  existing: AvailableSlotOption[],
+  incoming: AvailableSlotOption[],
+): AvailableSlotOption[] {
+  const key = (o: AvailableSlotOption) => `${o.date}|${o.slotId}|${o.startUtc}`;
+  const map = new Map(existing.map((o) => [key(o), o]));
+  for (const slot of incoming) {
+    map.set(key(slot), slot);
+  }
+  return [...map.values()].sort(
+    (a, b) => a.startUtc.localeCompare(b.startUtc) || a.slotId.localeCompare(b.slotId),
+  );
+}
+
 /** Turnos libres en todos los días elegidos (mismo criterio que el formulario) */
 export function slotsFreeOnAllPickedDates(
   sessionSlotIds: { id: string; label: string }[],

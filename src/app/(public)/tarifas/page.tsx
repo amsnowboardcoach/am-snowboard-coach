@@ -162,7 +162,7 @@ export default async function TarifasPage() {
         <SectionHeading
           centered
           title="Precios por duración"
-          subtitle="Horario peninsular. El importe final se calcula al reservar según días y participantes."
+          subtitle="El importe final se calcula al reservar según días y participantes."
         />
         <ul className="mt-10 grid gap-6 lg:grid-cols-3 lg:items-stretch">
           {SESSION_DURATIONS.map((session) => (
