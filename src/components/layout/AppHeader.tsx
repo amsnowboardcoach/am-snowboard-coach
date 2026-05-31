@@ -3,20 +3,17 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { scrollToTop } from "@/lib/navigation/scroll";
-import { useAuth } from "@/contexts/AuthProvider";
 import { COACH_ROLES } from "@/constants/roles";
+import { useAuth } from "@/contexts/AuthProvider";
+import { useSignOut } from "@/hooks/use-sign-out";
 import { MobileNavDrawer, type MobileNavLink } from "@/components/layout/MobileNavDrawer";
 
 export function AppHeader() {
-  const { profile, signOut } = useAuth();
-  const router = useRouter();
+  const { profile } = useAuth();
+  const signOut = useSignOut();
   const isCoach = profile && COACH_ROLES.includes(profile.role);
 
   const homeHref = isCoach ? "/coach" : "/perfil";
-
-  function logout() {
-    void signOut().then(() => router.push("/"));
-  }
 
   const mobileLinks: MobileNavLink[] = isCoach
     ? [
@@ -25,7 +22,7 @@ export function AppHeader() {
         { href: "/tribu", label: "La Tribu" },
         { href: "/mercadillo", label: "Mercadillo" },
         { href: "/", label: "Web pública" },
-        { href: "#", label: "Cerrar sesión", onClick: logout },
+        { href: "#", label: "Cerrar sesión", onClick: signOut },
       ]
     : [
         { href: "/perfil", label: "Perfil" },
@@ -35,7 +32,7 @@ export function AppHeader() {
         { href: "/mercadillo", label: "Mercadillo" },
         { href: "/reservar", label: "Reservar clase", primary: true },
         { href: "/", label: "Web pública" },
-        { href: "#", label: "Cerrar sesión", onClick: logout },
+        { href: "#", label: "Cerrar sesión", onClick: signOut },
       ];
 
   return (
@@ -104,10 +101,10 @@ export function AppHeader() {
           </Link>
           <button
             type="button"
-            onClick={logout}
-            className="min-h-11 px-1 text-zinc-500 hover:text-white"
+            onClick={signOut}
+            className="min-h-11 px-1 text-zinc-500 hover:text-red-300"
           >
-            Salir
+            Cerrar sesión
           </button>
         </nav>
 

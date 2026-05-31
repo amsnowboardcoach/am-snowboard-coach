@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthProvider";
 import { getCoachWhatsAppUrl } from "@/constants/coach-contact";
 import { LEGAL_PATHS } from "@/constants/legal-site";
 import { COACH_ROLES } from "@/constants/roles";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import { STUDENT_AREA_PATH } from "@/constants/student-area";
 
 export function SiteFooter() {
@@ -18,13 +19,13 @@ export function SiteFooter() {
     if (!user) {
       return [
         { href: STUDENT_AREA_PATH, label: "Área de alumno" },
-        { href: "/reservar", label: "Reservar clase" },
+        { href: "/reservar", label: "Reservar" },
       ];
     }
     if (isCoach) {
       return [
-        { href: "/coach", label: "Panel del coach" },
-        { href: "/reservar", label: "Nueva reserva" },
+        { href: STUDENT_AREA_PATH, label: "Área de alumno" },
+        { href: "/reservar", label: "Reservar" },
       ];
     }
     return [
@@ -59,7 +60,7 @@ export function SiteFooter() {
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            {user ? (isCoach ? "Coach" : "Tu cuenta") : "Alumnos"}
+            {user ? "Tu cuenta" : "Alumnos"}
           </p>
           <ul className="mt-4 space-y-2 text-sm text-zinc-400">
             {accountLinks.map((item) => (
@@ -82,6 +83,11 @@ export function SiteFooter() {
                 >
                   WhatsApp con Alejandro
                 </a>
+              </li>
+            )}
+            {user && (
+              <li>
+                <SignOutButton className="inline-block min-h-8 py-0.5 text-zinc-400 hover:text-red-300" />
               </li>
             )}
           </ul>

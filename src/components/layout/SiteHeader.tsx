@@ -1,34 +1,60 @@
+"use client";
+
 import Link from "next/link";
+import { useMemo } from "react";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import { SiteHeaderLogo } from "@/components/layout/SiteHeaderLogo";
 import { MobileNavDrawer, type MobileNavLink } from "@/components/layout/MobileNavDrawer";
+import { COACH_ROLES } from "@/constants/roles";
+import { useSignOut } from "@/hooks/use-sign-out";
 import {
   SITE_HEADER_CTA,
   SITE_HEADER_LINKS,
   SITE_NAV_AUTH,
 } from "@/constants/site-navigation";
+import { useAuth } from "@/contexts/AuthProvider";
 import { cn } from "@/lib/utils/cn";
-
-const mobileNavLinks: MobileNavLink[] = [
-  ...SITE_HEADER_LINKS.map((item) => ({
-    href: item.href,
-    label: item.label,
-  })),
-  ...SITE_NAV_AUTH.map((item) => ({
-    href: item.href,
-    label: item.label,
-  })),
-  {
-    href: SITE_HEADER_CTA.href,
-    label: SITE_HEADER_CTA.label,
-    primary: true,
-  },
-];
 
 interface SiteHeaderProps {
   className?: string;
 }
 
 export function SiteHeader({ className }: SiteHeaderProps) {
+  const { user, profile, loading } = useAuth();
+  const signOut = useSignOut();
+  const isCoach = profile && COACH_ROLES.includes(profile.role);
+  const privateHref = isCoach ? "/coach" : "/perfil";
+  const privateLabel = isCoach ? "Panel coach" : "Mi perfil";
+
+  const mobileNavLinks: MobileNavLink[] = useMemo(() => {
+    const base: MobileNavLink[] = SITE_HEADER_LINKS.map((item) => ({
+      href: item.href,
+      label: item.label,
+    }));
+
+    if (user) {
+      base.push(
+        { href: privateHref, label: privateLabel },
+        { href: SITE_HEADER_CTA.href, label: SITE_HEADER_CTA.label, primary: true },
+        { href: "#", label: "Cerrar sesión", onClick: signOut },
+      );
+      return base;
+    }
+
+    return [
+      ...base,
+      ...SITE_NAV_AUTH.map((item) => ({
+        href: item.href,
+        label: item.label,
+      })),
+      {
+        href: SITE_HEADER_CTA.href,
+        label: SITE_HEADER_CTA.label,
+        primary: true,
+      },
+    ];
+  }, [user, privateHref, privateLabel, signOut]);
+
   return (
     <header
       className={cn(
@@ -51,21 +77,41 @@ export function SiteHeader({ className }: SiteHeaderProps) {
               {item.label}
             </Link>
           ))}
-          {SITE_NAV_AUTH.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="transition-colors duration-200 hover:text-white"
-            >
-              {item.label}
-            </Link>
-          ))}
-          <Link
-            href={SITE_HEADER_CTA.href}
-            className="rounded-full bg-sky-500 px-4 py-2.5 font-semibold text-zinc-950 shadow-lg shadow-sky-500/20 transition duration-200 hover:bg-sky-400 active:scale-[0.98]"
-          >
-            {SITE_HEADER_CTA.label}
-          </Link>
+          {!loading && user ? (
+            <>
+              <Link
+                href={privateHref}
+                className="transition-colors duration-200 hover:text-white"
+              >
+                {privateLabel}
+              </Link>
+              <Link
+                href={SITE_HEADER_CTA.href}
+                className="rounded-full bg-sky-500 px-4 py-2.5 font-semibold text-zinc-950 shadow-lg shadow-sky-500/20 transition duration-200 hover:bg-sky-400 active:scale-[0.98]"
+              >
+                {SITE_HEADER_CTA.label}
+              </Link>
+              <SignOutButton className="px-1 text-zinc-400" />
+            </>
+          ) : (
+            <>
+              {SITE_NAV_AUTH.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="transition-colors duration-200 hover:text-white"
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <Link
+                href={SITE_HEADER_CTA.href}
+                className="rounded-full bg-sky-500 px-4 py-2.5 font-semibold text-zinc-950 shadow-lg shadow-sky-500/20 transition duration-200 hover:bg-sky-400 active:scale-[0.98]"
+              >
+                {SITE_HEADER_CTA.label}
+              </Link>
+            </>
+          )}
         </nav>
         <MobileNavDrawer links={mobileNavLinks} />
       </div>
