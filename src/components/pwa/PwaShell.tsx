@@ -9,13 +9,14 @@ import {
   isPushSupported,
   requestPushPermissionAndToken,
   subscribeForegroundMessages,
-  warmMessagingServiceWorker,
 } from "@/lib/firebase/messaging-client";
 import {
   hasPublicMobileTabBar,
+  isAndroidDevice,
   isIosDevice,
   isStandaloneDisplay,
 } from "@/lib/pwa/device";
+import { registerPwaServiceWorker } from "@/lib/pwa/register-sw";
 import { cn } from "@/lib/utils/cn";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -50,9 +51,12 @@ export function PwaShell() {
   const { user, profile, loading } = useAuth();
   const [installEvent, setInstallEvent] =
     useState<BeforeInstallPromptEvent | null>(null);
-  const [installDismissed, setInstallDismissed] = useState(true);
+  const [installDismissed, setInstallDismissed] = useState(() =>
+    typeof window !== "undefined" ? readInstallBannerDismissed() : true,
+  );
   const [installed, setInstalled] = useState(false);
   const [isIos, setIsIos] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
   const [pushBanner, setPushBanner] = useState(false);
   const [pushDismissed, setPushDismissed] = useState(true);
   const [pushLoading, setPushLoading] = useState(false);
@@ -63,7 +67,8 @@ export function PwaShell() {
   const aboveTabBar = hasPublicMobileTabBar(pathname);
 
   useEffect(() => {
-    setInstallDismissed(readInstallBannerDismissed());
+    void registerPwaServiceWorker();
+
     try {
       setPushDismissed(localStorage.getItem(PUSH_BANNER_DISMISSED_KEY) === "1");
     } catch {
@@ -71,11 +76,9 @@ export function PwaShell() {
     }
     setInstalled(isStandaloneDisplay());
     setIsIos(isIosDevice());
+    setIsAndroid(isAndroidDevice());
     setPushConfigured(isPushConfigured());
-
-    if (isPushConfigured()) {
-      void warmMessagingServiceWorker();
-    }
+    setInstallDismissed(readInstallBannerDismissed());
 
     const onInstall = (e: Event) => {
       e.preventDefault();
@@ -146,14 +149,28 @@ export function PwaShell() {
   }
 
   async function installApp() {
-    if (!installEvent) return;
-    await installEvent.prompt();
-    const { outcome } = await installEvent.userChoice;
-    if (outcome === "accepted") {
-      setInstallEvent(null);
-      setInstalled(true);
-    } else if (outcome === "dismissed") {
-      dismissInstallBanner();
+    if (!installEvent) {
+      setToast({
+        message:
+          "En Chrome: menú ⋮ → «Instalar aplicación» o «Añadir a pantalla de inicio».",
+      });
+      return;
+    }
+    try {
+      await installEvent.prompt();
+      const { outcome } = await installEvent.userChoice;
+      if (outcome === "accepted") {
+        setInstallEvent(null);
+        setInstalled(true);
+        setToast({ message: "App instalada. Ábrela desde el icono AM en tu móvil." });
+      } else if (outcome === "dismissed") {
+        dismissInstallBanner();
+      }
+    } catch {
+      setToast({
+        message:
+          "Usa el menú del navegador (⋮) → «Instalar aplicación» o «Añadir a pantalla de inicio».",
+      });
     }
   }
 
@@ -199,9 +216,11 @@ export function PwaShell() {
 
   const showAndroidInstall =
     Boolean(installEvent) && !installed && !installDismissed;
+  const showAndroidManual =
+    isAndroid && !installed && !installDismissed && !installEvent;
   const showIosInstall =
     isIos && !installed && !installDismissed && !showAndroidInstall;
-  const showInstall = showAndroidInstall || showIosInstall;
+  const showInstall = showAndroidInstall || showIosInstall || showAndroidManual;
   const showPush =
     pushBanner && user && !pushDismissed && pushConfigured && !showInstall;
 
@@ -215,9 +234,11 @@ export function PwaShell() {
 
   const installBody = showIosInstall
     ? "En Safari: botón Compartir → «Añadir a pantalla de inicio». Así abres más rápido y en iPhone puedes recibir avisos."
-    : isCoach
-      ? "Acceso directo al panel, reservas y avisos al instante."
-      : "Acceso rápido a reservas, tu perfil y avisos cuando confirme tu clase.";
+    : showAndroidManual
+      ? "En Chrome: menú ⋮ arriba a la derecha → «Instalar aplicación» o «Añadir a pantalla de inicio». También puedes pulsar Instalar si aparece el asistente."
+      : isCoach
+        ? "Acceso directo al panel, reservas y avisos al instante."
+        : "Acceso rápido a reservas, tu perfil y avisos cuando confirme tu clase.";
 
   return (
     <div
@@ -256,15 +277,21 @@ export function PwaShell() {
                 <li>Abre la app desde el icono AM</li>
               </ol>
             )}
+            {showAndroidManual && (
+              <ol className="mt-2 list-decimal space-y-0.5 pl-4 text-xs text-zinc-500">
+                <li>Menú ⋮ (tres puntos)</li>
+                <li>«Instalar aplicación» o «Añadir a pantalla de inicio»</li>
+              </ol>
+            )}
           </div>
           <div className="flex shrink-0 flex-wrap gap-2 sm:flex-col sm:items-stretch">
-            {showAndroidInstall && (
+            {(showAndroidInstall || showAndroidManual) && (
               <button
                 type="button"
                 onClick={installApp}
                 className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-zinc-950"
               >
-                Instalar
+                {showAndroidInstall ? "Instalar" : "Cómo instalar"}
               </button>
             )}
             {showIosInstall && (
@@ -281,7 +308,7 @@ export function PwaShell() {
               onClick={dismissInstallBanner}
               className="rounded-full border border-zinc-600 px-5 py-2.5 text-sm text-zinc-400 hover:border-zinc-500 hover:text-zinc-300"
             >
-              {showIosInstall ? "Ahora no" : "No, gracias"}
+              {showIosInstall || showAndroidManual ? "Ahora no" : "No, gracias"}
             </button>
           </div>
         </div>

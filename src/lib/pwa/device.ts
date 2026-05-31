@@ -13,6 +13,11 @@ export function isStandaloneDisplay(): boolean {
   );
 }
 
+export function isAndroidDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /Android/i.test(navigator.userAgent);
+}
+
 /** Sitio público con barra inferior fija (no /coach, /perfil, /login) */
 export function hasPublicMobileTabBar(pathname: string): boolean {
   if (pathname.startsWith("/coach")) return false;

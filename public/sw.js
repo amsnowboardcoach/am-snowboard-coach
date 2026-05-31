@@ -1,4 +1,24 @@
 /* eslint-disable no-undef */
+/* Service worker PWA + Firebase Cloud Messaging */
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
+/** Requerido para que Chrome permita instalar la PWA */
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
+    }),
+  );
+});
+
 importScripts(
   "https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js",
 );
@@ -28,8 +48,8 @@ function showNotification(payload) {
 
   self.registration.showNotification(title, {
     body,
-    icon: "/apple-icon",
-    badge: "/apple-icon",
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
     data: { url },
     tag: payload.data?.tag || "am-snowboard",
   });
@@ -71,7 +91,7 @@ fetch("/api/firebase-public-config")
       showNotification(payload);
     });
   })
-  .catch((err) => console.error("[fcm-sw]", err));
+  .catch((err) => console.error("[sw] FCM init:", err));
 
 self.addEventListener("push", (event) => {
   if (!event.data) return;
@@ -79,6 +99,6 @@ self.addEventListener("push", (event) => {
     const payload = event.data.json();
     event.waitUntil(showNotification(payload));
   } catch {
-    /* handled by onBackgroundMessage */
+    /* onBackgroundMessage */
   }
 });

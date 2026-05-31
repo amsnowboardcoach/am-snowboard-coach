@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npx tsx scripts/generate-pwa-icons.tsx && next build",
+    "pwa:icons": "npx tsx scripts/generate-pwa-icons.tsx",
     "start": "next start",
     "lint": "eslint",
     "setup:firebase-admin": "node scripts/import-firebase-admin.mjs",

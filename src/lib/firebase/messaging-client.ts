@@ -10,8 +10,7 @@ import {
 } from "firebase/messaging";
 import { getFirebaseApp } from "@/lib/firebase/client";
 import { saveFcmToken } from "@/lib/firebase/fcm-tokens";
-
-const SW_PATH = "/firebase-messaging-sw.js";
+import { registerPwaServiceWorker } from "@/lib/pwa/register-sw";
 
 /** Clave pública VAPID web (65 bytes en base64url, suele empezar por B). */
 function isValidWebPushVapidKey(key: string): boolean {
@@ -45,20 +44,12 @@ function getVapidKey(): string | null {
 }
 
 async function ensureServiceWorker(): Promise<ServiceWorkerRegistration | null> {
-  if (!getVapidKey()) return null;
-  if (!("serviceWorker" in navigator)) return null;
-  const existing = await navigator.serviceWorker.getRegistration("/");
-  if (existing?.active) return existing;
-  return navigator.serviceWorker.register(SW_PATH, { scope: "/" });
+  return registerPwaServiceWorker();
 }
 
-/** Registra el SW al cargar la app (mejor para PWA e instalación) */
+/** Registra el SW (PWA + push) al cargar la app */
 export async function warmMessagingServiceWorker(): Promise<void> {
-  try {
-    await ensureServiceWorker();
-  } catch (err) {
-    console.warn("[push] Service worker:", err);
-  }
+  await registerPwaServiceWorker();
 }
 
 export function isPushConfigured(): boolean {
@@ -139,7 +130,7 @@ export function subscribeForegroundMessages(
       if (typeof Notification !== "undefined" && Notification.permission === "granted") {
         new Notification(title, {
           body,
-          icon: "/apple-icon",
+          icon: "/icons/icon-192.png",
           data: { url },
         });
       }
