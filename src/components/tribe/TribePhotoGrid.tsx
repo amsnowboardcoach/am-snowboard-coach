@@ -37,9 +37,9 @@ export function TribePhotoGrid() {
           </p>
           <p className="mt-2 text-sm text-zinc-500">
             <Link href="/login" className="text-sky-400 hover:underline">
-              Entra
+              Área de alumno
             </Link>{" "}
-            o{" "}
+            —{" "}
             <Link href="/tribu" className="text-sky-400 hover:underline">
               visita La Tribu
             </Link>{" "}

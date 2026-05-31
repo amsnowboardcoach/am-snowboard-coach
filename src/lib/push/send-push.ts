@@ -224,8 +224,8 @@ export async function notifyStudentPaymentReceived(details: {
   await sendPushToUser(details.userId, {
     title: "Pago recibido — gracias",
     body: when
-      ? `${details.productLabel} · ${details.amountEuros} € · ${when}`
-      : `${details.productLabel} · ${details.amountEuros} € registrados`,
+      ? `${details.productLabel} · ${details.amountEuros} € · ${when}. Te avisamos cuando Alejandro acepte tu plaza.`
+      : `${details.productLabel} · ${details.amountEuros} € registrados. Te avisamos cuando acepte tu plaza.`,
     url: "/perfil",
     tag: "payment-received",
   });
@@ -239,7 +239,7 @@ export async function notifyCoachPaymentReceived(details: {
   bookingId: string;
 }): Promise<void> {
   await sendPushToUser(getCoachUserId(), {
-    title: "Pago recibido de un alumno",
+    title: "Pago recibido — acepta la reserva",
     body: `${details.studentName} · ${details.productLabel} · ${details.amountEuros} €`,
     url: "/coach?tab=reservas",
     tag: `paid-${details.bookingId}`,

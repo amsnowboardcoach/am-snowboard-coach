@@ -23,8 +23,8 @@ export const metadata = {
     title: "AM Coach",
   },
   icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg",
+    icon: [{ url: "/icon", type: "image/png", sizes: "512x512" }],
+    apple: [{ url: "/apple-icon", type: "image/png", sizes: "180x180" }],
   },
 };
 

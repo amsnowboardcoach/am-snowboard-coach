@@ -55,7 +55,7 @@ export const termsOfUseDocument: LegalDocumentContent = {
         {
           type: "ul",
           items: [
-            "Clases de snowboard en Sierra Nevada (Granada): solicitud de reserva online con calendario de disponibilidad en tiempo real; la plaza queda sujeta a confirmación expresa por el coach.",
+            "Clases de snowboard en Sierra Nevada (Granada): solicitud de reserva online con calendario de disponibilidad en tiempo real; la plaza en agenda se formaliza cuando el coach acepta la solicitud y se ha completado el pago con tarjeta acordado (señal o total), salvo acuerdo distinto.",
             "Video corrección: solicitud y pago tras confirmación del coach; el material se gestiona en el área de alumno.",
             "Cuenta de alumno: pasaporte de trucos, historial de vídeos, notificaciones push opcionales y contacto con el coach.",
             "La Tribu: publicación de fotos y vídeos por alumnos registrados (con moderación); interacción pública limitada según las reglas del Sitio.",
@@ -92,11 +92,11 @@ export const termsOfUseDocument: LegalDocumentContent = {
       blocks: [
         {
           type: "p",
-          text: "El proceso de reserva de clases en pista requiere cuenta de alumno autenticada. La disponibilidad de días y turnos se muestra únicamente en el calendario del formulario de reserva, con carácter orientativo y en tiempo real según la agenda del coach; puede variar hasta el momento de la confirmación.",
+          text: "El proceso de reserva de clases en pista requiere cuenta de alumno autenticada. La disponibilidad de días y turnos se muestra únicamente en el calendario del formulario de reserva, con carácter orientativo y en tiempo real según la agenda del coach; puede variar hasta que el coach acepte la solicitud y se formalice el pago cuando corresponda.",
         },
         {
           type: "p",
-          text: "Al enviar una solicitud de reserva eliges duración, día(s), turno, estilo de clase, número de personas y forma de pago. La solicitud no garantiza plaza hasta que el coach la confirme expresamente. Recibirás comunicaciones por email (y, en su caso, invitación de calendario) sobre el estado de tu solicitud.",
+          text: "Al enviar una solicitud de reserva eliges duración, día(s), turno, estilo de clase, número de personas y forma de pago. La solicitud no garantiza plaza hasta que el coach la acepte expresamente y, cuando proceda, se haya completado el pago con tarjeta previsto (señal o importe total). Recibirás comunicaciones por email (y, en su caso, invitación de calendario) cuando la reserva quede confirmada.",
         },
         {
           type: "p",
@@ -104,7 +104,7 @@ export const termsOfUseDocument: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: `El cobro con tarjeta en el momento de la solicitud formaliza tu compromiso de reserva según la opción elegida; si el coach rechaza la solicitud, se aplicará la política de devolución que se te comunique. La confirmación del coach no sustituye, en el caso de señal, el pago del saldo pendiente en ${BOOKING_BALANCE_ON_SLOPE} el día acordado, salvo que hubieras pagado el total con tarjeta.`,
+          text: `El cobro con tarjeta en el momento de la solicitud registra el pago según la opción elegida (señal o pago total), pero la plaza en calendario se formaliza cuando el coach acepta la reserva. Si el coach rechaza la solicitud, se aplicará la política de devolución que corresponda al pago realizado. En el caso de señal, el saldo pendiente se abona en ${BOOKING_BALANCE_ON_SLOPE} el día acordado, salvo que hubieras pagado el importe total con tarjeta.`,
         },
         {
           type: "p",

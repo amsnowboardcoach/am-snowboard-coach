@@ -6,7 +6,12 @@ import {
 import { getBookingCalendarAvailability } from "@/lib/booking/schedule";
 import { isGoogleCalendarConfigured } from "@/lib/google/calendar";
 import { BOOKING_AVAILABILITY_FETCH_DAYS } from "@/constants/booking-availability";
-import { addDays, format } from "date-fns";
+import {
+  clampRangeToSeason,
+  getBookableRangeStart,
+  getBookingSeasonBounds,
+} from "@/lib/booking/season";
+import { addDays, format, parseISO } from "date-fns";
 
 export const runtime = "nodejs";
 
@@ -14,11 +19,16 @@ export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const durationId = searchParams.get("durationId") as SessionDurationId | null;
   const slotId = searchParams.get("slotId") ?? undefined;
-  const start =
-    searchParams.get("start") ?? format(new Date(), "yyyy-MM-dd");
-  const end =
-    searchParams.get("end") ??
-    format(addDays(new Date(), BOOKING_AVAILABILITY_FETCH_DAYS), "yyyy-MM-dd");
+  const season = getBookingSeasonBounds();
+  const defaultStart = getBookableRangeStart();
+  const tentativeEnd = format(
+    addDays(parseISO(defaultStart), BOOKING_AVAILABILITY_FETCH_DAYS),
+    "yyyy-MM-dd",
+  );
+  const defaultEnd = tentativeEnd < season.end ? tentativeEnd : season.end;
+  const requestedStart = searchParams.get("start") ?? defaultStart;
+  const requestedEnd = searchParams.get("end") ?? defaultEnd;
+  const clamped = clampRangeToSeason(requestedStart, requestedEnd);
 
   if (!durationId) {
     return NextResponse.json(
@@ -46,6 +56,21 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  if (!clamped) {
+    return NextResponse.json({
+      durationId,
+      slotId: slotId ?? null,
+      start: defaultStart,
+      end: season.end,
+      slots: [],
+      days: [],
+      rangeStart: defaultStart,
+      rangeEnd: season.end,
+    });
+  }
+
+  const { start, end } = clamped;
+
   try {
     const calendar = await getBookingCalendarAvailability(
       session,
@@ -54,6 +79,11 @@ export async function GET(request: NextRequest) {
       slotId,
     );
 
+    const warnings: string[] = [];
+    if (!isGoogleCalendarConfigured()) {
+      warnings.push("Calendario de Google no configurado en el servidor.");
+    }
+
     return NextResponse.json({
       durationId,
       slotId: slotId ?? null,
@@ -61,19 +91,27 @@ export async function GET(request: NextRequest) {
       end,
       slots: calendar.slots,
       days: calendar.days,
-      rangeStart: calendar.rangeStart,
-      rangeEnd: calendar.rangeEnd,
+      rangeStart: getBookableRangeStart(),
+      rangeEnd: season.end,
+      warnings: warnings.length > 0 ? warnings : undefined,
     });
   } catch (err) {
     console.error("[availability]", err);
+    const message =
+      err instanceof Error ? err.message : "No se pudo consultar disponibilidad";
     return NextResponse.json(
       {
-        error:
-          err instanceof Error
-            ? err.message
-            : "No se pudo consultar disponibilidad",
+        error: message,
+        durationId,
+        slotId: slotId ?? null,
+        start: clamped.start,
+        end: clamped.end,
+        slots: [],
+        days: [],
+        rangeStart: getBookableRangeStart(),
+        rangeEnd: season.end,
       },
-      { status: 502 },
+      { status: 200 },
     );
   }
 }

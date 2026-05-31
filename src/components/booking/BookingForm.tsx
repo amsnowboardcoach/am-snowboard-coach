@@ -32,7 +32,6 @@ import {
 } from "@/constants/booking-payment";
 import { BOOKING_PAYMENT_OPTIONS_NOTE } from "@/constants/coach-contact";
 import { useAuth } from "@/contexts/AuthProvider";
-import { COACH_ROLES } from "@/constants/roles";
 import { LESSON_TYPES } from "@/constants/lesson-types";
 import {
   MAX_BOOKING_DAYS,
@@ -66,10 +65,13 @@ import {
   mergeCalendarDays,
 } from "@/lib/booking/calendar-availability";
 import type { CalendarDayInfo } from "@/lib/booking/calendar-availability";
+import { BOOKING_SEASON_LABEL } from "@/constants/booking-availability";
+import { BOOKING_AVAILABILITY_FETCH_DAYS } from "@/constants/booking-availability";
 import {
-  BOOKING_AVAILABILITY_FETCH_DAYS,
-  BOOKING_AVAILABILITY_LOOKAHEAD_DAYS,
-} from "@/constants/booking-availability";
+  clampRangeToSeason,
+  getBookableRangeStart,
+  getBookingSeasonBounds,
+} from "@/lib/booking/season";
 import {
   formatSlotConflictMessage,
   freeSlotIdsForDate,
@@ -92,21 +94,21 @@ type DurationAvailEntry = {
 };
 
 function bookingNavigationRangeEnd(): string {
-  return format(
-    addDays(new Date(), BOOKING_AVAILABILITY_LOOKAHEAD_DAYS),
-    "yyyy-MM-dd",
-  );
+  return getBookingSeasonBounds().end;
 }
 
 function defaultAvailabilityFetchRange(): { start: string; end: string } {
-  const start = format(new Date(), "yyyy-MM-dd");
-  return {
-    start,
-    end: format(addDays(new Date(), BOOKING_AVAILABILITY_FETCH_DAYS), "yyyy-MM-dd"),
-  };
+  const season = getBookingSeasonBounds();
+  const start = getBookableRangeStart();
+  const tentativeEnd = format(
+    addDays(parseISO(start), BOOKING_AVAILABILITY_FETCH_DAYS),
+    "yyyy-MM-dd",
+  );
+  const end = tentativeEnd < season.end ? tentativeEnd : season.end;
+  return { start, end };
 }
 
-function buildInitialAvailMap(): Record<SessionDurationId, DurationAvailEntry> {
+  function buildInitialAvailMap(): Record<SessionDurationId, DurationAvailEntry> {
   const map = {} as Record<SessionDurationId, DurationAvailEntry>;
   for (const s of SESSION_DURATIONS) {
     map[s.id] = {
@@ -241,10 +243,7 @@ function PriceSummary({
 export function BookingForm() {
   const searchParams = useSearchParams();
   const { user, profile, loading: authLoading } = useAuth();
-  const isCoachAccount =
-    profile?.role != null && COACH_ROLES.includes(profile.role);
-  const canBook =
-    Boolean(user?.email) && !authLoading && !isCoachAccount;
+  const canBook = Boolean(user?.email) && !authLoading;
 
   const [participantCount, setParticipantCount] = useState(1);
   const [durationId, setDurationId] = useState<SessionDurationId>(
@@ -342,6 +341,7 @@ export function BookingForm() {
   }, [durationId]);
 
   const availabilityFetchRef = useRef<string | null>(null);
+  const availabilityGenRef = useRef(0);
 
   const fetchDurationAvailability = useCallback(
     async (
@@ -349,10 +349,29 @@ export function BookingForm() {
       range?: { start: string; end: string },
       merge = false,
     ) => {
-      const { start, end } = range ?? defaultAvailabilityFetchRange();
+      const requested = range ?? defaultAvailabilityFetchRange();
+      const clamped = clampRangeToSeason(requested.start, requested.end);
+      if (!clamped) {
+        const season = getBookingSeasonBounds();
+        setAvailByDuration((prev) => ({
+          ...prev,
+          [id]: {
+            status: "empty",
+            slots: [],
+            calendarDays: [],
+            rangeStart: getBookableRangeStart(),
+            rangeEnd: season.end,
+            dayCount: 0,
+            error: null,
+          },
+        }));
+        return;
+      }
+      const { start, end } = clamped;
       const fetchKey = `${id}:${start}:${end}:${merge}`;
       if (availabilityFetchRef.current === fetchKey) return;
       availabilityFetchRef.current = fetchKey;
+      const gen = ++availabilityGenRef.current;
 
       setAvailByDuration((prev) => ({
         ...prev,
@@ -366,10 +385,15 @@ export function BookingForm() {
         const params = new URLSearchParams({ durationId: id, start, end });
         const res = await fetch(`/api/bookings/availability?${params}`);
         const data = await res.json();
+        if (gen !== availabilityGenRef.current) return;
         if (!res.ok) throw new Error(data.error ?? "Error de disponibilidad");
+        if (data.error && (!data.days || data.days.length === 0)) {
+          throw new Error(data.error);
+        }
         const incomingSlots: AvailableSlotOption[] = data.slots ?? [];
         const incomingDays: CalendarDayInfo[] = data.days ?? [];
         let mergedSlots = incomingSlots;
+        if (gen !== availabilityGenRef.current) return;
         setAvailByDuration((prev) => {
           const prior = prev[id];
           mergedSlots = merge
@@ -453,7 +477,7 @@ export function BookingForm() {
       if (!isAfter(monthEnd, addDays(loadedEnd, -45))) return;
 
       const newEnd = format(
-        min(addDays(loadedEnd, BOOKING_AVAILABILITY_FETCH_DAYS), navEnd),
+        min([addDays(loadedEnd, BOOKING_AVAILABILITY_FETCH_DAYS), navEnd]),
         "yyyy-MM-dd",
       );
       if (newEnd <= entry.rangeEnd) return;
@@ -511,7 +535,6 @@ export function BookingForm() {
 
   useEffect(() => {
     if (authLoading || !user?.email) return;
-    if (isCoachAccount) return;
     const displayName =
       profile?.displayName?.trim() ||
       user.displayName?.trim() ||
@@ -519,7 +542,7 @@ export function BookingForm() {
       "Alumno";
     setName(displayName);
     setEmail(user.email);
-  }, [authLoading, user, profile, isCoachAccount]);
+  }, [authLoading, user, profile]);
 
   function pickDuration(id: SessionDurationId) {
     setDurationId(id);
@@ -532,9 +555,7 @@ export function BookingForm() {
     if (cached?.status === "ready" || cached?.status === "empty") {
       return;
     }
-    if (cached?.status !== "loading") {
-      void fetchDurationAvailability(id);
-    }
+    void fetchDurationAvailability(id);
   }
 
   function applySlotToAllDates(id: string) {
@@ -787,11 +808,6 @@ export function BookingForm() {
     e.preventDefault();
     if (!formReady) return;
 
-    if (isCoachAccount) {
-      setSubmitError("Las reservas en la web son solo para alumnos.");
-      return;
-    }
-
     if (!canBook) {
       openAuthGate();
       return;
@@ -813,11 +829,11 @@ export function BookingForm() {
         <p className="mx-auto mt-3 max-w-md text-sm text-zinc-300">
           {paymentSuccess
             ? depositPaidSuccess
-              ? `Señal del ${BOOKING_DEPOSIT_PERCENT}% recibida. Alejandro confirmará tu plaza; el resto${confirmedBalance != null ? ` (${confirmedBalance} €)` : ""} en ${BOOKING_BALANCE_ON_CLASS_DAY}. Revisa tu email.`
-              : "Pago completo recibido. Alejandro confirmará tu plaza y te enviará los detalles por email."
+              ? `Señal del ${BOOKING_DEPOSIT_PERCENT}% recibida. Alejandro revisará y aceptará tu plaza; el resto${confirmedBalance != null ? ` (${confirmedBalance} €)` : ""} en ${BOOKING_BALANCE_ON_CLASS_DAY}. Te avisamos por email cuando confirme.`
+              : "Pago completo recibido. Alejandro revisará y aceptará tu plaza; te enviaremos los detalles por email cuando confirme."
             : confirmedDayCount > 1
-              ? `Solicitud de ${confirmedDayCount} clases enviada. Alejandro la revisará y te avisará por email.`
-              : "Solicitud enviada. Alejandro la revisará y te avisará por email."}
+              ? `Solicitud de ${confirmedDayCount} clases enviada. Completa el pago con tarjeta; Alejandro aceptará cada plaza después.`
+              : "Solicitud enviada. Completa el pago con tarjeta; Alejandro aceptará tu plaza después."}
         </p>
         <ol className="mx-auto mt-4 max-w-sm space-y-1.5 text-left text-sm text-zinc-400">
           <li>
@@ -894,7 +910,7 @@ export function BookingForm() {
     <form onSubmit={handleSubmit} className="space-y-8">
       <FieldBlock
         title="1. Día y turno"
-        hint="Elige fechas en el calendario y el horario de cada día. Puedes cambiar la duración en el siguiente paso."
+        hint={`Temporada ${BOOKING_SEASON_LABEL}. Elige fechas y turno; puedes cambiar la duración en el siguiente paso.`}
       >
         {packError && (
           <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
@@ -1061,7 +1077,7 @@ export function BookingForm() {
         />
         <button
           type="submit"
-          disabled={submitting || !formReady || (showAuthGate && isCoachAccount)}
+          disabled={submitting || !formReady}
           className="w-full rounded-full bg-sky-500 py-3.5 text-sm font-semibold text-zinc-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {submitting

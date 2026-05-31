@@ -31,6 +31,7 @@ import { addDays } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { formatBookingInTimeZone } from "@/lib/booking/format-datetime";
 import { BOOKING_TIMEZONE } from "@/lib/booking/timezone";
+import { isDateInBookingSeason } from "@/lib/booking/season";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -159,6 +160,12 @@ export async function POST(request: NextRequest) {
       }
 
       const startAt = new Date(item.startUtc);
+      if (!isDateInBookingSeason(startAt)) {
+        return NextResponse.json(
+          { error: "Las reservas en pista son de noviembre a mayo" },
+          { status: 400 },
+        );
+      }
       const endAt = new Date(
         startAt.getTime() + session.durationMinutes * 60 * 1000,
       );
@@ -342,11 +349,11 @@ export async function POST(request: NextRequest) {
       pending: true,
       message: checkoutUrl
         ? paymentOption === "deposit_30"
-          ? `Completa el pago de la señal (${BOOKING_DEPOSIT_PERCENT}% = ${chargeEuros} €) con tarjeta. El resto (${balanceEuros} €) en ${BOOKING_BALANCE_ON_SLOPE}. Alejandro confirmará tu plaza.`
-          : `Completa el pago total (${chargeEuros} €) con tarjeta. Alejandro confirmará tu plaza.`
+          ? `Completa el pago de la señal (${BOOKING_DEPOSIT_PERCENT}% = ${chargeEuros} €) con tarjeta. Alejandro aceptará tu plaza después del pago. El resto (${balanceEuros} €) en ${BOOKING_BALANCE_ON_SLOPE}.`
+          : `Completa el pago total (${chargeEuros} €) con tarjeta. Alejandro aceptará tu plaza después del pago.`
         : sessionsInput.length > 1
-          ? `Solicitud de ${sessionsInput.length} clases enviada. Alejandro confirmará cada día.`
-          : "Solicitud enviada. Alejandro confirmará tu clase.",
+          ? `Solicitud de ${sessionsInput.length} clases enviada. Completa el pago con tarjeta; Alejandro aceptará cada día.`
+          : "Solicitud enviada. Completa el pago con tarjeta; Alejandro aceptará tu plaza.",
     });
   } catch (err) {
     console.error("[reserve]", err);

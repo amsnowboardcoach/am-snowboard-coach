@@ -26,10 +26,14 @@ import {
 } from "@/lib/booking/calendar-availability";
 import type { AvailableSlotOption } from "@/lib/booking/availability";
 import { freeSlotIdsForDate, nearestFreeSlotId } from "@/lib/booking/slot-suggestions";
+import { BOOKING_SEASON_LABEL } from "@/constants/booking-availability";
+import { BOOKING_AVAILABILITY_FETCH_DAYS } from "@/constants/booking-availability";
 import {
-  BOOKING_AVAILABILITY_FETCH_DAYS,
-  BOOKING_AVAILABILITY_LOOKAHEAD_DAYS,
-} from "@/constants/booking-availability";
+  canShowNextSeasonMonth,
+  canShowPrevSeasonMonth,
+  getDefaultCalendarMonth,
+  isDateInBookingSeason,
+} from "@/lib/booking/season";
 import type { DurationAvailabilityStatus } from "@/lib/booking/duration-availability";
 import { cn } from "@/lib/utils/cn";
 
@@ -379,7 +383,7 @@ export function BookingAvailabilityCalendar({
   );
   const selectedSet = useMemo(() => new Set(selectedDates), [selectedDates]);
 
-  const fallbackMonth = useMemo(() => startOfMonth(new Date()), []);
+  const fallbackMonth = useMemo(() => getDefaultCalendarMonth(), []);
 
   const rangeStartDate = useMemo(
     () => parseDateKeyOrFallback(rangeStart, fallbackMonth),
@@ -395,11 +399,7 @@ export function BookingAvailabilityCalendar({
   );
 
   const navigationEndDate = useMemo(
-    () =>
-      parseDateKeyOrFallback(
-        navigationRangeEnd,
-        addDays(fallbackMonth, BOOKING_AVAILABILITY_LOOKAHEAD_DAYS),
-      ),
+    () => parseDateKeyOrFallback(navigationRangeEnd, endOfMonth(fallbackMonth)),
     [navigationRangeEnd, fallbackMonth],
   );
 
@@ -449,8 +449,8 @@ export function BookingAvailabilityCalendar({
   const monthStart = startOfMonth(safeViewMonth);
   const monthEnd = endOfMonth(safeViewMonth);
 
-  const canGoPrev = isAfter(monthStart, rangeStartDate);
-  const canGoNext = isBefore(monthEnd, navigationEndDate);
+  const canGoPrev = canShowPrevSeasonMonth(safeViewMonth, rangeStartDate);
+  const canGoNext = canShowNextSeasonMonth(safeViewMonth, navigationEndDate);
 
   function dayStatusLabel(status: CalendarDayStatus | undefined): string {
     switch (status) {
@@ -526,7 +526,7 @@ export function BookingAvailabilityCalendar({
       </div>
 
       <p className="mt-2 text-center text-[11px] text-zinc-600">
-        Máx. {MAX_BOOKING_DAYS} días
+        Temporada {BOOKING_SEASON_LABEL} · máx. {MAX_BOOKING_DAYS} días
       </p>
 
       <div className="mx-auto mt-2 max-w-sm grid grid-cols-7 gap-1 text-center">
@@ -543,6 +543,7 @@ export function BookingAvailabilityCalendar({
           const selected = selectedSet.has(key);
           const hasFree = (info?.freeCount ?? 0) > 0;
           const inRange =
+            isDateInBookingSeason(day) &&
             !isBefore(day, rangeStartDate) &&
             !isAfter(day, navigationEndDate);
           const dataLoaded = dayMap.has(key);

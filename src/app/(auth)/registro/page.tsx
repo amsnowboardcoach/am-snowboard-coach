@@ -1,20 +1,18 @@
-import { Suspense } from "react";
-import { RegisterForm } from "@/components/auth/RegisterForm";
+import { redirect } from "next/navigation";
+import { STUDENT_AREA_PATH } from "@/constants/student-area";
 
-import { buildPageMetadata } from "@/lib/seo/metadata";
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
-export const metadata = buildPageMetadata({
-  title: "Crear cuenta de alumno",
-  description:
-    "Regístrate gratis con Google o email. Progreso, vídeos, La Tribu y WhatsApp directo con el coach para dudas y reservas en Sierra Nevada.",
-  path: "/registro",
-  noIndex: true,
-});
-
-export default function RegistroPage() {
-  return (
-    <Suspense fallback={<p className="text-sm text-zinc-500">Cargando…</p>}>
-      <RegisterForm />
-    </Suspense>
-  );
+/** /registro redirige al área de alumno unificada */
+export default async function RegistroRedirectPage({ searchParams }: PageProps) {
+  const sp = await searchParams;
+  const params = new URLSearchParams();
+  params.set("registro", "1");
+  const next = sp.next;
+  if (typeof next === "string" && next.startsWith("/") && !next.startsWith("//")) {
+    params.set("next", next);
+  }
+  redirect(`${STUDENT_AREA_PATH}?${params.toString()}`);
 }

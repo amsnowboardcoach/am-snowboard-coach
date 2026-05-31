@@ -46,19 +46,32 @@ export async function getBookingCalendarAvailability(
   const rangeEndExclusive = addDays(rangeEndInclusive, 1);
 
   let busy: { start: Date; end: Date }[] = [];
+  let calendarUnavailable = false;
   if (isGoogleCalendarConfigured() && candidates.length > 0) {
     try {
       busy = await fetchBusyIntervals(rangeStart, rangeEndExclusive);
     } catch (err) {
-      console.error("[schedule] Google Calendar busy:", err);
-      throw err;
+      calendarUnavailable = true;
+      console.error(
+        "[schedule] Google Calendar no disponible; usando solo reservas en Firestore:",
+        err,
+      );
     }
   }
 
-  const firestoreBusy = await findOverlappingBookings(
-    rangeStart,
-    rangeEndExclusive,
-  );
+  let firestoreBusy: Awaited<ReturnType<typeof findOverlappingBookings>> = [];
+  try {
+    firestoreBusy = await findOverlappingBookings(
+      rangeStart,
+      rangeEndExclusive,
+    );
+  } catch (err) {
+    console.error(
+      "[schedule] Firestore bookings no disponible; sin bloqueos de reservas:",
+      err,
+    );
+    firestoreBusy = [];
+  }
 
   const slotsByDate = new Map<
     string,

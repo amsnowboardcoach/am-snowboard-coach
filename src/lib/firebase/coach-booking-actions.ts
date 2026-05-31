@@ -27,3 +27,12 @@ export async function rejectBookingApi(bookingId: string): Promise<void> {
   const data = await res.json();
   if (!res.ok) throw new Error(data.error ?? "No se pudo rechazar");
 }
+
+export async function markBookingPaidApi(bookingId: string): Promise<void> {
+  const res = await fetch(`/api/bookings/${bookingId}/mark-paid`, {
+    method: "POST",
+    headers: await coachAuthHeader(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "No se pudo registrar el pago");
+}

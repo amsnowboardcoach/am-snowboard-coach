@@ -69,12 +69,6 @@ export const cookiePolicyDocument: LegalDocumentContent = {
               "Tercero",
             ],
             [
-              "admin_gate (si aplica)",
-              "Acceso protegido al panel",
-              "Sesión",
-              "Técnica",
-            ],
-            [
               "Service Worker / PWA",
               "Instalación y notificaciones push",
               "Persistente",

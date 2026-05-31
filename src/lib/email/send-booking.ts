@@ -129,17 +129,17 @@ export async function sendBookingRequestEmails(
     ${details.isRegisteredStudent ? coachWhatsAppHtmlForEmail() : ""}
     ${
       details.paymentOption === "deposit_30" && details.chargeEuros != null
-        ? `<p><strong>Señal del ${BOOKING_DEPOSIT_PERCENT}% (${details.chargeEuros} €)</strong> pendiente de completar con tarjeta en la web. Resto previsto: <strong>${details.balanceEuros ?? 0} €</strong> en ${BOOKING_BALANCE_ON_CLASS_DAY}.</p>`
+        ? `<p><strong>Señal del ${BOOKING_DEPOSIT_PERCENT}% (${details.chargeEuros} €)</strong> pendiente de completar con tarjeta en la web. Tras el pago, <strong>Alejandro aceptará tu plaza</strong> y te avisará por email. Resto previsto: <strong>${details.balanceEuros ?? 0} €</strong> en ${BOOKING_BALANCE_ON_CLASS_DAY}.</p>`
         : details.paymentOption === "full_stripe"
-          ? `<p><strong>Pago total (${total} €)</strong> pendiente de completar con tarjeta en la web.</p>`
-          : "<p><strong>Alejandro confirmará la plaza en breve.</strong> Te indicará cómo completar el pago.</p>"
+          ? `<p><strong>Pago total (${total} €)</strong> pendiente de completar con tarjeta en la web. Tras el pago, <strong>Alejandro aceptará tu plaza</strong> y te avisará por email.</p>`
+          : "<p><strong>Alejandro aceptará tu plaza</strong> y te indicará cómo completar el pago.</p>"
     }
     <p>— AM Snowboard Coach</p>
   `;
 
   const coachHtml = `
     <h2>Nueva solicitud de reserva${multi ? ` (${details.sessions!.length} días)` : ""}</h2>
-    <p>Confirma o rechaza desde el panel del coach:</p>
+    <p>Acepta o rechaza desde el panel del coach. Para reservas web con pago online, acepta cuando el alumno haya pagado la señal o el total; entonces se bloquea el calendario:</p>
     <p><a href="${coachPanelUrl}">${coachPanelUrl}</a></p>
     <ul>
       <li>Alumno: ${details.studentName} &lt;${details.studentEmail}&gt;</li>

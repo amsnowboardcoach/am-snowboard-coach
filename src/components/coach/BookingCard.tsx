@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { updateBookingPayment } from "@/lib/firebase/bookings";
 import {
   confirmBookingApi,
+  markBookingPaidApi,
   rejectBookingApi,
 } from "@/lib/firebase/coach-booking-actions";
 import { formatFirestoreDate } from "@/lib/utils/dates";
@@ -54,6 +54,21 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
     booking.status === "pending" &&
     (booking.source === "web" || booking.source === "hub");
 
+  const paymentReady =
+    booking.payment.status === "deposit_paid" ||
+    booking.payment.status === "paid";
+
+  const awaitsOnlinePayment =
+    needsApproval &&
+    !isVideo &&
+    !paymentReady &&
+    (booking.payment.paymentOption === "deposit_30" ||
+      booking.payment.paymentOption === "full_stripe" ||
+      booking.payment.paymentOption === "after_confirm" ||
+      booking.source === "web");
+
+  const canAcceptSession = needsApproval && !isVideo && paymentReady;
+
   const studentName =
     booking.studentDisplayName ||
     booking.studentEmail ||
@@ -98,13 +113,14 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
 
   async function markAsPaid() {
     setMarkingPaid(true);
+    setActionError(null);
     try {
-      await updateBookingPayment(
-        booking.id,
-        "paid",
-        booking.payment.amountCents,
-      );
+      await markBookingPaidApi(booking.id);
       onUpdated();
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Error al registrar pago",
+      );
     } finally {
       setMarkingPaid(false);
     }
@@ -183,26 +199,35 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
           <p className="text-sm text-amber-200">
             {isVideo
               ? "Solicitud de video corrección — confirma para enviar enlace de pago al alumno."
-              : "Nueva solicitud desde la web — confirma para bloquear el calendario y avisar al alumno."}
-            {booking.payment.status === "paid" &&
-            booking.payment.stripeSessionId
-              ? " El alumno ya pagó el total con tarjeta."
-              : booking.payment.status === "deposit_paid"
-                ? ` Señal pagada con tarjeta; el resto en ${BOOKING_BALANCE_ON_SLOPE}.`
-                : booking.payment.paymentOption === "full_stripe" ||
-                    booking.payment.paymentOption === "deposit_30"
-                  ? " El alumno debe completar el pago con tarjeta en la web (o ya lo hizo)."
-                  : " Se enviará al alumno el enlace de pago con tarjeta por email."}
+              : awaitsOnlinePayment
+                ? "Solicitud desde la web — esperando pago con tarjeta (señal o total). La clase solo se bloquea en tu calendario cuando aceptes la reserva y el pago esté hecho."
+                : canAcceptSession
+                  ? booking.payment.status === "deposit_paid"
+                    ? `Pago con tarjeta recibido (señal ${BOOKING_DEPOSIT_PERCENT}%). Acepta la reserva para bloquear el calendario; el resto en ${BOOKING_BALANCE_ON_SLOPE}.`
+                    : "Pago con tarjeta recibido. Acepta la reserva para bloquear el calendario y avisar al alumno."
+                  : "Nueva solicitud — acepta para bloquear el calendario y avisar al alumno (o rechaza)."}
           </p>
           <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
-            <button
-              type="button"
-              disabled={confirming || rejecting}
-              onClick={confirmRequest}
-              className="min-h-11 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white active:bg-emerald-500 disabled:opacity-50"
-            >
-              {confirming ? "Confirmando…" : "Confirmar reserva"}
-            </button>
+            {canAcceptSession && (
+              <button
+                type="button"
+                disabled={confirming || rejecting}
+                onClick={confirmRequest}
+                className="min-h-11 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white active:bg-emerald-500 disabled:opacity-50"
+              >
+                {confirming ? "Aceptando…" : "Aceptar reserva"}
+              </button>
+            )}
+            {!isVideo && !awaitsOnlinePayment && !canAcceptSession && (
+              <button
+                type="button"
+                disabled={confirming || rejecting}
+                onClick={confirmRequest}
+                className="min-h-11 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white active:bg-emerald-500 disabled:opacity-50"
+              >
+                {confirming ? "Confirmando…" : "Confirmar reserva"}
+              </button>
+            )}
             <button
               type="button"
               disabled={confirming || rejecting}

@@ -1,24 +1,32 @@
 {
+  "id": "/",
   "name": "AM Snowboard Coach",
   "short_name": "AM Coach",
   "description": "Clases de snowboard en Sierra Nevada — reservas y área de alumno",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#1a2332",
-  "theme_color": "#6eb0c8",
+  "theme_color": "#1a2332",
   "orientation": "any",
   "lang": "es",
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/apple-icon",
+      "sizes": "180x180",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon.svg",
+      "src": "/icon",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
@@ -35,9 +43,14 @@
       "description": "Nueva reserva"
     },
     {
+      "name": "Área de alumno",
+      "url": "/login",
+      "description": "Entrar o registrarte"
+    },
+    {
       "name": "Mi perfil",
       "url": "/perfil",
-      "description": "Área de alumno"
+      "description": "Pasaporte y vídeos"
     }
   ]
 }

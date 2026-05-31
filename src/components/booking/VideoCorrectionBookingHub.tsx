@@ -5,7 +5,6 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { BookingAuthGate } from "@/components/booking/BookingAuthGate";
 import { getBookingAuthHeaders } from "@/lib/auth/booking-auth-headers";
 import { useAuth } from "@/contexts/AuthProvider";
-import { COACH_ROLES } from "@/constants/roles";
 import {
   VIDEO_CORRECTION_PRODUCT,
   formatVideoCorrectionPrice,
@@ -16,10 +15,7 @@ import { cn } from "@/lib/utils/cn";
 
 export function VideoCorrectionBookingHub() {
   const { user, profile, loading: authLoading } = useAuth();
-  const isCoachAccount =
-    profile?.role != null && COACH_ROLES.includes(profile.role);
-  const canBook =
-    Boolean(user?.email) && !authLoading && !isCoachAccount;
+  const canBook = Boolean(user?.email) && !authLoading;
 
   const [videoCount, setVideoCount] = useState(1);
   const [name, setName] = useState("");
@@ -35,7 +31,7 @@ export function VideoCorrectionBookingHub() {
   const totalEuros = videoCorrectionTotalEuros(videoCount);
 
   useEffect(() => {
-    if (authLoading || !user?.email || isCoachAccount) return;
+    if (authLoading || !user?.email) return;
     const displayName =
       profile?.displayName?.trim() ||
       user.displayName?.trim() ||
@@ -43,7 +39,7 @@ export function VideoCorrectionBookingHub() {
       "Alumno";
     setName(displayName);
     setEmail(user.email);
-  }, [authLoading, user, profile, isCoachAccount]);
+  }, [authLoading, user, profile]);
 
   const submitRequest = useCallback(async () => {
     if (!canBook) return;
@@ -86,10 +82,6 @@ export function VideoCorrectionBookingHub() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (isCoachAccount) {
-      setSubmitError("Las solicitudes en la web son solo para alumnos.");
-      return;
-    }
     if (!canBook) {
       setShowAuthGate(true);
       setSubmitError(null);
@@ -216,7 +208,7 @@ export function VideoCorrectionBookingHub() {
 
         <button
           type="submit"
-          disabled={submitting || (showAuthGate && isCoachAccount)}
+          disabled={submitting}
           className="w-full rounded-full bg-sky-500 py-3 font-semibold text-zinc-950 hover:bg-sky-400 disabled:opacity-50 sm:w-auto sm:px-10"
         >
           {submitting

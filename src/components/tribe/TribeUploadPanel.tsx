@@ -39,13 +39,10 @@ export function TribeUploadPanel({ onUploaded }: TribeUploadPanelProps) {
           pueden subir fotos y vídeos. Puedes ver, reaccionar y comentar sin cuenta.
         </p>
         <p className="mt-3">
-          <Link href="/registro" className="text-sky-400 hover:underline">
-            Crear cuenta de alumno
-          </Link>
-          {" · "}
           <Link href="/login" className="text-sky-400 hover:underline">
-            Iniciar sesión
+            Área de alumno
           </Link>
+          <span className="text-zinc-600"> — entrar o registrarte</span>
         </p>
       </div>
     );

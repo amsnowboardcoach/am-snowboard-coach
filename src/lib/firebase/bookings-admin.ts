@@ -561,6 +561,147 @@ export async function createVideoCorrectionBookingFromWeb(
   return ref.id;
 }
 
+function isSessionPaymentReady(
+  payment: AdminBookingRecord["payment"],
+): boolean {
+  return payment.status === "deposit_paid" || payment.status === "paid";
+}
+
+function requiresPaymentBeforeSessionFormalization(
+  booking: AdminBookingRecord,
+): boolean {
+  if (booking.source === "web") return true;
+  const option = booking.payment.paymentOption;
+  if (!option) return false;
+  return isOnlinePaymentOption(option) || option === "after_confirm";
+}
+
+/** Bloquea el turno en Google Calendar y confirma la clase en pista */
+export async function formalizeSessionBooking(
+  bookingId: string,
+): Promise<boolean> {
+  const booking = await getBookingById(bookingId);
+  if (!booking) throw new Error("Reserva no encontrada");
+  if (booking.coachId !== getCoachId()) {
+    throw new Error("No autorizado");
+  }
+  if (
+    booking.productKind === "video_correction" ||
+    isVideoCorrectionProduct(booking.lessonTypeId)
+  ) {
+    return false;
+  }
+  if (booking.status === "cancelled") {
+    throw new Error("La reserva está cancelada");
+  }
+  if (booking.status === "confirmed" && booking.googleCalendarEventId) {
+    return false;
+  }
+
+  const session = getSessionDuration(
+    (booking.sessionDurationId || "2h") as SessionDurationId,
+  );
+  if (!session) throw new Error("Duración de sesión inválida");
+
+  const overlapping = await findOverlappingBookings(
+    booking.startAt,
+    booking.endAt,
+    bookingId,
+  );
+  if (overlapping.length > 0) {
+    throw new Error("Ese turno ya no está disponible");
+  }
+
+  const studentName =
+    booking.studentDisplayName || booking.studentEmail || "Alumno";
+  const studentEmail = booking.studentEmail || "";
+  const summary = `Clase snowboard — ${studentName} (${booking.lessonTypeName})`;
+
+  const googleCalendarEventId =
+    booking.googleCalendarEventId ??
+    (await createCalendarEvent({
+      summary,
+      description: [
+        booking.bookingNotes,
+        `Importe: ${Math.round(booking.payment.amountCents / 100)} €`,
+        booking.participantCount && booking.participantCount > 1
+          ? `Personas en pista: ${booking.participantCount}`
+          : null,
+        ...bookingPracticalInfoPlainLines(),
+        `Email: ${studentEmail}`,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      start: booking.startAt,
+      end: booking.endAt,
+      studentEmail,
+      studentName,
+      location: BOOKING_LOCATION,
+    }));
+
+  const wasPending = booking.status === "pending";
+
+  await adminDb().collection(BOOKINGS).doc(bookingId).update({
+    status: "confirmed" satisfies BookingStatus,
+    googleCalendarEventId,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  if (studentEmail && wasPending) {
+    await sendBookingConfirmedEmails({
+      ...bookingToEmailDetails(booking, session),
+    });
+  }
+
+  if (wasPending) {
+    await notifyStudentBookingConfirmed({
+      userId: booking.userId,
+      dateLabel: formatBookingInTimeZone(booking.startAt, "d MMM yyyy"),
+      slotLabel: booking.sessionSlotLabel || session.name,
+      startAt: booking.startAt,
+      endAt: booking.endAt,
+      isVideoCorrection: false,
+    });
+  }
+
+  return true;
+}
+
+export async function markSessionPaidAndFormalizeByCoach(
+  bookingId: string,
+): Promise<void> {
+  const booking = await getBookingById(bookingId);
+  if (!booking) throw new Error("Reserva no encontrada");
+  if (booking.coachId !== getCoachId()) {
+    throw new Error("No autorizado");
+  }
+  if (
+    booking.productKind === "video_correction" ||
+    isVideoCorrectionProduct(booking.lessonTypeId)
+  ) {
+    throw new Error("Usa confirmar para video corrección");
+  }
+
+  const ref = adminDb().collection(BOOKINGS).doc(bookingId);
+  const snap = await ref.get();
+  const data = snap.data()!;
+  const payment = data.payment as { amountCents: number; status?: string };
+
+  if (payment.status !== "paid") {
+    await ref.update({
+      payment: {
+        ...(data.payment as object),
+        status: "paid",
+        paidAt: FieldValue.serverTimestamp(),
+      },
+      invoice: { status: "pending" },
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  }
+
+  await formalizeSessionBooking(bookingId);
+}
+
 export async function confirmBookingByCoach(
   bookingId: string,
 ): Promise<void> {
@@ -606,75 +747,16 @@ export async function confirmBookingByCoach(
     return;
   }
 
-  const session = getSessionDuration(
-    (booking.sessionDurationId || "2h") as SessionDurationId,
-  );
-  if (!session) throw new Error("Duración de sesión inválida");
-
-  const overlapping = await findOverlappingBookings(
-    booking.startAt,
-    booking.endAt,
-    bookingId,
-  );
-  if (overlapping.length > 0) {
-    throw new Error("Ese turno ya no está disponible");
+  if (
+    requiresPaymentBeforeSessionFormalization(booking) &&
+    !isSessionPaymentReady(booking.payment)
+  ) {
+    throw new Error(
+      "Debes esperar a que el alumno complete el pago con tarjeta (señal o total) antes de aceptar la reserva.",
+    );
   }
 
-  const studentName =
-    booking.studentDisplayName || booking.studentEmail || "Alumno";
-  const studentEmail = booking.studentEmail || "";
-  const summary = `Clase snowboard — ${studentName} (${booking.lessonTypeName})`;
-
-  const googleCalendarEventId = await createCalendarEvent({
-    summary,
-    description: [
-      booking.bookingNotes,
-      `Importe: ${Math.round(booking.payment.amountCents / 100)} €`,
-      booking.participantCount && booking.participantCount > 1
-        ? `Personas en pista: ${booking.participantCount}`
-        : null,
-      ...bookingPracticalInfoPlainLines(),
-      `Email: ${studentEmail}`,
-    ]
-      .filter(Boolean)
-      .join("\n"),
-    start: booking.startAt,
-    end: booking.endAt,
-    studentEmail,
-    studentName,
-    location: BOOKING_LOCATION,
-  });
-
-  await adminDb().collection(BOOKINGS).doc(bookingId).update({
-    status: "confirmed" satisfies BookingStatus,
-    googleCalendarEventId,
-    updatedAt: FieldValue.serverTimestamp(),
-  });
-
-  const needsCardAfterConfirm =
-    booking.payment.paymentOption === "after_confirm" &&
-    booking.payment.status === "pending";
-  const paymentUrl =
-    isStripeConfigured() && needsCardAfterConfirm
-      ? `${getAppBaseUrl()}/pagar/${bookingId}`
-      : undefined;
-
-  if (studentEmail) {
-    await sendBookingConfirmedEmails({
-      ...bookingToEmailDetails(booking, session),
-      paymentUrl,
-    });
-  }
-
-  await notifyStudentBookingConfirmed({
-    userId: booking.userId,
-    dateLabel: formatBookingInTimeZone(booking.startAt, "d MMM yyyy"),
-    slotLabel: booking.sessionSlotLabel || session.name,
-    paymentUrl,
-    startAt: booking.startAt,
-    endAt: booking.endAt,
-    isVideoCorrection: false,
-  });
+  await formalizeSessionBooking(bookingId);
 }
 
 export async function rejectBookingByCoach(bookingId: string): Promise<void> {

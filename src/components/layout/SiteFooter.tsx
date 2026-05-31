@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthProvider";
 import { getCoachWhatsAppUrl } from "@/constants/coach-contact";
 import { LEGAL_PATHS } from "@/constants/legal-site";
 import { COACH_ROLES } from "@/constants/roles";
+import { STUDENT_AREA_PATH } from "@/constants/student-area";
 
 export function SiteFooter() {
   const { user, profile, loading } = useAuth();
@@ -12,15 +13,11 @@ export function SiteFooter() {
 
   const accountLinks = (() => {
     if (loading) {
-      return [
-        { href: "/login", label: "Iniciar sesión" },
-        { href: "/registro", label: "Crear cuenta" },
-      ];
+      return [{ href: STUDENT_AREA_PATH, label: "Área de alumno" }];
     }
     if (!user) {
       return [
-        { href: "/login", label: "Iniciar sesión" },
-        { href: "/registro", label: "Crear cuenta" },
+        { href: STUDENT_AREA_PATH, label: "Área de alumno" },
         { href: "/reservar", label: "Reservar clase" },
       ];
     }

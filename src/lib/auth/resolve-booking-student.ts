@@ -1,5 +1,4 @@
 import { NextRequest } from "next/server";
-import { COACH_ROLES, type UserRole } from "@/constants/roles";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { verifyUserBearer } from "@/lib/auth/verify-user-token";
 
@@ -30,13 +29,6 @@ export async function requireBookingStudent(
 
   const userSnap = await getAdminDb().collection("users").doc(auth.uid).get();
   const profile = userSnap.data();
-  const role = profile?.role as string | undefined;
-  if (role && COACH_ROLES.includes(role as UserRole)) {
-    return {
-      error: "Las reservas en la web son solo para alumnos.",
-      status: 403,
-    };
-  }
 
   const studentName =
     name.trim() ||

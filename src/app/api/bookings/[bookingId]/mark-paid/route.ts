@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCoachRequest } from "@/lib/auth/verify-coach";
-import { confirmBookingByCoach } from "@/lib/firebase/bookings-admin";
+import { markSessionPaidAndFormalizeByCoach } from "@/lib/firebase/bookings-admin";
 
 export const runtime = "nodejs";
 
@@ -18,16 +18,16 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    await confirmBookingByCoach(bookingId);
+    await markSessionPaidAndFormalizeByCoach(bookingId);
     return NextResponse.json({
       success: true,
-      message: "Reserva aceptada. Calendario y emails enviados.",
+      message: "Pago registrado y reserva aceptada en el calendario.",
     });
   } catch (err) {
-    console.error("[confirm]", err);
-    const msg = err instanceof Error ? err.message : "Error al confirmar";
+    console.error("[mark-paid]", err);
+    const msg = err instanceof Error ? err.message : "Error al registrar pago";
     const status =
-      msg.includes("no encontrada") || msg.includes("pendiente") ? 409 : 502;
+      msg.includes("no encontrada") || msg.includes("video") ? 409 : 502;
     return NextResponse.json({ error: msg }, { status });
   }
 }

@@ -53,13 +53,10 @@ export function MarketplaceCreateForm({ onCreated }: MarketplaceCreateFormProps)
           puede vender material de snowboard. Crea cuenta o entra para publicar.
         </p>
         <p className="mt-3">
-          <Link href="/registro" className="text-sky-400 hover:underline">
-            Crear cuenta
-          </Link>
-          {" · "}
           <Link href="/login" className="text-sky-400 hover:underline">
-            Iniciar sesión
+            Área de alumno
           </Link>
+          <span className="text-zinc-600"> — entrar o registrarte</span>
         </p>
       </div>
     );

@@ -13,16 +13,56 @@ import { saveFcmToken } from "@/lib/firebase/fcm-tokens";
 
 const SW_PATH = "/firebase-messaging-sw.js";
 
+/** Clave pública VAPID web (65 bytes en base64url, suele empezar por B). */
+function isValidWebPushVapidKey(key: string): boolean {
+  if (key.length < 80 || key.length > 200) return false;
+  if (!/^[A-Za-z0-9_-]+$/.test(key)) return false;
+  try {
+    const padded = key + "=".repeat((4 - (key.length % 4)) % 4);
+    const base64 = padded.replace(/-/g, "+").replace(/_/g, "/");
+    const raw = atob(base64);
+    return raw.length === 65;
+  } catch {
+    return false;
+  }
+}
+
+function normalizeVapidKey(raw: string | undefined): string | null {
+  let key = raw?.trim();
+  if (!key) return null;
+  if (
+    (key.startsWith('"') && key.endsWith('"')) ||
+    (key.startsWith("'") && key.endsWith("'"))
+  ) {
+    key = key.slice(1, -1).trim();
+  }
+  if (!key.startsWith("B") || !isValidWebPushVapidKey(key)) return null;
+  return key;
+}
+
 function getVapidKey(): string | null {
-  const key = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY?.trim();
-  return key || null;
+  return normalizeVapidKey(process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY);
 }
 
 async function ensureServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  if (!getVapidKey()) return null;
   if (!("serviceWorker" in navigator)) return null;
   const existing = await navigator.serviceWorker.getRegistration("/");
   if (existing?.active) return existing;
   return navigator.serviceWorker.register(SW_PATH, { scope: "/" });
+}
+
+/** Registra el SW al cargar la app (mejor para PWA e instalación) */
+export async function warmMessagingServiceWorker(): Promise<void> {
+  try {
+    await ensureServiceWorker();
+  } catch (err) {
+    console.warn("[push] Service worker:", err);
+  }
+}
+
+export function isPushConfigured(): boolean {
+  return Boolean(getVapidKey());
 }
 
 export async function isPushSupported(): Promise<boolean> {
@@ -54,11 +94,20 @@ export async function requestPushPermissionAndToken(
     return null;
   }
 
+  const vapidKey = getVapidKey();
+  if (!vapidKey) return null;
+
   const messaging: Messaging = getMessaging(app);
-  const token = await getToken(messaging, {
-    vapidKey: getVapidKey()!,
-    serviceWorkerRegistration: registration,
-  });
+  let token: string | undefined;
+  try {
+    token = await getToken(messaging, {
+      vapidKey,
+      serviceWorkerRegistration: registration,
+    });
+  } catch (err) {
+    console.warn("[push] No se pudo obtener token FCM:", err);
+    return null;
+  }
 
   if (!token) return null;
 
@@ -90,7 +139,7 @@ export function subscribeForegroundMessages(
       if (typeof Notification !== "undefined" && Notification.permission === "granted") {
         new Notification(title, {
           body,
-          icon: "/icon.svg",
+          icon: "/apple-icon",
           data: { url },
         });
       }

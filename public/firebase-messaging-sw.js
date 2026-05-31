@@ -8,17 +8,28 @@ importScripts(
 
 let messaging = null;
 
+function resolveNotificationUrl(raw) {
+  const path = raw || "/";
+  try {
+    return new URL(path, self.location.origin).href;
+  } catch {
+    return self.location.origin + "/";
+  }
+}
+
 function showNotification(payload) {
   const title =
     payload.notification?.title || payload.data?.title || "AM Snowboard Coach";
   const body =
     payload.notification?.body || payload.data?.body || "";
-  const url = payload.data?.url || payload.fcmOptions?.link || "/";
+  const url = resolveNotificationUrl(
+    payload.data?.url || payload.fcmOptions?.link || "/",
+  );
 
   self.registration.showNotification(title, {
     body,
-    icon: "/icon.svg",
-    badge: "/icon.svg",
+    icon: "/apple-icon",
+    badge: "/apple-icon",
     data: { url },
     tag: payload.data?.tag || "am-snowboard",
   });
@@ -26,18 +37,25 @@ function showNotification(payload) {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || "/";
+  const targetUrl = resolveNotificationUrl(event.notification.data?.url);
+  const targetPath = new URL(targetUrl).pathname;
+
   event.waitUntil(
     clients
       .matchAll({ type: "window", includeUncontrolled: true })
       .then((list) => {
         for (const client of list) {
-          if (client.url.includes(url) && "focus" in client) {
-            return client.focus();
+          try {
+            const clientPath = new URL(client.url).pathname;
+            if (clientPath === targetPath && "focus" in client) {
+              return client.focus();
+            }
+          } catch {
+            /* ignore */
           }
         }
         if (clients.openWindow) {
-          return clients.openWindow(url);
+          return clients.openWindow(targetUrl);
         }
       }),
   );
