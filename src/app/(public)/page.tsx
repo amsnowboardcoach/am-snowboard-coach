@@ -9,8 +9,11 @@ import { HomeHeroBookingSection } from "@/components/home/HomeHeroBookingSection
 import { PageHero } from "@/components/layout/PageHero";
 import { SectionHeading } from "@/components/layout/SectionHeading";
 import { TribePhotoGrid } from "@/components/tribe/TribePhotoGrid";
+import { LessonTypeCardMedia } from "@/components/lessons/LessonTypeCardMedia";
 import { getSiteMedia } from "@/lib/pexels/site-media";
-import { resolveLessonCardImage } from "@/lib/media/lesson-card-image";
+
+/** Regenerar tras cambiar fotos de tarjetas (evita HTML en caché con Pexels) */
+export const revalidate = 60;
 
 export default async function HomePage() {
   const media = await getSiteMedia();
@@ -37,36 +40,13 @@ export default async function HomePage() {
             subtitle="Iniciación, carving o freestyle. Duración y turno los eliges al reservar."
           />
           <div className="mt-10 grid gap-grid sm:mt-12 md:grid-cols-3">
-            {LESSON_TYPES.map((lesson, i) => {
-              const cardImage = resolveLessonCardImage(
-                lesson.id,
-                i,
-                {
-                  lessonCards: media.lessonCards,
-                  claseImageSrc: media.clase.image.src,
-                },
-                lessonPublicName(lesson),
-              );
-
-              return (
+            {LESSON_TYPES.map((lesson, i) => (
               <article
                 key={lesson.id}
                 className="glass-panel group overflow-hidden rounded-2xl transition duration-300 hover:border-sky-500/40"
               >
                 <div className="relative h-40 overflow-hidden">
-                  <Image
-                    src={cardImage.src}
-                    alt={cardImage.alt}
-                    fill
-                    className="object-cover transition duration-500 group-hover:scale-105"
-                    style={
-                      cardImage.objectPosition
-                        ? { objectPosition: cardImage.objectPosition }
-                        : undefined
-                    }
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    priority={i === 0}
-                  />
+                  <LessonTypeCardMedia lessonId={lesson.id} priority={i === 0} />
                   <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 to-transparent" />
                 </div>
                 <div className="p-6">
@@ -84,8 +64,7 @@ export default async function HomePage() {
                   </Link>
                 </div>
               </article>
-            );
-            })}
+            ))}
           </div>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
             <Link

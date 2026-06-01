@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { SiteHeaderLogo } from "@/components/layout/SiteHeaderLogo";
+import { STUDENT_AREA_PATH } from "@/constants/student-area";
 import { scrollToTop } from "@/lib/navigation/scroll";
 import { cn } from "@/lib/utils/cn";
 
@@ -32,6 +33,25 @@ function isLinkActive(pathname: string, href: string): boolean {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
+function linkPath(href: string): string {
+  return href.split("?")[0] ?? href;
+}
+
+function isStudentAreaHref(href: string): boolean {
+  const path = linkPath(href);
+  return path === STUDENT_AREA_PATH || path === "/registro";
+}
+
+/** Icono de «Área de alumno» (mismo que la barra inferior móvil) */
+function StudentAreaIcon({ className }: { className: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function NavItemIcon({ href }: { href: string }) {
   const className = "size-5 shrink-0 text-zinc-500";
   if (href.startsWith("/coach")) {
@@ -44,13 +64,8 @@ function NavItemIcon({ href }: { href: string }) {
       </svg>
     );
   }
-  if (href.startsWith("/perfil")) {
-    return (
-      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-        <circle cx="12" cy="8" r="3.5" />
-        <path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6" strokeLinecap="round" />
-      </svg>
-    );
+  if (isStudentAreaHref(href) || href.startsWith("/perfil")) {
+    return <StudentAreaIcon className={className} />;
   }
   if (href.startsWith("/clases")) {
     return (
