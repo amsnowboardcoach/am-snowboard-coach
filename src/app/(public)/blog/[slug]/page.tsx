@@ -42,7 +42,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   });
 
   return (
-    <article className="page-container max-w-3xl page-pad-y stack-page">
+    <article className="content-align-start page-container max-w-3xl page-pad-y stack-page">
       <JsonLd
         data={blogPostingJsonLd({
           title: post.title,

@@ -5,6 +5,7 @@ import { BlogPostCard } from "@/components/blog/BlogPostCard";
 import { VideoCorrectionCard } from "@/components/products/VideoCorrectionCard";
 import { LESSON_TYPES, lessonPublicName } from "@/constants/lesson-types";
 import { getAllPosts } from "@/content/blog/posts";
+import { HomeHeroBookingSection } from "@/components/home/HomeHeroBookingSection";
 import { PageHero } from "@/components/layout/PageHero";
 import { SectionHeading } from "@/components/layout/SectionHeading";
 import { TribePhotoGrid } from "@/components/tribe/TribePhotoGrid";
@@ -18,61 +19,14 @@ export default async function HomePage() {
     <div>
       <PageHero
         tall
-        eyebrow="Sierra Nevada · Granada"
         title="Aprende snowboard con método, en Sierra Nevada"
         subtitle="Alejandro Martín, Head Coach con más de 7.500 horas en pista. De tu primera bajada al freestyle en Snowpark Sulayr: clases claras, seguimiento real y comunidad."
         imageSrc={media.hero.image.src}
         imageAlt={media.hero.image.alt}
         videoSrc={media.hero.video?.src}
         videoPoster={media.hero.video?.poster}
-      >
-        <Link
-          href="/reservar"
-          className="flex min-h-12 w-full items-center justify-center rounded-full bg-sky-500 px-8 py-3.5 text-center font-semibold text-zinc-950 shadow-xl shadow-sky-500/25 transition active:bg-sky-400 sm:w-auto"
-        >
-          Reservar mi clase
-        </Link>
-        <Link
-          href="/clases"
-          className="flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/10 px-8 py-3.5 text-center font-semibold text-white backdrop-blur transition active:bg-white/15 sm:w-auto"
-        >
-          Ver tipos de clase
-        </Link>
-      </PageHero>
-
-      <section className="page-container section-pad">
-        <div className="grid items-center gap-grid lg:grid-cols-2">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
-            <Image
-              src={media.pista.image.src}
-              alt={media.pista.image.alt}
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
-          </div>
-          <div>
-            <SectionHeading
-              title="En pista, a tu ritmo"
-              subtitle="Turnos de mañana y tarde en horario diurno. Reserva en dos minutos, confirmación personal y tu espacio de alumno para seguir progresando."
-            />
-            <ul className="mt-8 space-y-4 text-zinc-300 sm:mt-10">
-              <li className="flex gap-3">
-                <span className="text-sky-400">✓</span>
-                Calendario en tiempo real: elige día y turno libre
-              </li>
-              <li className="flex gap-3">
-                <span className="text-sky-400">✓</span>
-                Pasaporte de trucos y corrección de vídeo con apuntes del coach
-              </li>
-              <li className="flex gap-3">
-                <span className="text-sky-400">✓</span>
-                Instala la web en el móvil y recibe avisos en tiempo real
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
+        afterSubtitle={<HomeHeroBookingSection />}
+      />
 
       <section className="band-section">
         <div className="page-container">
@@ -143,7 +97,7 @@ export default async function HomePage() {
 
       <TribePhotoGrid />
 
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:py-20">
+      <section className="page-container py-12 sm:py-20">
         <SectionHeading
           title="Guías y consejos en pista"
           subtitle="Guías sobre iniciación, carving, Snowpark Sulayr, tarifas y cómo reservar tu clase."

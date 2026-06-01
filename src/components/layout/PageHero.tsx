@@ -10,7 +10,11 @@ interface PageHeroProps {
   videoSrc?: string;
   videoPoster?: string;
   tall?: boolean;
+  /** Contenido entre subtítulo y acciones (p. ej. calendario). */
+  afterSubtitle?: React.ReactNode;
   children?: React.ReactNode;
+  /** Alineación del bloque de texto (por defecto centrado). */
+  align?: "center" | "start";
 }
 
 export function PageHero({
@@ -22,8 +26,12 @@ export function PageHero({
   videoSrc,
   videoPoster,
   tall,
+  afterSubtitle,
   children,
+  align = "center",
 }: PageHeroProps) {
+  const centered = align === "center";
+
   return (
     <section
       className={cn(
@@ -53,23 +61,59 @@ export function PageHero({
         />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/75 to-zinc-950/30" />
-      <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/60 to-transparent" />
-      <div className="page-container relative flex max-w-6xl flex-col justify-end pb-12 pt-[max(5.5rem,calc(3.25rem+env(safe-area-inset-top)))] sm:pb-16 sm:pt-28 lg:pb-20 lg:pt-32">
+      <div
+        className={cn(
+          "absolute inset-0 bg-gradient-to-r to-transparent",
+          centered ? "from-zinc-950/70" : "from-zinc-950/60",
+        )}
+      />
+      <div
+        className={cn(
+          "page-container relative flex max-w-6xl flex-col justify-end pb-12 pt-[max(5.5rem,calc(3.25rem+env(safe-area-inset-top)))] sm:pb-16 sm:pt-28 lg:pb-20 lg:pt-32",
+          centered && "items-center text-center",
+        )}
+      >
         {eyebrow && (
           <p className="mb-3 text-xs font-medium uppercase tracking-[0.15em] text-sky-400 sm:text-sm sm:tracking-[0.2em]">
             {eyebrow}
           </p>
         )}
-        <h1 className="max-w-3xl text-balance text-3xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+        <h1
+          className={cn(
+            "max-w-3xl text-balance text-3xl font-bold tracking-tight sm:text-5xl lg:text-6xl",
+            centered && "mx-auto",
+          )}
+        >
           {title}
         </h1>
         {subtitle && (
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-zinc-300 sm:mt-5 sm:text-lg">
+          <p
+            className={cn(
+              "mt-4 max-w-2xl text-base leading-relaxed text-zinc-300 sm:mt-5 sm:text-lg",
+              centered && "mx-auto",
+            )}
+          >
             {subtitle}
           </p>
         )}
+        {afterSubtitle && (
+          <div
+            className={cn(
+              "mt-5 w-full sm:mt-6",
+              centered ? "mx-auto max-w-xl lg:max-w-2xl" : "max-w-xl lg:max-w-2xl",
+            )}
+          >
+            {afterSubtitle}
+          </div>
+        )}
         {children && (
-          <div className="mt-6 flex w-full flex-col gap-3 sm:mt-8 sm:w-auto sm:flex-row sm:flex-wrap">
+          <div
+            className={cn(
+              "flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap",
+              centered && "items-center justify-center sm:w-auto",
+              afterSubtitle ? "mt-4 sm:mt-5" : "mt-6 sm:mt-8",
+            )}
+          >
             {children}
           </div>
         )}

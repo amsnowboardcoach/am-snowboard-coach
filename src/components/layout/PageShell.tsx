@@ -10,7 +10,7 @@ export type PageShellWidth =
 export type PageShellSpacing = "default" | "tight" | "loose" | "none";
 
 const widthClass: Record<PageShellWidth, string> = {
-  default: "max-w-6xl",
+  default: "",
   narrow: "max-w-lg",
   reading: "max-w-3xl",
   form: "max-w-4xl",

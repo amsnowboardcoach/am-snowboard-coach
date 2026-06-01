@@ -90,11 +90,6 @@ const LEGEND: { status: CalendarDayStatus; label: string; className: string }[] 
       label: "Completo",
       className: "bg-red-500/15 ring-1 ring-red-500/35",
     },
-    {
-      status: "past",
-      label: "No disponible",
-      className: "bg-zinc-800/50 ring-1 ring-zinc-700/60",
-    },
   ];
 
 function monthGrid(month: Date): Date[] {
@@ -355,6 +350,8 @@ export function BookingAvailabilityCalendar({
   navigationRangeEnd,
   disabled,
   className,
+  slotSection = "always",
+  emptySlotHint,
 }: {
   calendarDays: CalendarDayInfo[];
   rangeStart: string;
@@ -376,7 +373,11 @@ export function BookingAvailabilityCalendar({
   navigationRangeEnd?: string;
   disabled?: boolean;
   className?: string;
+  slotSection?: "always" | "when-picked";
+  emptySlotHint?: string;
 }) {
+  const showSlotPicker =
+    slotSection !== "when-picked" || selectedDates.length > 0;
   const isLoading = loadStatus === "loading";
   const isError = loadStatus === "error";
   const calendarDisabled = disabled || isLoading || isError;
@@ -617,17 +618,23 @@ export function BookingAvailabilityCalendar({
         </div>
       </div>
 
-      <div className="mt-6 border-t border-zinc-800/80 pt-5">
-        <BookingSlotSeatMap
-          sessionSlots={sessionSlots}
-          pickedDates={selectedDates}
-          calendarDays={calendarDays}
-          availableSlots={availableSlots}
-          selectedSlotByDate={selectedSlotByDate}
-          onSelectSlotForDate={onSelectSlotForDate}
-          onSelectSlotForAllDates={onSelectSlotForAllDates}
-        />
-      </div>
+      {showSlotPicker ? (
+        <div className="mt-6 border-t border-zinc-800/80 pt-5">
+          <BookingSlotSeatMap
+            sessionSlots={sessionSlots}
+            pickedDates={selectedDates}
+            calendarDays={calendarDays}
+            availableSlots={availableSlots}
+            selectedSlotByDate={selectedSlotByDate}
+            onSelectSlotForDate={onSelectSlotForDate}
+            onSelectSlotForAllDates={onSelectSlotForAllDates}
+          />
+        </div>
+      ) : (
+        emptySlotHint && (
+          <p className="mt-4 text-center text-xs text-zinc-500">{emptySlotHint}</p>
+        )
+      )}
 
       {isError && (
         <p className="mt-4 text-center text-sm text-red-300">

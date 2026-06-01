@@ -30,7 +30,7 @@ export default async function ReservarPage() {
       />
 
       <section className="page-container max-w-4xl section-pad-tight">
-        <div className="glass-panel rounded-2xl p-6 sm:p-8 lg:p-10">
+        <div className="content-align-start glass-panel rounded-2xl p-6 sm:p-8 lg:p-10">
           <Suspense
             fallback={
               <p className="py-12 text-center text-zinc-500">Cargando reservas…</p>

@@ -67,7 +67,7 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
   );
 
   return (
-    <div className="lg:flex lg:gap-10 xl:gap-12">
+    <div className="w-full text-left lg:flex lg:gap-10 xl:gap-12">
       <CoachPushActivator />
 
       {/* Móvil: pestañas horizontales compactas */}

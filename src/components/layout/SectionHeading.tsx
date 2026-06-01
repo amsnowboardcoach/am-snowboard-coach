@@ -4,6 +4,7 @@ interface SectionHeadingProps {
   title: string;
   subtitle?: string;
   className?: string;
+  /** Solo usar `false` en paneles internos (coach, formularios). */
   centered?: boolean;
 }
 
@@ -11,10 +12,10 @@ export function SectionHeading({
   title,
   subtitle,
   className,
-  centered,
+  centered = true,
 }: SectionHeadingProps) {
   return (
-    <div className={cn(centered && "text-center", className)}>
+    <div className={cn(centered && "mx-auto max-w-3xl text-center", className)}>
       <h2 className="text-2xl font-bold tracking-tight text-balance sm:text-3xl">
         {title}
       </h2>

@@ -107,7 +107,7 @@ export function TribeFeed() {
   }, [highlightPostId, loading, posts]);
 
   return (
-    <div className="stack-page">
+    <div className="content-align-start stack-page w-full">
       <TribeFeedUploadBanner />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">

@@ -44,7 +44,7 @@ export function SiteFooter() {
 
   return (
     <footer className="border-t border-zinc-800 bg-zinc-950 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
-      <div className="page-container grid max-w-6xl grid-cols-1 gap-10 py-12 sm:grid-cols-2 sm:gap-12 lg:gap-14 lg:py-14">
+      <div className="page-container grid grid-cols-1 gap-10 py-12 sm:grid-cols-2 sm:gap-12 lg:gap-14 lg:py-14">
         <div>
           <Link
             href="/"
@@ -100,7 +100,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-zinc-800 px-4 py-6">
         <nav
-          className="mx-auto flex max-w-6xl flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-zinc-500"
+          className="page-container flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-zinc-500"
           aria-label="Información legal"
         >
           <Link

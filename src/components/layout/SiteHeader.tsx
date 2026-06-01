@@ -65,7 +65,7 @@ export function SiteHeader({ className }: SiteHeaderProps) {
         className,
       )}
     >
-      <div className="page-container flex max-w-6xl items-center justify-between gap-3 py-3.5 sm:py-4">
+      <div className="page-container flex items-center justify-between gap-3 py-3.5 sm:py-4">
         <SiteHeaderLogo />
         <nav
           className="hidden items-center gap-x-5 text-sm text-zinc-300 lg:flex"

@@ -66,7 +66,7 @@ interface LegalDocumentProps {
 
 export function LegalDocument({ doc }: LegalDocumentProps) {
   return (
-    <article className="page-container max-w-3xl page-pad-y stack-page">
+    <article className="content-align-start page-container max-w-3xl page-pad-y stack-page">
       <header className="page-intro">
         <p className="page-eyebrow">Información legal</p>
         <h1 className="page-title text-zinc-50">{doc.title}</h1>

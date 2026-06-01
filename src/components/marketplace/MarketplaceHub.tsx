@@ -80,7 +80,7 @@ export function MarketplaceHub() {
   }
 
   return (
-    <div className="stack-page">
+    <div className="content-align-start stack-page w-full">
       <nav
         className="grid grid-cols-3 gap-2 rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-2"
         aria-label="Secciones del mercadillo"

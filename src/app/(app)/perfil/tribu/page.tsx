@@ -31,7 +31,7 @@ export default function PerfilTribuPage() {
   }
 
   return (
-    <div className="stack-page">
+    <div className="content-align-start stack-page w-full">
       <header>
         <p className="text-xs font-semibold uppercase tracking-wider text-sky-400/90">
           Tu panel

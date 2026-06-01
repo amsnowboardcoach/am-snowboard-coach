@@ -155,9 +155,14 @@ textarea {
 /* —— Espaciado global (móvil + escritorio) —— */
 
 @utility page-container {
-  @apply mx-auto w-full px-4 sm:px-6 lg:px-8;
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
   padding-left: max(1rem, env(safe-area-inset-left, 0px));
   padding-right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+/** Bloques de formulario o texto largo dentro de páginas centradas */
+@utility content-align-start {
+  @apply w-full text-left;
 }
 
 @utility page-pad-y {
@@ -185,7 +190,7 @@ textarea {
 }
 
 @utility page-intro {
-  @apply mb-8 sm:mb-10 lg:mb-12;
+  @apply mx-auto mb-8 w-full max-w-3xl text-center sm:mb-10 lg:mb-12;
 }
 
 @utility page-eyebrow {
@@ -193,11 +198,11 @@ textarea {
 }
 
 @utility page-title {
-  @apply text-3xl font-bold tracking-tight text-balance sm:text-4xl;
+  @apply mx-auto max-w-3xl text-center text-3xl font-bold tracking-tight text-balance sm:text-4xl;
 }
 
 @utility page-lead {
-  @apply mt-3 max-w-2xl text-base leading-relaxed text-zinc-400 sm:mt-4 sm:text-lg;
+  @apply mx-auto mt-3 max-w-2xl text-center text-base leading-relaxed text-zinc-400 sm:mt-4 sm:text-lg;
 }
 
 /** Reserva inferior para la barra móvil (solo rutas públicas). */
@@ -206,11 +211,11 @@ textarea {
 }
 
 @utility stack-page {
-  @apply flex flex-col gap-8 sm:gap-10 lg:gap-12;
+  @apply mx-auto flex w-full max-w-4xl flex-col items-center gap-8 sm:gap-10 lg:gap-12;
 }
 
 @utility stack-section {
-  @apply flex flex-col gap-6 sm:gap-8;
+  @apply flex w-full flex-col items-center gap-6 sm:gap-8;
 }
 
 @utility stack-cards {

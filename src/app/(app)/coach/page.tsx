@@ -37,8 +37,8 @@ export default function CoachDashboardPage() {
 
   if (!profile) {
     return (
-      <div className="stack-section">
-        <h1 className="page-title">Panel del Coach</h1>
+      <div className="content-align-start stack-section w-full max-w-2xl">
+        <h1 className="page-title mx-0 max-w-none text-left">Panel del Coach</h1>
         <CoachProfileSetup
           user={user}
           onReady={() => void refreshProfile()}
@@ -49,8 +49,8 @@ export default function CoachDashboardPage() {
 
   if (!isCoach && isCoachByEmail) {
     return (
-      <div className="stack-section">
-        <h1 className="page-title">Panel del Coach</h1>
+      <div className="content-align-start stack-section w-full max-w-2xl">
+        <h1 className="page-title mx-0 max-w-none text-left">Panel del Coach</h1>
         <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-6">
           <p className="text-sm text-amber-200">
             Tu email es de coach pero el perfil tiene rol{" "}
@@ -79,6 +79,8 @@ export default function CoachDashboardPage() {
   }
 
   return (
-    <CoachHubShell coachId={user.uid} displayName={profile.displayName} />
+    <div className="w-full text-left">
+      <CoachHubShell coachId={user.uid} displayName={profile.displayName} />
+    </div>
   );
 }

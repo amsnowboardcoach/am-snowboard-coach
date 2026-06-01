@@ -22,7 +22,7 @@ export default function PerfilAvisosPage() {
   }
 
   return (
-    <div className="stack-page max-w-2xl">
+    <div className="content-align-start stack-page w-full">
       <p className="text-sm">
         <Link href="/perfil" className="text-zinc-500 hover:text-sky-400">
           ← Perfil

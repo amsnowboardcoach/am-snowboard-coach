@@ -39,7 +39,7 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md pt-[env(safe-area-inset-top,0px)]">
-      <div className="page-container flex max-w-6xl items-center justify-between gap-3 py-3.5 sm:py-4">
+      <div className="page-container flex items-center justify-between gap-3 py-3.5 sm:py-4">
         <Link
           href={homeHref}
           className="flex min-h-11 shrink-0 items-center py-1 font-bold leading-none"

@@ -19,7 +19,7 @@ export default function VideosPage() {
   }
 
   return (
-    <div className="stack-page">
+    <div className="content-align-start stack-page w-full">
       <header>
         <h1 className="page-title">Video corrección</h1>
         <p className="page-lead">

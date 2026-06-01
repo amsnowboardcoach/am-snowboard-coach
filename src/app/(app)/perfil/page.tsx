@@ -59,8 +59,8 @@ export default function PerfilPage() {
   }, [profile, router]);
 
   return (
-    <div className="stack-page">
-      <header>
+    <div className="content-align-start stack-page w-full">
+      <header className="w-full">
         <h1 className="page-title">
           Hola, {profile?.displayName ?? user?.displayName}
         </h1>
@@ -110,7 +110,7 @@ export default function PerfilPage() {
         </div>
       </dl>
 
-      <div className="grid gap-grid sm:grid-cols-3">
+      <div className="content-align-start grid w-full max-w-3xl gap-grid sm:grid-cols-3">
         {links.map((item) => (
           <Link
             key={item.href}

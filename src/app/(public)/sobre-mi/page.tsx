@@ -33,7 +33,7 @@ export default async function SobreMiPage() {
       />
 
       <section className="page-container section-pad">
-        <div className="grid items-start gap-grid lg:grid-cols-[1fr_340px]">
+        <div className="content-align-start mx-auto grid max-w-5xl items-start gap-grid lg:grid-cols-[1fr_340px]">
           <div className="stack-section text-lg leading-relaxed text-zinc-300">
             <p>
               Más de <strong className="text-zinc-100">7.500 horas</strong> de

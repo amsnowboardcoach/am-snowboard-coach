@@ -58,7 +58,7 @@ export default function PasaportePage() {
   }, [authLoading, user, load]);
 
   return (
-    <div className="stack-page">
+    <div className="content-align-start stack-page w-full">
       <header>
         <h1 className="page-title">Pasaporte de Trucos</h1>
         <p className="page-lead">

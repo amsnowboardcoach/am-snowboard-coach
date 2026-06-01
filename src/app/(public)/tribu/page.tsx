@@ -44,13 +44,13 @@ export default async function TribuPage() {
         </a>
       </PageHero>
 
-      <section className="page-container max-w-5xl page-pad-y-tight">
+      <section className="page-container page-pad-y-tight">
         <TribeHowItWorks />
       </section>
 
       <section
         id="feed"
-        className="page-container max-w-xl scroll-mt-header pb-12 sm:pb-16 lg:pb-20"
+        className="page-container max-w-2xl scroll-mt-header pb-12 sm:pb-16 lg:pb-20"
       >
         <Suspense fallback={<TribeFeedSkeleton count={3} />}>
           <TribeFeed />
