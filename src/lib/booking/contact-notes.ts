@@ -15,6 +15,13 @@ export function bookingLevelLabel(
   return BOOKING_LEVEL_OPTIONS.find((o) => o.id === level)?.label ?? null;
 }
 
+/** Etiqueta de nivel en perfil / panel coach. */
+export function studentLevelLabel(
+  level: UserProfile["level"] | undefined,
+): string {
+  return bookingLevelLabel(level) ?? "Sin definir";
+}
+
 /** Mínimo 9 dígitos (España y formato internacional con +). */
 export function isValidBookingPhone(phone: string): boolean {
   const digits = phone.replace(/\D/g, "");

@@ -5,6 +5,7 @@ import { CoachWhatsAppCard } from "@/components/contact/CoachWhatsAppCard";
 import { DeleteAccountSection } from "@/components/perfil/DeleteAccountSection";
 import { useAuth } from "@/contexts/AuthProvider";
 import { COACH_ROLES } from "@/constants/roles";
+import { studentLevelLabel } from "@/lib/booking/contact-notes";
 
 const links = [
   {
@@ -56,7 +57,7 @@ export default function PerfilPage() {
         </div>
         <div>
           <dt className="text-zinc-500">Nivel</dt>
-          <dd className="capitalize">{profile?.level ?? "Sin definir"}</dd>
+          <dd>{studentLevelLabel(profile?.level)}</dd>
         </div>
         <div>
           <dt className="text-zinc-500">Rol</dt>

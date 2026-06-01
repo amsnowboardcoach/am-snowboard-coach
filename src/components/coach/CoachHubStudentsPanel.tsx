@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { CoachStudentBroadcastPanel } from "@/components/coach/CoachStudentBroadcastPanel";
 import { DeleteStudentButton } from "@/components/coach/DeleteStudentButton";
+import { StudentLevelSelect } from "@/components/coach/StudentLevelSelect";
 import { fetchCoachStudents } from "@/lib/firebase/students";
 import { fetchStudentProgressVideos } from "@/lib/firebase/progress-videos";
 import { ensureTricksCatalog } from "@/lib/firebase/tricks";
@@ -84,6 +85,12 @@ export function CoachHubStudentsPanel({ coachId }: CoachHubStudentsPanelProps) {
     } else {
       setSelectedIds(new Set(students.map((s) => s.uid)));
     }
+  }
+
+  function patchStudentLevel(uid: string, level: UserProfile["level"]) {
+    setStudents((prev) =>
+      prev.map((s) => (s.uid === uid ? { ...s, level } : s)),
+    );
   }
 
   return (
@@ -170,6 +177,12 @@ export function CoachHubStudentsPanel({ coachId }: CoachHubStudentsPanelProps) {
                   </Link>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-2 pl-7 sm:pl-0">
+                  <StudentLevelSelect
+                    studentId={s.uid}
+                    value={s.level}
+                    compact
+                    onChange={(level) => patchStudentLevel(s.uid, level)}
+                  />
                   <Link
                     href={`/coach/alumnos/${s.uid}`}
                     className="rounded-full border border-zinc-600 px-4 py-2 text-sm text-zinc-300 hover:border-sky-500/50"

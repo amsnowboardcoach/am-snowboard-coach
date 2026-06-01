@@ -7,7 +7,9 @@ import { doc, getDoc } from "firebase/firestore";
 import { CreateBookingForm } from "@/components/coach/CreateBookingForm";
 import { CoachStudentContentPanel } from "@/components/coach/CoachStudentContentPanel";
 import { DeleteStudentButton } from "@/components/coach/DeleteStudentButton";
+import { StudentLevelSelect } from "@/components/coach/StudentLevelSelect";
 import { StudentTrickManager } from "@/components/coach/StudentTrickManager";
+import { studentLevelLabel } from "@/lib/booking/contact-notes";
 import { useAuth } from "@/contexts/AuthProvider";
 import { COACH_ROLES } from "@/constants/roles";
 import { coachHubHref } from "@/constants/coach-hub";
@@ -81,6 +83,20 @@ export default function CoachAlumnoDetailPage() {
       </p>
       <h1 className="mt-2 text-2xl font-bold">{student.displayName}</h1>
       <p className="text-sm text-zinc-500">{student.email}</p>
+      <div className="mt-4 flex flex-wrap items-end gap-4">
+        <StudentLevelSelect
+          studentId={student.uid}
+          value={student.level}
+          onChange={(level) =>
+            setStudent((prev) => (prev ? { ...prev, level } : prev))
+          }
+        />
+        <p className="pb-2 text-xs text-zinc-600">
+          El alumno ve su nivel en{" "}
+          <span className="text-zinc-400">{studentLevelLabel(student.level)}</span>{" "}
+          en su perfil.
+        </p>
+      </div>
 
       <nav
         className="mt-6 grid grid-cols-3 gap-2"
