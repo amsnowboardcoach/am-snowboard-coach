@@ -172,7 +172,7 @@ export function CoachHubOverview({ coachId, onNavigate }: CoachHubOverviewProps)
         <div className="mt-4 flex flex-wrap gap-2">
           <Link
             href="/reservar"
-            className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-sky-400"
+            className="btn-primary-sm"
           >
             + Nueva reserva
           </Link>

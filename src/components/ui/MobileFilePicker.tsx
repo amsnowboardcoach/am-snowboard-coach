@@ -34,7 +34,7 @@ export function MobileFilePicker({
       <label
         htmlFor={inputId}
         className={cn(
-          "relative inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full bg-sky-500 px-6 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-sky-400",
+          "btn-primary-md relative cursor-pointer",
           (disabled || loading) && "pointer-events-none opacity-50",
         )}
       >
@@ -54,8 +54,8 @@ export function MobileFilePicker({
       </label>
       {hint && <p className="mt-2 text-xs text-zinc-500">{hint}</p>}
       {selectedName && (
-        <p className="mt-2 text-sm text-zinc-600">
-          Archivo: <span className="text-zinc-800">{selectedName}</span>
+        <p className="mt-2 text-sm text-zinc-500">
+          Archivo: <span className="text-zinc-200">{selectedName}</span>
         </p>
       )}
     </div>

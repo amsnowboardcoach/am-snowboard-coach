@@ -26,8 +26,8 @@ export default function VideosPage() {
           Sube tu vídeo y consulta aquí los apuntes de Alejandro cuando publique la
           corrección.
         </p>
-        <p className="mt-3 text-sm text-violet-300/90">
-          <Link href="/reservar?tipo=video" className="underline hover:text-violet-200">
+        <p className="mt-3 text-sm text-sky-300/90">
+          <Link href="/reservar?tipo=video" className="underline hover:text-sky-200">
             Solicitar video corrección
           </Link>
         </p>

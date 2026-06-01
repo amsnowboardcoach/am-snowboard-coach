@@ -91,7 +91,7 @@ export default function CoachAlumnoDetailPage() {
             setStudent((prev) => (prev ? { ...prev, level } : prev))
           }
         />
-        <p className="pb-2 text-xs text-zinc-600">
+        <p className="pb-2 text-xs text-zinc-500">
           El alumno ve su nivel en{" "}
           <span className="text-zinc-400">{studentLevelLabel(student.level)}</span>{" "}
           en su perfil.
@@ -111,7 +111,7 @@ export default function CoachAlumnoDetailPage() {
             className={cn(
               "min-h-11 touch-manipulation rounded-xl px-2 py-2.5 text-center text-xs font-medium sm:text-sm",
               activeTab === tab.id
-                ? "bg-sky-500 text-zinc-950"
+                ? "chip-toggle-active"
                 : "border border-zinc-800 text-zinc-400 hover:border-zinc-600",
             )}
           >

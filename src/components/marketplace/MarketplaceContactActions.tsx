@@ -34,7 +34,7 @@ export function MarketplaceContactActions({
         Vendedor:{" "}
         <span className="text-zinc-300">{listing.sellerDisplayName}</span>
       </p>
-      <div className="flex flex-wrap gap-2">
+      <div className="btn-row">
         {digits.length >= 9 && (
           <a
             href={marketplaceWhatsAppUrl(digits, listing.title)}

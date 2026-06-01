@@ -1,15 +1,36 @@
 @import "tailwindcss";
 
-/* Paleta «Alpine dusk»: noche en pista, hielo suave y toque cálido de atardecer */
+/*
+ * Sierra Alpine — AM Snowboard Coach
+ * Sector: escuela premium en Sierra Nevada
+ * - Base: noche en pista (confianza, enfoque)
+ * - Acento: hielo glaciar (nieve, cielo de montaña)
+ * - Destacado: bronce alpino (tarifas, badges — uso puntual)
+ */
 :root {
-  --background: #1a2332;
-  --foreground: #f4f7fb;
-  --accent: #6eb0c8;
-  --accent-muted: #2a4d5e;
-  --accent-warm: #d4a574;
-  --card: rgba(36, 48, 68, 0.78);
-  --border: rgba(74, 92, 112, 0.5);
-  --cta-fg: #1a2332;
+  --background: #0b1016;
+  --foreground: #e4ecf2;
+  --muted: #8fa0b0;
+
+  --accent: #5d94ab;
+  --accent-hover: #75a9be;
+  --accent-light: #9ec5d6;
+  --accent-dark: #3d6b7f;
+
+  --accent-warm: #c4a35a;
+  --accent-warm-light: #dcc07a;
+  --accent-warm-dark: #8f7340;
+
+  --card: rgba(18, 26, 36, 0.88);
+  --card-elevated: rgba(24, 34, 46, 0.94);
+  --border: rgba(93, 148, 171, 0.16);
+  --border-strong: rgba(93, 148, 171, 0.32);
+
+  --cta-fg: #0b1016;
+
+  --success: #4a9470;
+  --warning: #c4a35a;
+  --danger: #b86b6b;
 }
 
 @theme inline {
@@ -17,47 +38,55 @@
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
 
-  /* Superficies: azul pizarra cálido (sustituye zinc frío) */
-  --color-zinc-50: #f7f9fc;
-  --color-zinc-100: #f0f4f9;
-  --color-zinc-200: #e4ebf4;
-  --color-zinc-300: #c8d4e3;
-  --color-zinc-400: #a8b8c9;
-  --color-zinc-500: #8499ad;
-  --color-zinc-600: #64788f;
-  --color-zinc-700: #4a5c70;
-  --color-zinc-800: #364558;
-  --color-zinc-900: #243044;
-  --color-zinc-950: #1a2332;
+  /* Superficies (pizarra alpina) */
+  --color-zinc-50: #f4f7fa;
+  --color-zinc-100: #e8edf2;
+  --color-zinc-200: #d1d9e2;
+  --color-zinc-300: #b4c0cc;
+  --color-zinc-400: #8fa0b0;
+  --color-zinc-500: #5a6f84;
+  --color-zinc-600: #3d4f63;
+  --color-zinc-700: #263240;
+  --color-zinc-800: #1a2430;
+  --color-zinc-900: #121a24;
+  --color-zinc-950: #0b1016;
 
-  /* Acento principal: azul hielo suave (sustituye sky eléctrico) */
-  --color-sky-50: #f4fafd;
-  --color-sky-100: #e8f4fa;
-  --color-sky-200: #c9e6f2;
-  --color-sky-300: #a8d4e8;
-  --color-sky-400: #8ec5db;
-  --color-sky-500: #6eb0c8;
-  --color-sky-600: #5f97ad;
-  --color-sky-700: #4f7d92;
-  --color-sky-800: #3d6578;
-  --color-sky-900: #2a4d5e;
-  --color-sky-950: #1e3a4a;
+  /* Acento glaciar (CTA, enlaces, marca) */
+  --color-sky-50: #f4fafc;
+  --color-sky-100: #e8f4f8;
+  --color-sky-200: #c5dfe9;
+  --color-sky-300: #9ec5d6;
+  --color-sky-400: #75a9be;
+  --color-sky-500: #5d94ab;
+  --color-sky-600: #4d8296;
+  --color-sky-700: #3d6b7f;
+  --color-sky-800: #2a5060;
+  --color-sky-900: #1e3a47;
+  --color-sky-950: #152a33;
 
-  /* Éxito: verde sage (menos neón) */
-  --color-emerald-300: #9dd4b3;
-  --color-emerald-400: #7bc49a;
-  --color-emerald-500: #5daa7a;
+  /* Disponibilidad / éxito (bosque de montaña) */
+  --color-emerald-200: #b8dcc8;
+  --color-emerald-300: #8fc4a8;
+  --color-emerald-400: #6aab88;
+  --color-emerald-500: #4a9470;
+  --color-emerald-600: #3d7a5c;
 
-  /* Video corrección: lavanda crepuscular */
-  --color-violet-300: #c9c4e8;
-  --color-violet-400: #b0a8d8;
-  --color-violet-500: #9a8ec4;
+  /* Avisos y turnos parciales (bronce atardecer) */
+  --color-amber-200: #ead9b0;
+  --color-amber-300: #dcc07a;
+  --color-amber-400: #c4a35a;
+  --color-amber-500: #b8935f;
+  --color-amber-600: #8f7340;
 
-  /* Avisos: ámbar atardecer en la montaña */
-  --color-amber-200: #f0d4b0;
-  --color-amber-300: #e8c49a;
-  --color-amber-400: #ddb87a;
-  --color-amber-500: #c9a066;
+  /* Info secundaria = mismo glaciar */
+  --color-violet-300: #9ec5d6;
+  --color-violet-400: #75a9be;
+  --color-violet-500: #5d94ab;
+
+  /* Error */
+  --color-red-300: #e0b4b4;
+  --color-red-400: #c98a8a;
+  --color-red-500: #b86b6b;
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -67,6 +96,7 @@ html {
   overflow-x: hidden;
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -85,7 +115,7 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
   min-height: 100dvh;
   overflow-x: hidden;
-  -webkit-tap-highlight-color: rgba(110, 176, 200, 0.18);
+  -webkit-tap-highlight-color: rgba(93, 148, 171, 0.2);
 }
 
 input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
@@ -118,30 +148,183 @@ textarea {
 }
 
 @utility form-input {
-  @apply mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-900/80 px-3.5 py-3 text-base text-zinc-100 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/25 sm:mt-2 sm:px-4;
+  @apply mt-1.5 w-full rounded-lg border border-zinc-700/90 bg-zinc-900/90 px-3.5 py-3 text-base text-zinc-100 placeholder:text-zinc-500 outline-none transition focus:border-sky-500/70 focus:ring-1 focus:ring-sky-500/20 sm:mt-2 sm:px-4;
 }
 
 @utility text-balance {
   text-wrap: balance;
 }
 
-/* Cielo de montaña al atardecer */
+/* —— Marca y tipografía —— */
+
+@utility brand-text {
+  @apply text-sky-400;
+}
+
+@utility link-accent {
+  @apply text-sky-400 transition-colors duration-200 hover:text-sky-300;
+}
+
+@utility text-muted {
+  @apply text-zinc-400;
+}
+
+/* —— Botones —— */
+
+@utility btn-primary {
+  @apply mx-auto flex w-full max-w-sm touch-manipulation items-center justify-center rounded-full bg-sky-500 font-semibold text-zinc-950 shadow-lg shadow-sky-950/40 transition duration-200 hover:bg-sky-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 sm:mx-0 sm:inline-flex sm:w-auto sm:max-w-none;
+}
+
+@utility btn-primary-sm {
+  @apply btn-primary min-h-10 px-4 py-2 text-sm;
+}
+
+@utility btn-primary-md {
+  @apply btn-primary min-h-11 px-6 py-2.5 text-sm;
+}
+
+@utility btn-primary-lg {
+  @apply btn-primary min-h-12 px-8 py-3.5 text-base;
+}
+
+@utility btn-secondary {
+  @apply mx-auto flex w-full max-w-sm touch-manipulation items-center justify-center rounded-full border border-zinc-600/90 bg-zinc-900/80 px-6 py-2.5 text-sm font-medium text-zinc-100 transition duration-200 hover:border-zinc-500 hover:bg-zinc-800/90 disabled:opacity-50 sm:mx-0 sm:inline-flex sm:w-auto sm:max-w-none;
+}
+
+@utility btn-outline {
+  @apply mx-auto flex w-full max-w-sm touch-manipulation items-center justify-center rounded-full border border-zinc-600/90 px-5 py-2.5 text-sm font-medium text-zinc-300 transition duration-200 hover:border-sky-500/45 hover:bg-sky-500/5 hover:text-zinc-50 sm:mx-0 sm:inline-flex sm:w-auto sm:max-w-none;
+}
+
+@utility btn-row {
+  @apply flex w-full flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-start;
+}
+
+@utility btn-row-center {
+  @apply flex w-full flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center;
+}
+
+@utility btn-inline {
+  @apply mx-0 !inline-flex !w-auto !max-w-none;
+}
+
+@utility btn-ghost {
+  @apply inline-flex items-center justify-center rounded-full px-3 py-2 text-sm font-medium text-zinc-400 transition hover:bg-zinc-800/50 hover:text-zinc-100;
+}
+
+@utility btn-accent-soft {
+  @apply inline-flex items-center justify-center rounded-full bg-sky-500/12 px-4 py-2 text-sm font-semibold text-sky-300 ring-1 ring-sky-500/22 transition hover:bg-sky-500/20;
+}
+
+@utility btn-warm-soft {
+  @apply inline-flex items-center justify-center rounded-full bg-amber-500/12 px-4 py-2 text-sm font-semibold text-amber-200 ring-1 ring-amber-500/25 transition hover:bg-amber-500/20;
+}
+
+@utility btn-success-soft {
+  @apply inline-flex items-center justify-center rounded-full bg-emerald-500/15 px-4 py-2 text-sm font-medium text-emerald-300 transition hover:bg-emerald-500/25 disabled:opacity-50;
+}
+
+@utility btn-danger-soft {
+  @apply inline-flex items-center justify-center rounded-full bg-red-500/12 px-4 py-2 text-sm font-medium text-red-300 transition hover:bg-red-500/20 disabled:opacity-50;
+}
+
+@utility btn-google {
+  @apply flex w-full touch-manipulation items-center justify-center gap-3 rounded-full border border-zinc-500/40 bg-zinc-100 px-4 py-3 text-sm font-medium text-zinc-900 shadow-sm transition hover:bg-zinc-50 active:scale-[0.99] disabled:opacity-50;
+}
+
+/* —— Alertas y paneles —— */
+
+@utility alert-success {
+  @apply rounded-xl border border-emerald-500/30 bg-emerald-500/8 text-sm text-emerald-200;
+}
+
+@utility alert-warning {
+  @apply rounded-xl border border-amber-500/28 bg-amber-500/8 text-sm text-amber-200;
+}
+
+@utility alert-info {
+  @apply rounded-xl border border-sky-500/28 bg-sky-500/8 text-sm text-sky-100;
+}
+
+@utility alert-error {
+  @apply rounded-xl border border-red-500/30 bg-red-500/8 text-sm text-red-300;
+}
+
+@utility panel-highlight {
+  @apply rounded-2xl border border-sky-500/28 bg-sky-500/8;
+}
+
+@utility panel-selected {
+  @apply border-sky-500/40 bg-gradient-to-b from-sky-500/12 to-zinc-900/60 shadow-lg shadow-sky-950/30;
+}
+
+@utility chip-active {
+  @apply border-sky-500/50 bg-sky-500/12 text-sky-100 ring-1 ring-sky-500/35;
+}
+
+@utility chip-inactive {
+  @apply border-zinc-700/80 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200;
+}
+
+@utility chip-toggle-active {
+  @apply rounded-full bg-sky-500 px-4 py-2 text-sm font-medium text-zinc-950;
+}
+
+@utility chip-toggle-inactive {
+  @apply rounded-full border border-zinc-600/90 px-4 py-2 text-sm text-zinc-400 transition hover:border-zinc-500 hover:text-zinc-200;
+}
+
+@utility featured-badge {
+  @apply rounded-full bg-amber-500 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-950;
+}
+
+@utility btn-card-cta {
+  @apply btn-accent-soft mt-6 w-full max-w-none py-3 hover:bg-sky-500 hover:text-zinc-950;
+}
+
+@utility btn-card-cta-featured {
+  @apply btn-primary-md mt-6 w-full max-w-none py-3;
+}
+
+/* Navegación por pestañas (reservar, etc.) */
+@utility nav-tabs {
+  @apply grid gap-2 rounded-xl border border-zinc-800/90 bg-zinc-900/50 p-2;
+}
+
+@utility nav-tab-active {
+  @apply flex min-h-12 items-center justify-center rounded-full bg-sky-500 px-3 text-center text-sm font-semibold text-zinc-950 shadow-sm shadow-sky-950/30;
+}
+
+@utility nav-tab-inactive {
+  @apply flex min-h-12 items-center justify-center rounded-full px-3 text-center text-sm font-medium text-zinc-400 transition hover:bg-zinc-800/60 hover:text-zinc-100;
+}
+
+/* Modales y overlays */
+@utility modal-panel {
+  @apply max-h-[90vh] w-full overflow-y-auto rounded-2xl border border-zinc-700/80 bg-zinc-900 p-6 shadow-2xl shadow-black/50 sm:max-w-lg;
+}
+
+@utility overlay-scrim {
+  @apply bg-zinc-950/85 backdrop-blur-sm;
+}
+
+/* —— Layout —— */
+
 .site-mesh {
-  background-color: #1a2332;
+  background-color: var(--background);
   background-image:
     radial-gradient(
-      ellipse 85% 55% at 50% -15%,
-      rgba(110, 176, 200, 0.24),
-      transparent 55%
+      ellipse 90% 60% at 50% -20%,
+      rgba(93, 148, 171, 0.2),
+      transparent 58%
     ),
     radial-gradient(
-      ellipse 50% 40% at 95% 15%,
-      rgba(212, 165, 116, 0.1),
-      transparent 50%
+      ellipse 55% 45% at 100% 0%,
+      rgba(196, 163, 90, 0.07),
+      transparent 52%
     ),
     radial-gradient(
-      ellipse 45% 50% at 5% 70%,
-      rgba(94, 140, 168, 0.14),
+      ellipse 50% 55% at 0% 85%,
+      rgba(61, 107, 127, 0.12),
       transparent 55%
     );
 }
@@ -149,10 +332,13 @@ textarea {
 .glass-panel {
   border: 1px solid var(--border);
   background: var(--card);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
 }
 
-/* —— Espaciado global (móvil + escritorio) —— */
+@utility surface-elevated {
+  @apply rounded-2xl border border-zinc-800/90 bg-zinc-900/70;
+}
 
 @utility page-container {
   @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
@@ -160,7 +346,6 @@ textarea {
   padding-right: max(1rem, env(safe-area-inset-right, 0px));
 }
 
-/** Bloques de formulario o texto largo dentro de páginas centradas */
 @utility content-align-start {
   @apply w-full text-left;
 }
@@ -186,7 +371,7 @@ textarea {
 }
 
 @utility band-section {
-  @apply border-y border-zinc-800/80 bg-zinc-900/30 section-pad;
+  @apply border-y border-zinc-800/70 bg-zinc-900/25 section-pad;
 }
 
 @utility page-intro {
@@ -194,18 +379,17 @@ textarea {
 }
 
 @utility page-eyebrow {
-  @apply text-xs font-semibold uppercase tracking-wider text-sky-400/90;
+  @apply text-xs font-semibold uppercase tracking-[0.14em] text-sky-400/95;
 }
 
 @utility page-title {
-  @apply mx-auto max-w-3xl text-center text-3xl font-bold tracking-tight text-balance sm:text-4xl;
+  @apply mx-auto max-w-3xl text-center text-3xl font-bold tracking-tight text-balance text-zinc-50 sm:text-4xl;
 }
 
 @utility page-lead {
   @apply mx-auto mt-3 max-w-2xl text-center text-base leading-relaxed text-zinc-400 sm:mt-4 sm:text-lg;
 }
 
-/** Reserva inferior para la barra móvil (solo rutas públicas). */
 @utility pb-nav {
   padding-bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
 }

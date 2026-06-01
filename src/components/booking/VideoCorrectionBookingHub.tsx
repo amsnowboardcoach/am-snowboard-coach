@@ -103,7 +103,7 @@ export function VideoCorrectionBookingHub() {
           Revisaré tu petición de {videoCount}{" "}
           {videoCount === 1 ? "vídeo" : "vídeos"}. Si la confirmo, te enviaré el
           enlace para pagar {totalEuros} € y podrás subir el material desde{" "}
-          <Link href="/perfil/videos" className="text-sky-400 hover:underline">
+          <Link href="/perfil/videos" className="link-accent underline-offset-2 hover:underline">
             Mis vídeos
           </Link>
           .
@@ -113,7 +113,7 @@ export function VideoCorrectionBookingHub() {
         </p>
         <Link
           href="/perfil/videos"
-          className="mt-6 inline-block rounded-full border border-violet-500/50 px-6 py-3 text-sm font-medium text-violet-200 hover:bg-violet-500/10"
+          className="mt-6 inline-block rounded-full border border-sky-500/40 px-6 py-3 text-sm font-medium text-sky-200 hover:bg-sky-500/10"
         >
           Ir a Mis vídeos
         </Link>
@@ -126,7 +126,7 @@ export function VideoCorrectionBookingHub() {
             setShowAuthGate(false);
             autoSubmitStarted.current = false;
           }}
-          className="mt-8 rounded-full bg-sky-500 px-6 py-3 text-sm font-semibold text-zinc-950 hover:bg-sky-400"
+          className="btn-primary-md mt-8"
         >
           Otra solicitud
         </button>
@@ -136,8 +136,8 @@ export function VideoCorrectionBookingHub() {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-5">
-        <h2 className="text-lg font-semibold text-violet-200">
+      <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-5">
+        <h2 className="text-lg font-semibold text-sky-200">
           {VIDEO_CORRECTION_PRODUCT.name}
         </h2>
         <p className="mt-2 text-sm text-zinc-400">
@@ -182,7 +182,7 @@ export function VideoCorrectionBookingHub() {
         </div>
 
         <label className="block text-sm text-zinc-300">
-          Notas para el coach <span className="text-zinc-600">(opcional)</span>
+          Notas para el coach <span className="text-zinc-500">(opcional)</span>
           <textarea
             rows={4}
             value={notes}
@@ -207,7 +207,7 @@ export function VideoCorrectionBookingHub() {
         </div>
 
         {submitError && (
-          <p className="text-sm text-red-400" role="alert">
+          <p className="text-sm text-red-300" role="alert">
             {submitError}
           </p>
         )}
@@ -217,7 +217,7 @@ export function VideoCorrectionBookingHub() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-full bg-sky-500 py-3 font-semibold text-zinc-950 hover:bg-sky-400 disabled:opacity-50 sm:w-auto sm:px-10"
+              className="btn-primary-md disabled:opacity-50 sm:px-10"
             >
               {submitting
                 ? "Enviando…"
@@ -242,7 +242,7 @@ export function VideoCorrectionBookingHub() {
               onGoogleSuccess={() => setShowAuthGate(true)}
             />
             {authError && (
-              <p className="text-sm text-red-400" role="alert">
+              <p className="text-sm text-red-300" role="alert">
                 {authError}
               </p>
             )}
@@ -252,7 +252,7 @@ export function VideoCorrectionBookingHub() {
 
       <p className="text-center text-sm text-zinc-500">
         ¿Buscas clase en pista?{" "}
-        <Link href="/reservar" className="text-sky-400 hover:underline">
+        <Link href="/reservar" className="link-accent underline-offset-2 hover:underline">
           Reservar clase en Sierra Nevada
         </Link>
       </p>

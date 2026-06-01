@@ -59,7 +59,7 @@ export function BookingAuthGate({
     return (
       <div
         className={cn(
-          "scroll-mt-header rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-5 text-sm",
+          "scroll-mt-header alert-success px-4 py-5",
           className,
         )}
         id="booking-auth-gate"
@@ -81,7 +81,7 @@ export function BookingAuthGate({
             type="button"
             disabled={confirming}
             onClick={() => void onConfirm()}
-            className="mt-4 w-full rounded-full bg-sky-500 py-3.5 text-sm font-semibold text-zinc-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-4 btn-primary-md w-full disabled:cursor-not-allowed"
           >
             {confirming
               ? "Preparando pago…"
@@ -98,14 +98,12 @@ export function BookingAuthGate({
   return (
     <div
       className={cn(
-        "scroll-mt-header rounded-2xl border border-sky-500/35 bg-sky-500/10 p-5 sm:p-6",
+        "scroll-mt-header panel-highlight p-5 sm:p-6",
         className,
       )}
       id="booking-auth-gate"
     >
-      <p className="text-xs font-semibold uppercase tracking-wider text-sky-400">
-        Último paso
-      </p>
+      <p className="page-eyebrow">Último paso</p>
       <h3 className="mt-2 text-lg font-semibold text-zinc-100">{headline}</h3>
       <p className="mt-1 text-sm text-zinc-400">{summary}</p>
       <p className="mt-2 text-xl font-bold text-sky-300">{totalEuros} €</p>
@@ -131,11 +129,11 @@ export function BookingAuthGate({
         <Link
           href={studentAreaHref({ next: returnPath })}
           onClick={() => setBookingPendingSubmit(true)}
-          className="font-medium text-sky-400 hover:underline"
+          className="font-medium link-accent underline-offset-2 hover:underline"
         >
           Área de alumno
         </Link>
-        <span className="text-zinc-600"> · entrar o registrarte con email</span>
+        <span className="text-zinc-500"> · entrar o registrarte con email</span>
       </p>
     </div>
   );

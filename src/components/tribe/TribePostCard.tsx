@@ -276,7 +276,7 @@ export function TribePostCard({
           <p className="mt-1 text-xs text-sky-400">{shareHint}</p>
         )}
         {actionError && (
-          <p className="mt-2 text-xs text-red-400" role="alert">
+          <p className="mt-2 text-xs text-red-300" role="alert">
             {actionError}
           </p>
         )}
@@ -337,7 +337,7 @@ export function TribePostCard({
                 <button
                   type="submit"
                   disabled={acting || !commentText.trim()}
-                  className="shrink-0 rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-sky-400 disabled:opacity-40 sm:min-w-[6.5rem]"
+                  className="btn-primary-md btn-inline shrink-0 rounded-xl disabled:opacity-40 sm:min-w-[6.5rem]"
                 >
                   Enviar
                 </button>

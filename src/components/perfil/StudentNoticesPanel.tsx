@@ -101,7 +101,7 @@ export function StudentNoticesPanel({
           <button
             type="button"
             onClick={() => void handleMarkAllRead()}
-            className="text-sm font-medium text-sky-400 hover:text-sky-300"
+            className="text-sm font-medium link-accent"
           >
             Marcar todos como leídos
           </button>

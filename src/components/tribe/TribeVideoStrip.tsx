@@ -39,12 +39,12 @@ export function TribeVideoStrip({
         <p className="mt-2 text-sm text-zinc-500">
           Vídeos de alumnos y del coach. Estilo feed — likes, comentarios y
           compartir en{" "}
-          <Link href="/tribu" className="text-sky-400 hover:underline">
+          <Link href="/tribu" className="link-accent underline-offset-2 hover:underline">
             La Tribu
           </Link>
           .
         </p>
-        <div className="mt-6 rounded-2xl border border-dashed border-zinc-300 px-6 py-12 text-center text-sm text-zinc-500">
+        <div className="mt-6 rounded-2xl border border-dashed border-zinc-700/80 px-6 py-12 text-center text-sm text-zinc-500">
           Aún no hay vídeos publicados. Pronto subiremos contenido de prueba.
         </div>
       </section>
@@ -56,7 +56,7 @@ export function TribeVideoStrip({
       <h2 className="text-2xl font-bold">{title}</h2>
       <p className="mt-2 text-sm text-zinc-500">
         De la comunidad AM ·{" "}
-        <Link href="/tribu" className="text-sky-400 hover:underline">
+        <Link href="/tribu" className="link-accent underline-offset-2 hover:underline">
           Ver y publicar en La Tribu
         </Link>
       </p>

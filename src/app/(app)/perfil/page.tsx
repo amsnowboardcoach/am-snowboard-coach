@@ -78,7 +78,7 @@ export default function PerfilPage() {
             </h2>
             <Link
               href="/perfil/avisos"
-              className="text-sm font-medium text-sky-400 hover:text-sky-300"
+              className="text-sm font-medium link-accent"
             >
               Ver todos →
             </Link>

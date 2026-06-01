@@ -36,7 +36,7 @@ export function CoachProfileSetup({ user, onReady }: CoachProfileSetupProps) {
   }
 
   return (
-    <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-6">
+    <div className="alert-warning p-6">
       <h2 className="text-lg font-semibold text-amber-100">
         Falta tu perfil en Firestore
       </h2>
@@ -46,13 +46,13 @@ export function CoachProfileSetup({ user, onReady }: CoachProfileSetupProps) {
         puedes usar el panel coach.
       </p>
       {error && (
-        <p className="mt-3 text-sm text-red-400">{error}</p>
+        <p className="mt-3 text-sm text-red-300">{error}</p>
       )}
       <button
         type="button"
         disabled={loading}
         onClick={setupProfile}
-        className="mt-4 rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 disabled:opacity-50"
+        className="btn-primary-md mt-4 disabled:opacity-50"
       >
         {loading ? "Creando perfil…" : "Crear mi perfil de coach"}
       </button>

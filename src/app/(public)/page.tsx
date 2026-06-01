@@ -108,7 +108,7 @@ export default async function HomePage() {
           ))}
         </div>
         <p className="mt-8 text-center">
-          <Link href="/blog" className="text-sky-400 hover:underline">
+          <Link href="/blog" className="link-accent underline-offset-2 hover:underline">
             Ver todos los artículos →
           </Link>
         </p>
@@ -129,7 +129,7 @@ export default async function HomePage() {
           </p>
           <Link
             href="/reservar"
-            className="mt-8 inline-flex rounded-full bg-sky-500 px-10 py-3.5 font-semibold text-zinc-950 hover:bg-sky-400"
+            className="btn-primary-lg mt-8"
           >
             Reservar ahora
           </Link>

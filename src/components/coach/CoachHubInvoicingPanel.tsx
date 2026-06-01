@@ -10,12 +10,12 @@ interface CoachHubInvoicingPanelProps {
 export function CoachHubInvoicingPanel({ coachId }: CoachHubInvoicingPanelProps) {
   return (
     <div className="space-y-8">
-      <p className="text-sm text-zinc-600">
+      <p className="text-sm text-zinc-500">
         Revisa los datos del emisor y emite facturas en las reservas ya pagadas.
       </p>
       <IssuerInfoCard />
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-zinc-900">
+        <h2 className="mb-4 text-lg font-semibold text-zinc-100">
           Reservas sin factura
         </h2>
         <CoachBookingsPanel

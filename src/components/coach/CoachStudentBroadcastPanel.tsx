@@ -180,16 +180,16 @@ export function CoachStudentBroadcastPanel({
         </label>
       </div>
 
-      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="mt-5 flex flex-col items-center gap-3 sm:flex-row sm:items-center">
         <button
           type="button"
           onClick={() => void handleSend()}
           disabled={sending || selectedIds.length === 0}
           className={cn(
-            "inline-flex min-h-11 flex-1 items-center justify-center rounded-full px-6 py-2.5 text-sm font-semibold transition sm:flex-none sm:min-w-[14rem]",
+            "min-h-11 w-full max-w-none px-6 py-2.5 text-sm font-semibold sm:min-w-[14rem] sm:flex-none",
             selectedIds.length === 0
-              ? "cursor-not-allowed bg-zinc-800 text-zinc-500"
-              : "bg-sky-500 text-zinc-950 hover:bg-sky-400 disabled:opacity-60",
+              ? "btn-secondary cursor-not-allowed opacity-60"
+              : "btn-primary-md",
           )}
         >
           {sending
@@ -215,7 +215,7 @@ export function CoachStudentBroadcastPanel({
         </p>
       )}
       {error && (
-        <p className="mt-3 text-sm text-red-400" role="alert">
+        <p className="mt-3 text-sm text-red-300" role="alert">
           {error}
         </p>
       )}

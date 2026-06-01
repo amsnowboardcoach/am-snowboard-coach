@@ -103,7 +103,7 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
   return (
     <div className="space-y-8">
       {allowance?.pendingRequest && (
-        <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+        <p className="alert-warning px-4 py-3">
           Tienes una solicitud de video corrección pendiente de confirmación.
           Cuando Alejandro la acepte, recibirás el enlace de pago.
         </p>
@@ -128,7 +128,7 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
       {uploadDisabled && !allowance?.pendingRequest && !allowance?.awaitingPayment && (
         <p className="rounded-xl border border-zinc-700 bg-zinc-900/50 px-4 py-3 text-sm text-zinc-300">
           Para subir un vídeo a corregir,{" "}
-          <Link href="/reservar?tipo=video" className="text-violet-300 underline">
+          <Link href="/reservar?tipo=video" className="text-sky-300 underline">
             solicita video corrección
           </Link>{" "}
           (20 €/vídeo). Tras confirmación y pago podrás subir aquí.
@@ -139,7 +139,7 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
         onSubmit={handleUpload}
         className={`glass-panel rounded-2xl border-violet-500/20 p-6 ${uploadDisabled ? "opacity-60" : ""}`}
       >
-        <h2 className="text-lg font-semibold text-violet-200">
+        <h2 className="text-lg font-semibold text-sky-200">
           Subir un vídeo nuevo
         </h2>
         <p className="mt-2 text-sm text-zinc-400">
@@ -178,7 +178,7 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
         />
 
         {error && (
-          <p className="mt-3 text-sm text-red-400" role="alert">
+          <p className="mt-3 text-sm text-red-300" role="alert">
             {error}
           </p>
         )}
@@ -186,7 +186,7 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
         <button
           type="submit"
           disabled={uploading || uploadDisabled || !selectedFile}
-          className="mt-4 rounded-full bg-violet-500 px-6 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-violet-400 disabled:opacity-50"
+          className="btn-primary-md mt-4 disabled:opacity-50"
         >
           {uploading ? "Subiendo…" : "Subir vídeo"}
         </button>

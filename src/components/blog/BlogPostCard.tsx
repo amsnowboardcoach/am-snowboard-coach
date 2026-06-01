@@ -10,16 +10,16 @@ export function BlogPostCard({ post }: { post: BlogPost }) {
         {post.tags.slice(0, 3).map((tag) => (
           <span
             key={tag}
-            className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs text-zinc-600"
+            className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs text-zinc-500"
           >
             {tag}
           </span>
         ))}
       </div>
-      <h2 className="mt-4 text-xl font-semibold group-hover:text-sky-600">
+      <h2 className="mt-4 text-xl font-semibold group-hover:text-sky-400">
         <Link href={`/blog/${post.slug}`}>{post.title}</Link>
       </h2>
-      <p className="mt-2 flex-1 text-sm leading-relaxed text-zinc-600">
+      <p className="mt-2 flex-1 text-sm leading-relaxed text-zinc-400">
         {post.description}
       </p>
       <p className="mt-4 text-xs text-zinc-500">
@@ -28,7 +28,7 @@ export function BlogPostCard({ post }: { post: BlogPost }) {
       </p>
       <Link
         href={`/blog/${post.slug}`}
-        className="mt-4 text-sm font-medium text-sky-400 hover:underline"
+        className="mt-4 text-sm font-medium link-accent underline-offset-2 hover:underline"
       >
         Leer artículo →
       </Link>

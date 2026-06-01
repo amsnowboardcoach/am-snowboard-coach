@@ -98,7 +98,7 @@ export function TribeModerationPanel({
   }
 
   return (
-    <section className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-6">
+    <section className="alert-warning p-6">
       <h2 className="text-lg font-semibold text-amber-200">
         Publicaciones pendientes ({pending.length})
       </h2>
@@ -107,7 +107,7 @@ export function TribeModerationPanel({
         contenido sin avisar al alumno por la app.
       </p>
       {actionError && (
-        <p className="mt-3 text-sm text-red-400" role="alert">
+        <p className="mt-3 text-sm text-red-300" role="alert">
           {actionError}
         </p>
       )}
@@ -119,7 +119,7 @@ export function TribeModerationPanel({
               <button
                 type="button"
                 onClick={() => setStatus(post.id, "approved")}
-                className="rounded-full bg-emerald-500/20 px-4 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-500/30"
+                className="btn-success-soft"
               >
                 Aprobar
               </button>

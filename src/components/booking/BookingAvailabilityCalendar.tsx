@@ -116,7 +116,7 @@ function dayCellClass(
     case "full":
       return "bg-red-500/10 text-red-300/70 ring-1 ring-red-500/25 cursor-not-allowed";
     default:
-      return "bg-zinc-800/40 text-zinc-600 cursor-not-allowed";
+      return "bg-zinc-800/40 text-zinc-500 cursor-not-allowed";
   }
 }
 
@@ -168,7 +168,7 @@ function DaySlotPicker({
                   selected &&
                   "border-sky-500 bg-sky-500/20 text-sky-100 ring-1 ring-sky-500/50",
                 !free &&
-                  "cursor-default border-zinc-800 bg-zinc-900/60 text-zinc-600",
+                  "cursor-default border-zinc-800 bg-zinc-900/60 text-zinc-500",
               )}
             >
               <span className="font-medium">{slot.label}</span>
@@ -230,7 +230,7 @@ function BookingSlotSeatMap({
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
           Turnos en pista
         </p>
-        <p className="text-[11px] text-zinc-600">Verde libre · gris ocupado</p>
+        <p className="text-[11px] text-zinc-500">Verde libre · gris ocupado</p>
       </div>
 
       {pickedDates.map((dateKey) => {
@@ -491,13 +491,13 @@ export function BookingAvailabilityCalendar({
           </button>
         </div>
 
-        <p className="mt-2 text-center text-[11px] text-zinc-600">
+        <p className="mt-2 text-center text-[11px] text-zinc-500">
           Temporada {BOOKING_SEASON_LABEL} · elige turno en cada día marcado
         </p>
 
         <div className="mt-2 grid grid-cols-7 gap-1 text-center">
         {WEEKDAY_LABELS.map((label) => (
-          <div key={label} className="py-1 text-[10px] text-zinc-600">
+          <div key={label} className="py-1 text-[10px] text-zinc-500">
             {label}
           </div>
         ))}

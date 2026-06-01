@@ -60,7 +60,7 @@ export function DeleteStudentButton({
         {loading ? "Eliminando…" : "Eliminar alumno"}
       </button>
       {error && (
-        <p className="text-sm text-red-400" role="alert">
+        <p className="text-sm text-red-300" role="alert">
           {error}
         </p>
       )}

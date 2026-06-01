@@ -419,13 +419,13 @@ export function PwaShell() {
               </ol>
             )}
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2 sm:flex-col sm:items-stretch">
+          <div className="flex w-full shrink-0 flex-col items-stretch gap-2 sm:w-auto sm:flex-col sm:items-stretch">
             {showAndroidInstall && (
               <button
                 type="button"
                 disabled={installLoading}
                 onClick={() => void handleNativeInstall()}
-                className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 disabled:opacity-50"
+                className="btn-primary-md disabled:opacity-50"
               >
                 {installLoading
                   ? "…"
@@ -438,7 +438,7 @@ export function PwaShell() {
               <button
                 type="button"
                 onClick={dismissInstallBanner}
-                className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-zinc-950"
+                className="btn-primary-md"
               >
                 Entendido
               </button>
@@ -447,7 +447,7 @@ export function PwaShell() {
               <button
                 type="button"
                 onClick={showInstallInstructions}
-                className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-zinc-950"
+                className="btn-primary-md"
               >
                 Ver pasos
               </button>
@@ -497,7 +497,7 @@ export function PwaShell() {
               type="button"
               disabled={pushLoading}
               onClick={() => void enablePush()}
-              className="rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 disabled:opacity-50"
+              className="btn-warm-soft btn-inline min-h-11 px-5 py-2.5 disabled:opacity-50"
             >
               {pushLoading ? "…" : "Activar"}
             </button>

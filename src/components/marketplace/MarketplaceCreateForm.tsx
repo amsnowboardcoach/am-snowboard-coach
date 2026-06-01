@@ -53,10 +53,10 @@ export function MarketplaceCreateForm({ onCreated }: MarketplaceCreateFormProps)
           puede vender material de snowboard. Crea cuenta o entra para publicar.
         </p>
         <p className="mt-3">
-          <Link href="/login" className="text-sky-400 hover:underline">
+          <Link href="/login" className="link-accent underline-offset-2 hover:underline">
             Área de alumno
           </Link>
-          <span className="text-zinc-600"> — entrar o registrarte</span>
+          <span className="text-zinc-500"> — entrar o registrarte</span>
         </p>
       </div>
     );
@@ -220,7 +220,7 @@ export function MarketplaceCreateForm({ onCreated }: MarketplaceCreateFormProps)
           />
         </label>
       </div>
-      <p className="text-xs text-zinc-600">
+      <p className="text-xs text-zinc-500">
         Indica al menos teléfono o email para que te contacten.
       </p>
 
@@ -246,7 +246,7 @@ export function MarketplaceCreateForm({ onCreated }: MarketplaceCreateFormProps)
       </label>
 
       {error && (
-        <p className="text-sm text-red-400" role="alert">
+        <p className="text-sm text-red-300" role="alert">
           {error}
         </p>
       )}
@@ -259,7 +259,7 @@ export function MarketplaceCreateForm({ onCreated }: MarketplaceCreateFormProps)
       <button
         type="submit"
         disabled={submitting}
-        className="w-full rounded-full bg-sky-500 py-3 font-semibold text-zinc-950 hover:bg-sky-400 disabled:opacity-50 sm:w-auto sm:px-10"
+        className="btn-primary-md disabled:opacity-50 sm:px-10"
       >
         {submitting ? "Publicando…" : "Publicar anuncio"}
       </button>

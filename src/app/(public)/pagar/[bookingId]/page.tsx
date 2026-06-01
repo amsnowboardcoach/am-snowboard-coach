@@ -82,7 +82,7 @@ export default function PagarBookingPage() {
           <p className="text-lg font-semibold text-emerald-300">
             Esta clase ya está pagada
           </p>
-          <Link href="/perfil" className="mt-6 text-sky-400 hover:underline">
+          <Link href="/perfil" className="mt-6 link-accent underline-offset-2 hover:underline">
             Ir al área de alumno
           </Link>
         </>
@@ -97,7 +97,7 @@ export default function PagarBookingPage() {
             {message ??
               "Alejandro debe aceptar tu solicitud antes de poder pagar. Te avisaremos por email."}
           </p>
-          <Link href="/reservar" className="mt-6 text-sky-400 hover:underline">
+          <Link href="/reservar" className="mt-6 link-accent underline-offset-2 hover:underline">
             Ir a reservar
           </Link>
         </>
@@ -110,7 +110,7 @@ export default function PagarBookingPage() {
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="mt-6 rounded-full bg-sky-500 px-6 py-2.5 text-sm font-semibold text-zinc-950"
+            className="btn-primary-md mt-6"
           >
             Reintentar
           </button>

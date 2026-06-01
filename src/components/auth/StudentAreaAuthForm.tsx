@@ -175,7 +175,7 @@ export function StudentAreaAuthForm() {
             redirectPath={nextPath ?? undefined}
             onError={setError}
           />
-          <p className="mt-2 text-xs text-zinc-600">
+          <p className="mt-2 text-xs text-zinc-500">
             Google sirve para entrar o registrarte. Al continuar aceptas la{" "}
             <Link
               href={LEGAL_PATHS.privacy}
@@ -265,7 +265,7 @@ export function StudentAreaAuthForm() {
             </label>
 
             {error && (
-              <p className="text-sm text-red-400" role="alert">
+              <p className="text-sm text-red-300" role="alert">
                 {error}
               </p>
             )}
@@ -273,7 +273,7 @@ export function StudentAreaAuthForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-full bg-sky-500 py-3 font-semibold text-zinc-950 hover:bg-sky-400 disabled:opacity-50"
+              className="btn-primary-md w-full disabled:opacity-50"
             >
               {loading ? "Entrando…" : "Entrar con email"}
             </button>
@@ -330,7 +330,7 @@ export function StudentAreaAuthForm() {
                 He leído y acepto la{" "}
                 <Link
                   href={LEGAL_PATHS.privacy}
-                  className="text-sky-400 hover:underline"
+                  className="link-accent underline-offset-2 hover:underline"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -339,7 +339,7 @@ export function StudentAreaAuthForm() {
                 y los{" "}
                 <Link
                   href={LEGAL_PATHS.terms}
-                  className="text-sky-400 hover:underline"
+                  className="link-accent underline-offset-2 hover:underline"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -350,7 +350,7 @@ export function StudentAreaAuthForm() {
             </label>
 
             {error && (
-              <p className="text-sm text-red-400" role="alert">
+              <p className="text-sm text-red-300" role="alert">
                 {error}
               </p>
             )}
@@ -358,7 +358,7 @@ export function StudentAreaAuthForm() {
             <button
               type="submit"
               disabled={loading || !acceptedLegal}
-              className="w-full rounded-full bg-sky-500 py-3 font-semibold text-zinc-950 hover:bg-sky-400 disabled:opacity-50"
+              className="btn-primary-md w-full disabled:opacity-50"
             >
               {loading ? "Creando cuenta…" : "Crear cuenta con email"}
             </button>

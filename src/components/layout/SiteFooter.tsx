@@ -50,7 +50,7 @@ export function SiteFooter() {
             href="/"
             className="inline-block text-lg font-bold transition-colors duration-200 hover:text-zinc-200"
           >
-            AM <span className="text-sky-400">Snowboard</span> Coach
+            AM <span className="brand-text">Snowboard</span> Coach
           </Link>
           <p className="mt-3 max-w-sm text-sm text-zinc-400">
             Clases de snowboard en Sierra Nevada (Granada). Técnica, seguridad
@@ -58,7 +58,7 @@ export function SiteFooter() {
           </p>
           <Link
             href="/reservar"
-            className="mt-4 inline-flex rounded-full bg-sky-500/15 px-4 py-2 text-sm font-semibold text-sky-300 transition duration-200 hover:bg-sky-500/25"
+            className="mt-4 inline-flex btn-accent-soft"
           >
             Reservar clase →
           </Link>
@@ -123,7 +123,7 @@ export function SiteFooter() {
           </Link>
         </nav>
         <p
-          className="mt-4 text-center text-xs text-zinc-600"
+          className="mt-4 text-center text-xs text-zinc-500"
           suppressHydrationWarning
         >
           © {new Date().getFullYear()} AM Snowboard Coach · Sierra Nevada

@@ -25,7 +25,7 @@ export function TribeHowItWorks() {
           className="glass-panel rounded-2xl p-5 sm:p-6"
         >
           <span
-            className="inline-flex size-8 items-center justify-center rounded-full bg-sky-500/15 text-sm font-bold text-sky-300 ring-1 ring-sky-500/30"
+            className="inline-flex size-8 items-center justify-center rounded-full bg-sky-500/15 text-sm font-bold brand-text ring-1 ring-sky-500/30"
             aria-hidden
           >
             {index + 1}

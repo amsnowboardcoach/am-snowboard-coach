@@ -36,11 +36,11 @@ export function TribePhotoGrid() {
             Pronto habrá fotos de la comunidad aquí.
           </p>
           <p className="mt-2 text-sm text-zinc-500">
-            <Link href="/login" className="text-sky-400 hover:underline">
+            <Link href="/login" className="link-accent underline-offset-2 hover:underline">
               Área de alumno
             </Link>{" "}
             —{" "}
-            <Link href="/tribu" className="text-sky-400 hover:underline">
+            <Link href="/tribu" className="link-accent underline-offset-2 hover:underline">
               visita La Tribu
             </Link>{" "}
             para ser el primero en publicar.
@@ -81,7 +81,7 @@ export function TribePhotoGrid() {
           <p className="mt-6 text-center">
             <Link
               href="/tribu"
-              className="text-sm text-sky-400 hover:underline"
+              className="text-sm link-accent underline-offset-2 hover:underline"
             >
               Ver feed completo en La Tribu →
             </Link>

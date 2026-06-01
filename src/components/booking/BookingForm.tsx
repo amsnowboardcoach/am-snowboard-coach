@@ -893,7 +893,7 @@ export function BookingForm() {
 
   if (success) {
     return (
-      <div className="rounded-2xl border border-emerald-500/35 bg-emerald-500/10 p-8 text-center sm:p-10">
+      <div className="alert-success p-8 text-center sm:p-10">
         <p className="text-2xl font-semibold text-emerald-300">
           {paymentSuccess
             ? depositPaidSuccess
@@ -971,7 +971,7 @@ export function BookingForm() {
             setSelectedDays([]);
             setParticipantCount(1);
           }}
-          className="mt-8 rounded-full bg-sky-500 px-6 py-3 text-sm font-semibold text-zinc-950 hover:bg-sky-400"
+          className="btn-primary-md mt-8"
         >
           Nueva reserva
         </button>
@@ -1084,7 +1084,7 @@ export function BookingForm() {
             </ChoiceButton>
           ))}
         </div>
-        <p className="text-xs text-zinc-600">
+        <p className="text-xs text-zinc-500">
           {formatExtraParticipantsNote(session)}
         </p>
       </FieldBlock>
@@ -1095,7 +1095,7 @@ export function BookingForm() {
       >
         <div className="space-y-4">
           <label className="block text-sm text-zinc-300">
-            Teléfono móvil <span className="text-red-400">*</span>
+            Teléfono móvil <span className="text-red-300">*</span>
             <input
               type="tel"
               inputMode="tel"
@@ -1108,14 +1108,14 @@ export function BookingForm() {
               aria-invalid={phone.length > 0 && !contactReady}
             />
             {phone.length > 0 && !contactReady && (
-              <span className="mt-1 block text-xs text-red-400">
+              <span className="mt-1 block text-xs text-red-300">
                 Introduce un teléfono válido (mínimo 9 dígitos).
               </span>
             )}
           </label>
 
           <label className="block text-sm text-zinc-300">
-            Objetivos <span className="text-zinc-600">(opcional)</span>
+            Objetivos <span className="text-zinc-500">(opcional)</span>
             <textarea
               rows={3}
               value={objectives}
@@ -1178,7 +1178,7 @@ export function BookingForm() {
         <button
           type="submit"
           disabled={submitting || !formReady}
-          className="w-full rounded-full bg-sky-500 py-3.5 text-sm font-semibold text-zinc-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn-primary-md w-full disabled:cursor-not-allowed"
         >
           {submitting
             ? "Preparando pago…"
@@ -1203,13 +1203,13 @@ export function BookingForm() {
       </div>
 
       {submitError && (
-        <p className="text-sm text-red-400" role="alert">
+        <p className="text-sm text-red-300" role="alert">
           {submitError}
         </p>
       )}
 
       {authError && (
-        <p className="text-sm text-red-400" role="alert">
+        <p className="text-sm text-red-300" role="alert">
           {authError}
         </p>
       )}

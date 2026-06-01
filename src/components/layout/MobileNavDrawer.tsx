@@ -53,7 +53,7 @@ export function MobileNavDrawer({ links, className }: MobileNavDrawerProps) {
     >
       <button
         type="button"
-        className="absolute inset-0 bg-white/90 backdrop-blur-md transition-opacity"
+        className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm transition-opacity"
         aria-label="Cerrar menú"
         onClick={() => setOpen(false)}
       />
@@ -61,19 +61,19 @@ export function MobileNavDrawer({ links, className }: MobileNavDrawerProps) {
         id="mobile-nav-drawer"
         className={cn(
           "absolute inset-y-0 right-0 flex w-[min(100vw-2.5rem,20rem)] flex-col",
-          "border-l border-zinc-300/80 bg-white shadow-[-12px_0_40px_rgba(0,0,0,0.55)]",
+          "border-l border-zinc-800/90 bg-zinc-950 shadow-[-12px_0_40px_rgba(0,0,0,0.45)]",
           "pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]",
         )}
         aria-label="Menú principal"
       >
-        <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-4 py-3">
-          <span className="text-sm font-semibold tracking-wide text-zinc-800">
+        <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+          <span className="text-sm font-semibold tracking-wide text-zinc-100">
             Menú
           </span>
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="flex size-11 items-center justify-center rounded-xl border border-zinc-300/80 bg-zinc-800/80 text-zinc-700 active:bg-zinc-700"
+            className="btn-ghost flex size-11 items-center justify-center rounded-xl border border-zinc-700"
             aria-label="Cerrar menú"
           >
             <svg
@@ -89,7 +89,7 @@ export function MobileNavDrawer({ links, className }: MobileNavDrawerProps) {
             </svg>
           </button>
         </div>
-        <ul className="flex-1 overflow-y-auto overscroll-contain bg-white px-2 py-3">
+        <ul className="flex-1 overflow-y-auto overscroll-contain px-2 py-3">
           {regular.map((item) => (
             <li key={`${item.href}-${item.label}`}>
               {item.onClick ? (
@@ -99,7 +99,7 @@ export function MobileNavDrawer({ links, className }: MobileNavDrawerProps) {
                     setOpen(false);
                     item.onClick?.();
                   }}
-                  className="flex min-h-12 w-full items-center rounded-xl px-4 text-left text-base font-medium text-zinc-900 active:bg-zinc-800"
+                  className="flex min-h-12 w-full items-center rounded-xl px-4 text-left text-base font-medium text-zinc-200 transition hover:bg-zinc-900/80 active:bg-zinc-800"
                 >
                   {item.label}
                 </button>
@@ -110,7 +110,7 @@ export function MobileNavDrawer({ links, className }: MobileNavDrawerProps) {
                     setOpen(false);
                     scrollToTop();
                   }}
-                  className="flex min-h-12 items-center rounded-xl px-4 text-base font-medium text-zinc-900 transition active:bg-zinc-800"
+                  className="flex min-h-12 items-center rounded-xl px-4 text-base font-medium text-zinc-200 transition hover:bg-zinc-900/80 active:bg-zinc-800"
                 >
                   {item.label}
                 </Link>
@@ -119,14 +119,14 @@ export function MobileNavDrawer({ links, className }: MobileNavDrawerProps) {
           ))}
         </ul>
         {cta && (
-          <div className="shrink-0 border-t border-zinc-200 bg-zinc-50 p-4">
+          <div className="shrink-0 border-t border-zinc-800 p-4">
             <Link
               href={cta.href}
               onClick={() => {
                 setOpen(false);
                 scrollToTop();
               }}
-              className="flex min-h-12 items-center justify-center rounded-full bg-sky-500 px-6 text-base font-semibold text-zinc-950 shadow-lg shadow-sky-500/25 transition active:scale-[0.98] active:bg-sky-400"
+              className="btn-primary-md flex w-full min-h-12 items-center justify-center"
             >
               {cta.label}
             </Link>
@@ -143,10 +143,10 @@ export function MobileNavDrawer({ links, className }: MobileNavDrawerProps) {
           type="button"
           onClick={() => setOpen((o) => !o)}
           className={cn(
-            "relative z-[1] flex size-11 shrink-0 items-center justify-center rounded-xl border text-zinc-800 transition",
+            "relative z-[1] flex size-11 shrink-0 items-center justify-center rounded-xl border transition",
             open
-              ? "border-sky-500/50 bg-zinc-800 text-sky-600"
-              : "border-zinc-300/80 bg-zinc-100 active:bg-zinc-800",
+              ? "border-sky-500/50 bg-sky-500/15 text-sky-300"
+              : "border-zinc-700 bg-zinc-900/80 text-zinc-300 hover:border-zinc-600 hover:text-zinc-100",
           )}
           aria-expanded={open}
           aria-controls="mobile-nav-drawer"

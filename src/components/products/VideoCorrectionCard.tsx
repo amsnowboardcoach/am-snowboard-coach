@@ -20,7 +20,7 @@ export function VideoCorrectionCard({
         className,
       )}
     >
-      <p className="text-xs font-semibold uppercase tracking-wider text-violet-400">
+      <p className="page-eyebrow">
         Fuera de pista
       </p>
       <h2 className="mt-2 text-xl font-semibold text-zinc-100 sm:text-2xl">
@@ -40,7 +40,7 @@ export function VideoCorrectionCard({
       {showCta && (
         <Link
           href="/reservar?tipo=video"
-          className="mt-6 inline-flex rounded-full bg-violet-500 px-6 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-violet-400"
+          className="btn-primary-md mt-6"
         >
           Pedir video corrección
         </Link>

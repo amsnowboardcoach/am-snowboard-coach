@@ -90,7 +90,7 @@ export function SiteHeader({ className }: SiteHeaderProps) {
               </Link>
               <Link
                 href={SITE_HEADER_CTA.href}
-                className="rounded-full bg-sky-500 px-4 py-2.5 font-semibold text-zinc-950 shadow-lg shadow-sky-500/20 transition duration-200 hover:bg-sky-400 active:scale-[0.98]"
+                className="btn-primary-md"
               >
                 {SITE_HEADER_CTA.label}
               </Link>
@@ -109,7 +109,7 @@ export function SiteHeader({ className }: SiteHeaderProps) {
               ))}
               <Link
                 href={SITE_HEADER_CTA.href}
-                className="rounded-full bg-sky-500 px-4 py-2.5 font-semibold text-zinc-950 shadow-lg shadow-sky-500/20 transition duration-200 hover:bg-sky-400 active:scale-[0.98]"
+                className="btn-primary-md"
               >
                 {SITE_HEADER_CTA.label}
               </Link>

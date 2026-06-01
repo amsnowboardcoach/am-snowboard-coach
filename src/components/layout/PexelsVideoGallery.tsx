@@ -28,12 +28,12 @@ export function PexelsVideoGallery({
           href="https://www.pexels.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sky-400 hover:underline"
+          className="link-accent underline-offset-2 hover:underline"
         >
           Pexels
         </a>
       </p>
-      <div className="mt-6 overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+      <div className="mt-6 overflow-hidden rounded-2xl border border-zinc-800/90 bg-zinc-900/50">
         <video
           key={current.src}
           controls
@@ -54,7 +54,7 @@ export function PexelsVideoGallery({
                 className={`relative aspect-video w-full overflow-hidden rounded-xl border transition ${
                   active === i
                     ? "border-sky-500 ring-2 ring-sky-500/40"
-                    : "border-zinc-200 opacity-80 hover:opacity-100"
+                    : "border-zinc-700 opacity-80 hover:opacity-100"
                 }`}
               >
                 <Image
@@ -64,7 +64,7 @@ export function PexelsVideoGallery({
                   className="object-cover"
                   sizes="25vw"
                 />
-                <span className="absolute bottom-1 right-1 rounded bg-black/70 px-1.5 text-[10px] text-zinc-700">
+                <span className="absolute bottom-1 right-1 rounded bg-black/70 px-1.5 text-[10px] text-zinc-400">
                   {Math.round(v.duration)}s
                 </span>
               </button>

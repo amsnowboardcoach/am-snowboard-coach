@@ -52,7 +52,7 @@ export default async function SobreMiPage() {
             </p>
             <Link
               href="/reservar"
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-sky-500 px-8 py-3.5 font-semibold text-zinc-950 shadow-xl shadow-sky-500/25 transition hover:bg-sky-400 sm:w-auto"
+              className="btn-primary-lg"
             >
               Reservar una clase
             </Link>

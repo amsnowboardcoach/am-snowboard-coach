@@ -51,12 +51,12 @@ function PricingCard({
       className={cn(
         "relative flex flex-col rounded-2xl border p-6 transition duration-300 sm:p-7",
         featured
-          ? "border-sky-500/45 bg-gradient-to-b from-sky-500/15 to-zinc-900/50 shadow-lg shadow-sky-500/10"
+          ? "panel-selected"
           : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-700",
       )}
     >
       {featured && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-sky-500 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-950">
+        <span className="featured-badge absolute -top-3 left-1/2 -translate-x-1/2">
           Recomendado
         </span>
       )}
@@ -79,14 +79,14 @@ function PricingCard({
         <p className="text-zinc-400">
           Señal{" "}
           <span className="font-semibold text-sky-300">{deposit} €</span>{" "}
-          <span className="text-zinc-600">({BOOKING_DEPOSIT_PERCENT}%)</span>
+          <span className="text-zinc-500">({BOOKING_DEPOSIT_PERCENT}%)</span>
         </p>
         <p className="mt-1 text-zinc-500">
           Resto en pista:{" "}
           <span className="text-zinc-300">{balance} €</span>{" "}
-          <span className="text-zinc-600">({BOOKING_BALANCE_ON_CLASS_DAY})</span>
+          <span className="text-zinc-500">({BOOKING_BALANCE_ON_CLASS_DAY})</span>
         </p>
-        <p className="mt-2 text-[11px] text-zinc-600">
+        <p className="mt-2 text-[11px] text-zinc-500">
           O pago del 100% con tarjeta al reservar.
         </p>
       </div>
@@ -107,12 +107,7 @@ function PricingCard({
 
       <Link
         href={reservarHref({ duracion: session.id })}
-        className={cn(
-          "mt-6 inline-flex w-full items-center justify-center rounded-full py-3 text-sm font-semibold transition",
-          featured
-            ? "bg-sky-500 text-zinc-950 hover:bg-sky-400"
-            : "bg-sky-500/15 text-sky-200 ring-1 ring-sky-500/35 hover:bg-sky-500 hover:text-zinc-950",
-        )}
+        className={featured ? "btn-card-cta-featured" : "btn-card-cta"}
       >
         Reservar {session.shortLabel}
       </Link>
@@ -132,20 +127,12 @@ export default async function TarifasPage() {
         imageSrc={media.sierra.image.src}
         imageAlt={media.sierra.image.alt}
       >
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href={reservarHref()}
-            className="inline-flex min-h-12 items-center justify-center rounded-full bg-sky-500 px-8 py-3.5 font-semibold text-zinc-950 shadow-xl shadow-sky-500/25 transition hover:bg-sky-400"
-          >
-            Ver calendario y reservar
-          </Link>
-          <Link
-            href="/clases"
-            className="inline-flex min-h-12 items-center justify-center rounded-full border border-zinc-600 px-6 py-3.5 text-sm font-medium text-zinc-200 transition hover:border-sky-500/50 hover:text-white"
-          >
-            Estilos de clase
-          </Link>
-        </div>
+        <Link href={reservarHref()} className="btn-primary-lg">
+          Ver calendario y reservar
+        </Link>
+        <Link href="/clases" className="btn-outline min-h-12 px-6 py-3.5">
+          Estilos de clase
+        </Link>
       </PageHero>
 
       <section className="page-container section-pad-tight">
@@ -215,7 +202,7 @@ export default async function TarifasPage() {
             </p>
             <Link
               href={reservarHref()}
-              className="mt-5 inline-flex text-sm font-medium text-sky-400 hover:text-sky-300"
+              className="mt-5 inline-flex text-sm font-medium link-accent"
             >
               Abrir calendario de reserva →
             </Link>
@@ -256,7 +243,7 @@ export default async function TarifasPage() {
           </p>
           <Link
             href={reservarHref()}
-            className="mt-6 inline-flex rounded-full bg-sky-500 px-10 py-3.5 font-semibold text-zinc-950 shadow-lg shadow-sky-500/20 transition hover:bg-sky-400"
+            className="mt-6 btn-primary-lg"
           >
             Reservar mi clase
           </Link>

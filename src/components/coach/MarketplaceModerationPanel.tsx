@@ -95,7 +95,7 @@ export function MarketplaceModerationPanel({
   }
 
   return (
-    <section className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-6">
+    <section className="alert-warning p-6">
       <h2 className="text-lg font-semibold text-amber-200">
         Anuncios pendientes ({pending.length})
       </h2>
@@ -104,7 +104,7 @@ export function MarketplaceModerationPanel({
         avisar al vendedor por la app.
       </p>
       {actionError && (
-        <p className="mt-3 text-sm text-red-400" role="alert">
+        <p className="mt-3 text-sm text-red-300" role="alert">
           {actionError}
         </p>
       )}
@@ -136,7 +136,7 @@ export function MarketplaceModerationPanel({
                 {listing.description}
               </p>
               {(listing.contactPhone || listing.contactEmail) && (
-                <p className="mt-2 text-xs text-zinc-600">
+                <p className="mt-2 text-xs text-zinc-500">
                   Contacto:{" "}
                   {[listing.contactPhone, listing.contactEmail]
                     .filter(Boolean)
@@ -148,7 +148,7 @@ export function MarketplaceModerationPanel({
                   type="button"
                   disabled={actingId === listing.id}
                   onClick={() => void setStatus(listing.id, "approved")}
-                  className="rounded-full bg-emerald-500/20 px-4 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-500/30 disabled:opacity-50"
+                  className="btn-success-soft disabled:opacity-50"
                 >
                   Aprobar
                 </button>

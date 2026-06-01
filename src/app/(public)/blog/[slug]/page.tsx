@@ -86,7 +86,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         <div className="mt-4 flex flex-wrap gap-4">
           <Link
             href="/reservar"
-            className="rounded-full bg-sky-500 px-6 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-sky-400"
+            className="btn-primary-md"
           >
             Reservar clase
           </Link>

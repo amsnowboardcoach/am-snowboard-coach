@@ -17,7 +17,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!isFirebaseConfigured()) {
     return (
       <div className="page-container max-w-lg py-24 text-center text-zinc-400">
-        Configura Firebase en <code className="text-sky-400">.env.local</code>{" "}
+        Configura Firebase en <code className="brand-text">.env.local</code>{" "}
         para acceder al área privada.
       </div>
     );

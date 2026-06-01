@@ -218,9 +218,9 @@ export function TribeFeed() {
       </div>
 
       {!loading && posts.length > 0 && (
-        <p className="text-center text-xs text-zinc-600">
+        <p className="text-center text-xs text-zinc-500">
           También verás fotos destacadas en la{" "}
-          <Link href="/" className="text-sky-400 hover:underline">
+          <Link href="/" className="link-accent underline-offset-2 hover:underline">
             página de inicio
           </Link>
           .

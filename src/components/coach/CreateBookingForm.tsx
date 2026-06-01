@@ -125,7 +125,7 @@ export function CreateBookingForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="min-h-12 w-full touch-manipulation rounded-full bg-sky-500 px-6 py-3.5 text-sm font-semibold text-zinc-950 shadow-lg shadow-sky-500/25 transition hover:bg-sky-400 active:scale-[0.98] sm:min-h-11 sm:w-auto sm:py-3 sm:shadow-none"
+        className="btn-primary-md"
       >
         + Reservar clase
       </button>
@@ -282,7 +282,7 @@ export function CreateBookingForm({
       </div>
 
       {error && (
-        <p className="mt-4 text-sm text-red-400" role="alert">
+        <p className="mt-4 text-sm text-red-300" role="alert">
           {error}
         </p>
       )}
@@ -291,7 +291,7 @@ export function CreateBookingForm({
         <button
           type="submit"
           disabled={loading}
-          className="rounded-full bg-sky-500 px-5 py-2 text-sm font-semibold text-zinc-950 disabled:opacity-50"
+          className="btn-primary-sm disabled:opacity-50"
         >
           {loading ? "Guardando…" : "Crear reserva"}
         </button>

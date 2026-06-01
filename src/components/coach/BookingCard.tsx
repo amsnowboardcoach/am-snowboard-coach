@@ -143,7 +143,7 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
             </span>
           )}
           {booking.source === "cal.com" && (
-            <span className="inline-block rounded-full bg-violet-500/20 px-2 py-0.5 text-xs text-zinc-500">
+            <span className="inline-block rounded-full bg-sky-500/20 px-2 py-0.5 text-xs text-zinc-500">
               Legacy
             </span>
           )}
@@ -152,7 +152,7 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
               <>
                 <li>
                   <span className="text-zinc-500">Producto: </span>
-                  <span className="text-violet-300/90">
+                  <span className="text-sky-300/90">
                     {booking.sessionSlotLabel ||
                       `${booking.videoCount ?? 1} vídeo${(booking.videoCount ?? 1) > 1 ? "s" : ""}`}
                   </span>
@@ -265,7 +265,7 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
       )}
 
       {actionError && (
-        <p className="mt-2 text-sm text-red-400">{actionError}</p>
+        <p className="mt-2 text-sm text-red-300">{actionError}</p>
       )}
 
       {booking.payment.status === "pending" && booking.status === "confirmed" && (

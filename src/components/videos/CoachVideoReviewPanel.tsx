@@ -77,11 +77,11 @@ function CoachVideoReviewForm({
           className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
         />
       </label>
-      {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-300">{error}</p>}
       <button
         type="submit"
         disabled={saving}
-        className="mt-3 rounded-full bg-sky-500 px-5 py-2 text-sm font-semibold text-zinc-950 hover:bg-sky-400 disabled:opacity-50"
+        className="btn-primary-sm mt-3 disabled:opacity-50"
       >
         {saving ? "Publicando…" : "Confirmar y notificar al alumno"}
       </button>
@@ -126,7 +126,7 @@ export function CoachVideoReviewPanel({ studentId }: CoachVideoReviewPanelProps)
         </p>
       )}
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-300">{error}</p>}
       {loading && <p className="text-zinc-500">Cargando vídeos…</p>}
 
       {!loading && videos.length === 0 && (

@@ -52,7 +52,7 @@ export default function CoachDashboardPage() {
     return (
       <div className="content-align-start stack-section w-full max-w-2xl">
         <h1 className="page-title mx-0 max-w-none text-left">Panel del Coach</h1>
-        <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-6">
+        <div className="alert-warning p-6">
           <p className="text-sm text-amber-200">
             Tu email es de coach pero el perfil tiene rol{" "}
             <strong>{roleDisplayLabel(profile.role)}</strong>. Crea o actualiza el perfil:
@@ -73,7 +73,7 @@ export default function CoachDashboardPage() {
           Esta zona es solo para el coach. Tu rol actual:{" "}
           {roleDisplayLabel(profile.role)}.
         </p>
-        <Link href="/perfil" className="text-sky-400 hover:underline">
+        <Link href="/perfil" className="link-accent underline-offset-2 hover:underline">
           Ir a mi perfil
         </Link>
       </div>

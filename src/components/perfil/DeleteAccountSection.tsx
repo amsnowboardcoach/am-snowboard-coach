@@ -35,7 +35,7 @@ export function DeleteAccountSection() {
     return (
       <section className="mt-12 rounded-2xl border border-red-500/25 bg-red-500/5 p-6">
         <h2 className="text-lg font-semibold text-red-200">Eliminar mi cuenta</h2>
-        <p className="mt-2 text-sm text-zinc-600">
+        <p className="mt-2 text-sm text-zinc-500">
           Se borrarán tu perfil, vídeos, publicaciones en La Tribu, anuncios del
           mercadillo y reservas vinculadas. Esta acción no se puede deshacer.
         </p>
@@ -53,7 +53,7 @@ export function DeleteAccountSection() {
   return (
     <section className="mt-12 rounded-2xl border border-red-500/40 bg-red-500/10 p-6">
       <h2 className="text-lg font-semibold text-red-200">Confirmar eliminación</h2>
-      <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-zinc-600">
+      <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-zinc-500">
         <li>Perfil y acceso (no podrás volver a entrar con este email)</li>
         <li>Vídeos de corrección y archivos subidos</li>
         <li>Publicaciones y comentarios en La Tribu</li>
@@ -62,32 +62,32 @@ export function DeleteAccountSection() {
       </ul>
       <p className="mt-3 text-xs text-zinc-500">
         Consulta la{" "}
-        <Link href={LEGAL_PATHS.privacy} className="text-sky-400 hover:underline">
+        <Link href={LEGAL_PATHS.privacy} className="link-accent underline-offset-2 hover:underline">
           política de privacidad
         </Link>{" "}
         sobre supresión de datos.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-        <label className="block text-sm text-zinc-700">
+        <label className="block text-sm text-zinc-400">
           Escribe <strong className="text-red-200">{CONFIRM_TEXT}</strong> para
           confirmar
           <input
             value={phrase}
             onChange={(e) => setPhrase(e.target.value)}
-            className="mt-2 w-full max-w-xs rounded-lg border border-zinc-300 bg-white px-3 py-2 uppercase tracking-wider"
+            className="form-input mt-2 max-w-xs uppercase tracking-wider"
             autoComplete="off"
             required
           />
         </label>
 
         {error && (
-          <p className="text-sm text-red-400" role="alert">
+          <p className="text-sm text-red-300" role="alert">
             {error}
           </p>
         )}
 
-        <div className="flex flex-wrap gap-3">
+        <div className="btn-row">
           <button
             type="submit"
             disabled={loading || phrase.trim().toUpperCase() !== CONFIRM_TEXT}
@@ -103,7 +103,7 @@ export function DeleteAccountSection() {
               setPhrase("");
               setError(null);
             }}
-            className="rounded-full border border-zinc-400 px-5 py-2.5 text-sm text-zinc-600"
+            className="btn-outline btn-inline"
           >
             Cancelar
           </button>

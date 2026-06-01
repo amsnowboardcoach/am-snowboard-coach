@@ -369,7 +369,7 @@ export function HomeHeroBookingSection() {
           type="button"
           onClick={() => goToReservar(selectionReady)}
           className={cn(
-            "flex min-h-12 w-full touch-manipulation items-center justify-center rounded-full bg-sky-500 px-8 py-3.5 text-center font-semibold text-zinc-950 shadow-xl shadow-sky-500/25 transition hover:bg-sky-400 active:scale-[0.98] sm:w-auto",
+            "btn-primary-lg",
           )}
         >
           {selectionReady

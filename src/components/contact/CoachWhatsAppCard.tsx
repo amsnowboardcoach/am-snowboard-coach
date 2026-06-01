@@ -38,7 +38,7 @@ export function CoachWhatsAppCard({
     return (
       <div className={cn(className)}>
         {introText && (
-          <p className="text-sm text-zinc-600">{introText}</p>
+          <p className="text-sm text-zinc-500">{introText}</p>
         )}
         <a
           href={href}
@@ -65,11 +65,11 @@ export function CoachWhatsAppCard({
           <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400/90">
             Contacto directo
           </p>
-          <h2 className="mt-2 text-lg font-semibold text-zinc-900">
+          <h2 className="mt-2 text-lg font-semibold text-zinc-100">
             WhatsApp con Alejandro
           </h2>
           {introText && (
-            <p className="mt-2 max-w-lg text-sm leading-relaxed text-zinc-600">
+            <p className="mt-2 max-w-lg text-sm leading-relaxed text-zinc-400">
               {introText}
             </p>
           )}

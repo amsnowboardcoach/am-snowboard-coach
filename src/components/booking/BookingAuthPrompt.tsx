@@ -53,14 +53,14 @@ export function BookingAuthPrompt({
       user.displayName?.trim() ||
       user.email.split("@")[0];
     return (
-      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-sm">
+      <div className="alert-success px-4 py-3">
         <p className="font-medium text-emerald-200">
           Sesión iniciada como {name}
         </p>
-        <p className="mt-1 text-zinc-600">{user.email}</p>
+        <p className="mt-1 text-zinc-500">{user.email}</p>
         <p className="mt-2 text-zinc-500">
           Esta reserva quedará en{" "}
-          <Link href="/perfil" className="text-sky-400 hover:underline">
+          <Link href="/perfil" className="link-accent underline-offset-2 hover:underline">
             tu área de alumno
           </Link>{" "}
           (clases, vídeos y pasaporte).
@@ -71,9 +71,9 @@ export function BookingAuthPrompt({
 
   return (
     <div className="space-y-4 rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-4">
-      <p className="text-sm text-zinc-700">
+      <p className="text-sm text-zinc-400">
         Para reservar necesitas una{" "}
-        <strong className="font-medium text-zinc-900">cuenta de alumno</strong>.
+        <strong className="font-medium text-zinc-100">cuenta de alumno</strong>.
         Identifícate con Google o crea cuenta con email antes de enviar la
         solicitud.
       </p>
@@ -85,11 +85,11 @@ export function BookingAuthPrompt({
       <p className="text-sm text-zinc-500">
         <Link
           href={studentAreaHref({ next: returnPath })}
-          className="text-sky-400 hover:underline"
+          className="link-accent underline-offset-2 hover:underline"
         >
           Área de alumno
         </Link>
-        <span className="text-zinc-600"> · entrar o registrarte con email</span>
+        <span className="text-zinc-500"> · entrar o registrarte con email</span>
       </p>
     </div>
   );

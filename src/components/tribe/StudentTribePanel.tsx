@@ -180,7 +180,7 @@ export function StudentTribePanel({ studentId }: StudentTribePanelProps) {
               className={cn(
                 "min-h-10 touch-manipulation rounded-full px-4 py-1.5 text-sm font-medium transition disabled:opacity-50",
                 mediaType === t
-                  ? "bg-sky-500 text-zinc-950"
+                  ? "chip-toggle-active"
                   : "border border-zinc-700 bg-zinc-900/60 text-zinc-400",
               )}
             >
@@ -263,7 +263,7 @@ export function StudentTribePanel({ studentId }: StudentTribePanelProps) {
         )}
 
         {error && (
-          <p className="mt-3 text-sm text-red-400" role="alert">
+          <p className="mt-3 text-sm text-red-300" role="alert">
             {error}
           </p>
         )}
@@ -276,7 +276,7 @@ export function StudentTribePanel({ studentId }: StudentTribePanelProps) {
         <button
           type="submit"
           disabled={uploading || !selectedFile || !legalAccepted}
-          className="mt-5 min-h-12 w-full touch-manipulation rounded-full bg-sky-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-sky-400 disabled:opacity-50 sm:w-auto"
+          className="btn-primary-md mt-5 disabled:opacity-50"
         >
           {uploading ? "Subiendo…" : "Enviar a revisión"}
         </button>
@@ -289,14 +289,14 @@ export function StudentTribePanel({ studentId }: StudentTribePanelProps) {
           </h2>
           <Link
             href="/tribu#feed"
-            className="text-sm font-medium text-sky-400 hover:text-sky-300"
+            className="text-sm font-medium link-accent"
           >
             Ver feed público →
           </Link>
         </div>
 
         {postsError && (
-          <p className="mt-4 text-sm text-red-400" role="alert">
+          <p className="mt-4 text-sm text-red-300" role="alert">
             {postsError}
           </p>
         )}
@@ -342,7 +342,7 @@ export function StudentTribePanel({ studentId }: StudentTribePanelProps) {
                   >
                     {STATUS_LABEL[post.moderationStatus]}
                   </span>
-                  <span className="text-xs text-zinc-600">
+                  <span className="text-xs text-zinc-500">
                     {post.mediaType === "photo" ? "Foto" : "Vídeo"}
                     {formatPostDate(post) ? ` · ${formatPostDate(post)}` : ""}
                   </span>
@@ -355,7 +355,7 @@ export function StudentTribePanel({ studentId }: StudentTribePanelProps) {
                 {post.moderationStatus === "approved" && (
                   <Link
                     href={`/tribu?post=${post.id}`}
-                    className="mt-2 inline-block text-xs font-medium text-sky-400 hover:text-sky-300"
+                    className="mt-2 inline-block text-xs font-medium link-accent"
                   >
                     Ver en el feed →
                   </Link>

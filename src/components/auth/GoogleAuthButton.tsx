@@ -82,10 +82,7 @@ export function GoogleAuthButton({
       type="button"
       disabled={loading}
       onClick={handleGoogle}
-      className={cn(
-        "flex w-full items-center justify-center gap-3 rounded-full border border-zinc-600 bg-white px-4 py-3 text-sm font-medium text-zinc-800 transition hover:bg-zinc-100 disabled:opacity-50",
-        className,
-      )}
+      className={cn("btn-google", className)}
     >
       <GoogleIcon />
       {loading ? "Abriendo Google…" : label}

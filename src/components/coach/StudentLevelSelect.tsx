@@ -76,12 +76,12 @@ export function StudentLevelSelect({
         <span className="text-[11px] text-zinc-500">Guardando…</span>
       )}
       {error && (
-        <span className="text-[11px] text-red-400" role="alert">
+        <span className="text-[11px] text-red-300" role="alert">
           {error}
         </span>
       )}
       {!compact && !saving && !error && (
-        <span className="text-[11px] text-zinc-600">
+        <span className="text-[11px] text-zinc-500">
           Actual: {studentLevelLabel(value)}
         </span>
       )}

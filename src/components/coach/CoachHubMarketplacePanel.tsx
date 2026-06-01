@@ -72,7 +72,7 @@ export function CoachHubMarketplacePanel() {
         </p>
         <Link
           href="/mercadillo"
-          className="text-sm text-sky-400 hover:text-sky-300"
+          className="text-sm link-accent"
         >
           Ver mercadillo público →
         </Link>
@@ -89,7 +89,7 @@ export function CoachHubMarketplacePanel() {
           Anuncios publicados
         </h2>
         {loading && <p className="text-zinc-500">Cargando anuncios…</p>}
-        {error && <p className="text-sm text-red-400">{error}</p>}
+        {error && <p className="text-sm text-red-300">{error}</p>}
 
         {!loading && !error && listings.length === 0 && (
           <p className="rounded-xl border border-dashed border-zinc-700 py-12 text-center text-zinc-500">
@@ -132,7 +132,7 @@ export function CoachHubMarketplacePanel() {
                   {listing.description}
                 </p>
                 {(listing.contactPhone || listing.contactEmail) && (
-                  <p className="mt-2 text-xs text-zinc-600">
+                  <p className="mt-2 text-xs text-zinc-500">
                     Contacto:{" "}
                     {[listing.contactPhone, listing.contactEmail]
                       .filter(Boolean)

@@ -106,7 +106,7 @@ export function MarketplaceListingCard({
             unoptimized
           />
         ) : (
-          <div className="flex size-full items-center justify-center text-zinc-600">
+          <div className="flex size-full items-center justify-center text-zinc-500">
             Sin foto
           </div>
         )}
@@ -137,7 +137,7 @@ export function MarketplaceListingCard({
               <p
                 className={`mt-2 text-xs font-medium ${
                   listing.moderationStatus === "rejected"
-                    ? "text-red-400"
+                    ? "text-red-300"
                     : "text-amber-400"
                 }`}
               >
@@ -158,7 +158,7 @@ export function MarketplaceListingCard({
             <button
               type="button"
               onClick={onToggleExpand}
-              className="text-xs text-sky-400 hover:underline"
+              className="text-xs link-accent underline-offset-2 hover:underline"
             >
               {expanded ? "Menos" : "Ver descripción"}
             </button>
@@ -185,7 +185,7 @@ export function MarketplaceListingCard({
               </p>
             )}
             {listing.moderationStatus === "rejected" && (
-              <p className="mt-1 text-xs text-red-400/90">
+              <p className="mt-1 text-xs text-red-300/90">
                 Este anuncio no se publicó. Puedes crear uno nuevo si lo deseas.
               </p>
             )}
@@ -198,7 +198,7 @@ export function MarketplaceListingCard({
               {markingSold ? "Eliminando…" : "Marcar como vendido"}
             </button>
             {error && (
-              <p className="mt-2 text-xs text-red-400" role="alert">
+              <p className="mt-2 text-xs text-red-300" role="alert">
                 {error}
               </p>
             )}

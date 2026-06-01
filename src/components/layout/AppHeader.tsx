@@ -44,7 +44,7 @@ export function AppHeader() {
           href={homeHref}
           className="flex min-h-11 shrink-0 items-center py-1 font-bold leading-none"
         >
-          AM <span className="text-sky-400">Snowboard</span>
+          AM <span className="brand-text">Snowboard</span>
         </Link>
 
         <nav
@@ -95,7 +95,7 @@ export function AppHeader() {
               <Link
                 href="/reservar"
                 onClick={() => scrollToTop()}
-                className="rounded-full bg-sky-500/15 px-3 py-1.5 text-sky-300 transition duration-200 hover:bg-sky-500/25"
+                className="btn-accent-soft px-3 py-1.5"
               >
                 + Reserva
               </Link>

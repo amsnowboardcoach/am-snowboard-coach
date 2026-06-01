@@ -63,7 +63,7 @@ export function MarketplaceListingDetail({
         </p>
         <Link
           href="/mercadillo"
-          className="mt-4 inline-block text-sky-400 hover:underline"
+          className="mt-4 inline-block link-accent underline-offset-2 hover:underline"
         >
           Ir al mercadillo
         </Link>
@@ -117,7 +117,7 @@ export function MarketplaceListingDetail({
     <div className="space-y-4">
       <Link
         href="/mercadillo"
-        className="inline-block text-sm text-sky-400 hover:underline"
+        className="inline-block text-sm link-accent underline-offset-2 hover:underline"
       >
         ← Volver al mercadillo
       </Link>

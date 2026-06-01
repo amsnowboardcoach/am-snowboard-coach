@@ -52,7 +52,7 @@ export function CoachStudentContentPanel({
       )}
 
       <section>
-        <h3 className="text-base font-semibold text-violet-200">
+        <h3 className="text-base font-semibold text-sky-200">
           Vídeos de corrección
         </h3>
         <p className="mt-1 text-sm text-zinc-500">
@@ -66,7 +66,7 @@ export function CoachStudentContentPanel({
       <section>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-base font-semibold text-sky-300">La Tribu</h3>
-          <Link href="/tribu" className="text-sm text-sky-400 hover:underline">
+          <Link href="/tribu" className="text-sm link-accent underline-offset-2 hover:underline">
             Abrir feed →
           </Link>
         </div>

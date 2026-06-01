@@ -89,8 +89,8 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
               className={cn(
                 "flex shrink-0 touch-manipulation items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition active:scale-[0.98] sm:text-sm",
                 activeTab === tab.id
-                  ? "bg-sky-500 text-zinc-950 shadow-md shadow-sky-500/20"
-                  : "border border-zinc-700/90 bg-zinc-900/60 text-zinc-400",
+                  ? "chip-toggle-active shadow-md shadow-sky-950/30"
+                  : "chip-toggle-inactive border-zinc-700/90 bg-zinc-900/60",
               )}
             >
               <span aria-hidden className="text-sm leading-none">
@@ -121,8 +121,8 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
               className={cn(
                 "flex min-h-11 w-full touch-manipulation items-center rounded-xl px-3 py-2.5 text-sm font-medium transition",
                 activeTab === tab.id
-                  ? "bg-sky-500 text-zinc-950"
-                  : "border border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200",
+                  ? "chip-toggle-active"
+                  : "chip-toggle-inactive border-zinc-800 bg-transparent hover:border-zinc-600",
               )}
             >
               {tab.label}
@@ -162,7 +162,7 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
             </div>
             <Link
               href="/reservar"
-              className="flex min-h-10 shrink-0 touch-manipulation items-center rounded-full bg-sky-500 px-4 py-2 text-xs font-semibold text-zinc-950 shadow-lg shadow-sky-500/20 transition hover:bg-sky-400 sm:text-sm lg:hidden"
+              className="btn-primary-sm btn-inline flex min-h-10 shrink-0 sm:text-sm lg:hidden"
             >
               + Reserva
             </Link>
@@ -192,7 +192,7 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
               </p>
               <Link
                 href="/tribu"
-                className="shrink-0 text-sm font-medium text-sky-400 hover:text-sky-300"
+                className="shrink-0 text-sm font-medium link-accent"
               >
                 Ver feed →
               </Link>

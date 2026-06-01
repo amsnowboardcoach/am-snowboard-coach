@@ -92,9 +92,7 @@ export function MarketplaceHub() {
             onClick={() => setTab(t.id)}
             className={cn(
               "min-h-11 touch-manipulation rounded-full px-2 text-sm font-medium transition",
-              tab === t.id
-                ? "bg-sky-500 text-zinc-950"
-                : "text-zinc-400 hover:text-white",
+              tab === t.id ? "nav-tab-active" : "nav-tab-inactive",
             )}
           >
             {t.label}

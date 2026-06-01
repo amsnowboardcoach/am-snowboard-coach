@@ -40,14 +40,14 @@ export function MediaUploadConsentModal({
       aria-modal="true"
       aria-labelledby="tribe-legal-title"
     >
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-zinc-300 bg-white p-6 shadow-xl">
+      <div className="modal-panel">
         <h2 id="tribe-legal-title" className="text-lg font-semibold text-sky-600">
           {TRIBE_UPLOAD_LEGAL_TITLE}
         </h2>
-        <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-zinc-600">
+        <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-zinc-400">
           {TRIBE_UPLOAD_LEGAL_BODY}
         </p>
-        <label className="mt-6 flex cursor-pointer gap-3 text-sm text-zinc-700">
+        <label className="mt-6 flex cursor-pointer gap-3 text-sm text-zinc-400">
           <input
             type="checkbox"
             checked={accepted}
@@ -56,19 +56,19 @@ export function MediaUploadConsentModal({
           />
           <span>{TRIBE_UPLOAD_LEGAL_CHECKBOX}</span>
         </label>
-        <div className="mt-6 flex flex-wrap gap-3">
+        <div className="btn-row mt-6">
           <button
             type="button"
             onClick={handleConfirm}
             disabled={!accepted}
-            className="rounded-full bg-sky-500 px-6 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-sky-400 disabled:opacity-40"
+            className="btn-primary-md disabled:opacity-40"
           >
             Elegir archivo
           </button>
           <button
             type="button"
             onClick={handleClose}
-            className="rounded-full border border-zinc-400 px-6 py-2.5 text-sm text-zinc-700 hover:border-zinc-500"
+            className="btn-outline btn-inline"
           >
             Cancelar
           </button>

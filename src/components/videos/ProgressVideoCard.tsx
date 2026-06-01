@@ -39,10 +39,10 @@ export function ProgressVideoCard({
 
   return (
     <article className="glass-panel overflow-hidden rounded-2xl">
-      <div className="border-b border-zinc-200 px-5 py-4">
+      <div className="border-b border-zinc-800/80 px-5 py-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 className="font-semibold text-zinc-900">{video.title}</h3>
+            <h3 className="font-semibold text-zinc-100">{video.title}</h3>
             <p className="mt-1 text-xs text-zinc-500">
               Subido {formatFirestoreDate(video.uploadedAt)} ·{" "}
               {formatVideoSize(video.sizeBytes)}
@@ -74,12 +74,12 @@ export function ProgressVideoCard({
       )}
 
       {loadError && (
-        <p className="px-5 py-4 text-sm text-red-400">{loadError}</p>
+        <p className="px-5 py-4 text-sm text-red-300">{loadError}</p>
       )}
 
       {showCoachNotes && isReviewed && (
-        <div className="border-t border-zinc-200 bg-violet-500/5 px-5 py-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-violet-300">
+        <div className="border-t border-zinc-800 bg-sky-500/5 px-5 py-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-sky-300">
             Apuntes del coach
           </p>
           {video.coachNotesUpdatedAt && (
@@ -87,14 +87,14 @@ export function ProgressVideoCard({
               {formatFirestoreDate(video.coachNotesUpdatedAt)}
             </p>
           )}
-          <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-zinc-800">
+          <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-zinc-200">
             {video.coachNotes}
           </div>
         </div>
       )}
 
       {showCoachNotes && !isReviewed && (
-        <p className="border-t border-zinc-200 px-5 py-4 text-sm text-zinc-500">
+        <p className="border-t border-zinc-800/80 px-5 py-4 text-sm text-zinc-500">
           Alejandro revisará tu vídeo y publicará los apuntes aquí.
         </p>
       )}

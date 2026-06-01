@@ -16,7 +16,7 @@ export function TribeFeedUploadBanner() {
 
   if (isStudent) {
     return (
-      <div className="glass-panel flex flex-col gap-3 rounded-2xl p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+      <div className="glass-panel flex flex-col items-center gap-4 rounded-2xl p-5 text-center sm:flex-row sm:items-center sm:justify-between sm:p-6 sm:text-left">
         <div>
           <p className="font-semibold text-zinc-100">¿Quieres publicar?</p>
           <p className="mt-1 text-sm text-zinc-400">
@@ -24,10 +24,7 @@ export function TribeFeedUploadBanner() {
             los revisa antes de que salgan aquí.
           </p>
         </div>
-        <Link
-          href="/perfil/tribu"
-          className="inline-flex min-h-11 shrink-0 touch-manipulation items-center justify-center rounded-full bg-sky-500 px-6 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-sky-400"
-        >
+        <Link href="/perfil/tribu" className="btn-primary-md sm:shrink-0">
           Subir desde mi perfil
         </Link>
       </div>
@@ -40,7 +37,7 @@ export function TribeFeedUploadBanner() {
         Las publicaciones de alumnos se aprueban en el{" "}
         <Link
           href="/coach?tab=tribu"
-          className="font-medium text-sky-400 hover:text-sky-300"
+          className="font-medium link-accent"
         >
           panel del coach
         </Link>
@@ -59,13 +56,13 @@ export function TribeFeedUploadBanner() {
       </p>
       <Link
         href="/login"
-        className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-sky-500 px-8 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-sky-400"
+        className="btn-primary-md mt-6"
       >
         Entrar al área de alumno
       </Link>
-      <p className="mt-3 text-xs text-zinc-600">
+      <p className="mt-3 text-xs text-zinc-500">
         ¿Primera vez?{" "}
-        <Link href="/registro" className="text-sky-400 hover:underline">
+        <Link href="/registro" className="link-accent underline-offset-2 hover:underline">
           Crear cuenta
         </Link>
       </p>

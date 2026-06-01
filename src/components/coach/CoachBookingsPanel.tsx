@@ -131,7 +131,7 @@ export function CoachBookingsPanel({
               className={cn(
                 "shrink-0 touch-manipulation rounded-full px-3.5 py-2 text-xs font-medium transition sm:px-4 sm:text-sm",
                 filter === f.id
-                  ? "bg-sky-500 text-zinc-950 shadow-sm shadow-sky-500/25"
+                  ? "chip-toggle-active shadow-sm shadow-sky-950/25"
                   : "border border-zinc-700/90 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600",
               )}
             >

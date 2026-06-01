@@ -279,7 +279,7 @@ export function StudentTrickManager({ student }: StudentTrickManagerProps) {
                       </p>
                       <p className="text-xs text-zinc-500">{trick.description}</p>
                     </div>
-                    <span className="text-xs text-zinc-600">
+                    <span className="text-xs text-zinc-500">
                       Dificultad {trick.difficulty}/5
                     </span>
                   </div>
@@ -294,7 +294,7 @@ export function StudentTrickManager({ student }: StudentTrickManagerProps) {
                         }
                         className={`rounded-full px-3 py-1 text-xs ${
                           current === s.id
-                            ? "bg-sky-500 text-zinc-950"
+                            ? "chip-toggle-active"
                             : "border border-zinc-700 text-zinc-400 hover:border-zinc-500"
                         }`}
                       >

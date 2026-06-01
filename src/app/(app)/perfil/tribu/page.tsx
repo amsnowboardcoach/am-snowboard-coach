@@ -42,7 +42,7 @@ export default function PerfilTribuPage() {
           vídeo antes de publicarlo en el feed.
         </p>
         <p className="mt-3 text-sm text-zinc-500">
-          <Link href="/tribu#feed" className="text-sky-400 hover:text-sky-300">
+          <Link href="/tribu#feed" className="link-accent">
             Ver el feed público
           </Link>
         </p>

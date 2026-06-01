@@ -47,7 +47,7 @@ export default async function BlogIndexPage() {
           </p>
           <Link
             href="/reservar"
-            className="mt-6 inline-block rounded-full bg-sky-500 px-8 py-3 font-semibold text-zinc-950 transition hover:bg-sky-400"
+            className="btn-primary-lg mt-6"
           >
             Reservar clase
           </Link>

@@ -168,12 +168,12 @@ export function StudentPwaNotifySetup({
           </span>
         </label>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-col items-center gap-2 sm:flex-row sm:flex-wrap sm:items-stretch">
           <button
             type="button"
             disabled={busy || installLoading || pushLoading}
             onClick={() => void handlePrimary()}
-            className="min-h-11 flex-1 rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-sky-400 disabled:opacity-50"
+            className="btn-primary-md min-h-11 w-full max-w-none disabled:opacity-50 sm:flex-1"
           >
             {primaryLabel}
           </button>
@@ -184,7 +184,7 @@ export function StudentPwaNotifySetup({
               dismissStudentNotifySetup();
               onDismiss();
             }}
-            className="min-h-11 rounded-full border border-zinc-600 px-4 py-2.5 text-sm text-zinc-400 hover:border-zinc-500 hover:text-zinc-300"
+            className="btn-outline btn-inline min-h-11 w-full sm:w-auto"
           >
             Ahora no
           </button>

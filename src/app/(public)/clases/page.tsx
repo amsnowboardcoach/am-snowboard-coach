@@ -61,26 +61,15 @@ export default async function ClasesPage() {
         imageSrc={media.clase.image.src}
         imageAlt={media.clase.image.alt}
       >
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href={reservarHref()}
-            className="inline-flex min-h-12 items-center justify-center rounded-full bg-sky-500 px-8 py-3.5 font-semibold text-zinc-950 shadow-xl shadow-sky-500/25 transition hover:bg-sky-400"
-          >
-            Reservar clase en pista
-          </Link>
-          <Link
-            href="#estilos"
-            className="inline-flex min-h-12 items-center justify-center rounded-full border border-zinc-600 px-6 py-3.5 text-sm font-medium text-zinc-200 transition hover:border-sky-500/50 hover:text-white"
-          >
-            Ver estilos
-          </Link>
-          <Link
-            href="/tarifas"
-            className="inline-flex min-h-12 items-center justify-center rounded-full border border-zinc-600 px-6 py-3.5 text-sm font-medium text-zinc-200 transition hover:border-sky-500/50 hover:text-white"
-          >
-            Tarifas
-          </Link>
-        </div>
+        <Link href={reservarHref()} className="btn-primary-lg">
+          Reservar clase en pista
+        </Link>
+        <Link href="#estilos" className="btn-outline min-h-12 px-6 py-3.5">
+          Ver estilos
+        </Link>
+        <Link href="/tarifas" className="btn-outline min-h-12 px-6 py-3.5">
+          Tarifas
+        </Link>
       </PageHero>
 
       <section className="page-container section-pad-tight">
@@ -136,7 +125,7 @@ export default async function ClasesPage() {
                   </ul>
                   <Link
                     href={reservarHref({ estilo: lesson.id })}
-                    className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-sky-500/15 py-2.5 text-sm font-semibold text-sky-200 ring-1 ring-sky-500/30 transition hover:bg-sky-500 hover:text-zinc-950"
+                    className="btn-warm-soft mt-5 w-full py-2.5"
                   >
                     {lesson.id === "freestyle-sulayr"
                       ? "Reservar en Sulayr"
@@ -163,12 +152,12 @@ export default async function ClasesPage() {
               className={cn(
                 "relative flex flex-col rounded-2xl border p-6",
                 featured
-                  ? "border-sky-500/45 bg-gradient-to-b from-sky-500/15 to-zinc-900/50 pt-8 shadow-lg shadow-sky-500/10"
+                  ? "panel-selected pt-8"
                   : "border-zinc-800 bg-zinc-900/40",
               )}
             >
               {featured && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-sky-500 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-950">
+                <span className="featured-badge absolute -top-3 left-1/2 -translate-x-1/2">
                   Recomendado
                 </span>
               )}
@@ -187,7 +176,7 @@ export default async function ClasesPage() {
                   / día · 1 persona
                 </span>
               </p>
-              <p className="mt-1 text-xs text-zinc-600">
+              <p className="mt-1 text-xs text-zinc-500">
                 {formatExtraParticipantsNote(session)}
               </p>
               <p className="mt-4 text-xs font-medium uppercase tracking-wide text-zinc-500">
@@ -205,12 +194,9 @@ export default async function ClasesPage() {
               </div>
               <Link
                 href={reservarHref({ duracion: session.id })}
-                className={cn(
-                  "mt-6 inline-flex w-full items-center justify-center rounded-full py-2.5 text-sm font-semibold transition",
-                  featured
-                    ? "bg-sky-500 text-zinc-950 hover:bg-sky-400"
-                    : "bg-sky-500/15 text-sky-200 ring-1 ring-sky-500/35 hover:bg-sky-500 hover:text-zinc-950",
-                )}
+                className={
+                  featured ? "btn-card-cta-featured py-2.5" : "btn-card-cta py-2.5"
+                }
               >
                 Reservar {session.shortLabel}
               </Link>
@@ -229,7 +215,7 @@ export default async function ClasesPage() {
           </p>
           <Link
             href={reservarHref()}
-            className="mt-5 inline-flex text-sm font-medium text-sky-400 hover:text-sky-300"
+            className="mt-5 inline-flex text-sm font-medium link-accent"
           >
             Elegir días en el calendario →
           </Link>
@@ -266,16 +252,13 @@ export default async function ClasesPage() {
             Abre el calendario, marca día y turno libres y envía la solicitud.
             Reserva con señal del 30% o pago total en la web; te confirmo por email.
           </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href={reservarHref()}
-              className="inline-flex rounded-full bg-sky-500 px-10 py-3.5 font-semibold text-zinc-950 shadow-lg shadow-sky-500/20 hover:bg-sky-400"
-            >
+          <div className="btn-row-center mt-6">
+            <Link href={reservarHref()} className="btn-primary-lg">
               Reservar ahora
             </Link>
             <Link
               href="/tarifas"
-              className="inline-flex rounded-full border border-zinc-600 px-6 py-3 text-sm font-medium text-zinc-200 hover:border-sky-500/40"
+              className="btn-outline"
             >
               Ver tarifas detalladas
             </Link>

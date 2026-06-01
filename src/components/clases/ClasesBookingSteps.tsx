@@ -26,13 +26,13 @@ export function ClasesBookingSteps({ className }: { className?: string }) {
         {STEPS.map((step) => (
           <li
             key={step.n}
-            className="rounded-xl border border-zinc-200 bg-zinc-100/90 p-5"
+            className="surface-elevated p-5"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-100 text-sm font-bold text-sky-400">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-500/15 text-sm font-bold brand-text ring-1 ring-sky-500/25">
               {step.n}
             </span>
-            <h3 className="mt-3 font-semibold text-zinc-900">{step.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-600">
+            <h3 className="mt-3 font-semibold text-zinc-100">{step.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-400">
               {step.body}
             </p>
           </li>
@@ -41,7 +41,7 @@ export function ClasesBookingSteps({ className }: { className?: string }) {
       <p className="mt-6 text-center">
         <Link
           href={reservarHref()}
-          className="inline-flex rounded-full bg-sky-500 px-8 py-3 text-sm font-semibold text-zinc-950 shadow-lg shadow-sky-500/20 transition hover:bg-sky-400"
+          className="btn-primary-lg text-sm"
         >
           Ir al calendario y reservar
         </Link>

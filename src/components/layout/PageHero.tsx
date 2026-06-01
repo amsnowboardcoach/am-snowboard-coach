@@ -109,8 +109,8 @@ export function PageHero({
         {children && (
           <div
             className={cn(
-              "flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap",
-              centered && "items-center justify-center sm:w-auto",
+              "btn-row w-full",
+              centered && "btn-row-center",
               afterSubtitle ? "mt-4 sm:mt-5" : "mt-6 sm:mt-8",
             )}
           >

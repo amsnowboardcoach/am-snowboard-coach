@@ -80,13 +80,13 @@ export function LegalDocument({ doc }: LegalDocumentProps) {
         className="mt-8 flex flex-wrap gap-x-4 gap-y-2 border-b border-zinc-800 pb-6 text-sm"
         aria-label="Otras políticas"
       >
-        <Link href={LEGAL_PATHS.terms} className="text-sky-400 hover:underline">
+        <Link href={LEGAL_PATHS.terms} className="link-accent underline-offset-2 hover:underline">
           Términos de uso
         </Link>
-        <Link href={LEGAL_PATHS.privacy} className="text-sky-400 hover:underline">
+        <Link href={LEGAL_PATHS.privacy} className="link-accent underline-offset-2 hover:underline">
           Privacidad
         </Link>
-        <Link href={LEGAL_PATHS.cookies} className="text-sky-400 hover:underline">
+        <Link href={LEGAL_PATHS.cookies} className="link-accent underline-offset-2 hover:underline">
           Cookies
         </Link>
       </nav>
@@ -106,7 +106,7 @@ export function LegalDocument({ doc }: LegalDocumentProps) {
         necesitas ejercer tus derechos, escríbenos a{" "}
         <a
           href={`mailto:${LEGAL_PRIVACY_EMAIL}`}
-          className="text-sky-400 hover:underline"
+          className="link-accent underline-offset-2 hover:underline"
         >
           {LEGAL_PRIVACY_EMAIL}
         </a>

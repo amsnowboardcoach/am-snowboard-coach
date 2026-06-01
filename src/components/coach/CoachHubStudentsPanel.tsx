@@ -108,13 +108,13 @@ export function CoachHubStudentsPanel({ coachId }: CoachHubStudentsPanelProps) {
       )}
 
       {pendingTotal > 0 && (
-        <p className="rounded-lg border border-violet-500/30 bg-violet-500/10 px-4 py-2 text-sm text-violet-200">
+        <p className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-4 py-2 text-sm text-sky-200">
           {pendingTotal} vídeo{pendingTotal > 1 ? "s" : ""} esperando tu revisión.
         </p>
       )}
 
       {loading && <p className="text-zinc-500">Cargando alumnos…</p>}
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-300">{error}</p>}
 
       {!loading && !error && students.length === 0 && (
         <p className="rounded-xl border border-dashed border-zinc-700 py-12 text-center text-zinc-500">
@@ -133,7 +133,7 @@ export function CoachHubStudentsPanel({ coachId }: CoachHubStudentsPanelProps) {
           <button
             type="button"
             onClick={toggleSelectAll}
-            className="text-sm font-medium text-sky-400 hover:text-sky-300"
+            className="text-sm font-medium link-accent"
           >
             {allSelected ? "Quitar todos" : "Seleccionar todos"}
           </button>
@@ -169,7 +169,7 @@ export function CoachHubStudentsPanel({ coachId }: CoachHubStudentsPanelProps) {
                     <p className="truncate font-medium">{s.displayName}</p>
                     <p className="truncate text-sm text-zinc-500">{s.email}</p>
                     {s.pendingVideos > 0 && (
-                      <span className="mt-2 inline-block rounded-full bg-violet-500/20 px-2.5 py-0.5 text-xs font-medium text-violet-300">
+                      <span className="mt-2 inline-block rounded-full bg-sky-500/20 px-2.5 py-0.5 text-xs font-medium text-sky-300">
                         {s.pendingVideos} vídeo{s.pendingVideos > 1 ? "s" : ""}{" "}
                         pendiente{s.pendingVideos > 1 ? "s" : ""}
                       </span>
