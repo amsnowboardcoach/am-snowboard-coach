@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { CoachWhatsAppCard } from "@/components/contact/CoachWhatsAppCard";
+import { DeleteAccountSection } from "@/components/perfil/DeleteAccountSection";
 import { useAuth } from "@/contexts/AuthProvider";
 import { COACH_ROLES } from "@/constants/roles";
 
@@ -74,6 +75,8 @@ export default function PerfilPage() {
           </Link>
         ))}
       </div>
+
+      {isStudent && <DeleteAccountSection />}
     </div>
   );
 }

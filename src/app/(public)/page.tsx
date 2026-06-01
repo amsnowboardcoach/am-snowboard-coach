@@ -3,7 +3,7 @@ import Link from "next/link";
 import { reservarHref } from "@/lib/booking/reservar-url";
 import { BlogPostCard } from "@/components/blog/BlogPostCard";
 import { VideoCorrectionCard } from "@/components/products/VideoCorrectionCard";
-import { LESSON_TYPES } from "@/constants/lesson-types";
+import { LESSON_TYPES, lessonPublicName } from "@/constants/lesson-types";
 import { getAllPosts } from "@/content/blog/posts";
 import { PageHero } from "@/components/layout/PageHero";
 import { SectionHeading } from "@/components/layout/SectionHeading";
@@ -20,7 +20,7 @@ export default async function HomePage() {
         tall
         eyebrow="Sierra Nevada · Granada"
         title="Aprende snowboard con método, en Sierra Nevada"
-        subtitle="Alejandro Martín, Head Coach con más de 7.500 horas en pista. De tu primera bajada al freestyle en Sulayr: clases claras, seguimiento real y comunidad AM."
+        subtitle="Alejandro Martín, Head Coach con más de 7.500 horas en pista. De tu primera bajada al freestyle en Snowpark Sulayr: clases claras, seguimiento real y comunidad AM."
         imageSrc={media.hero.image.src}
         imageAlt={media.hero.image.alt}
         videoSrc={media.hero.video?.src}
@@ -90,7 +90,7 @@ export default async function HomePage() {
                 <div className="relative h-40 overflow-hidden">
                   <Image
                     src={media.lessonCards[i]?.src ?? media.clase.image.src}
-                    alt={lesson.name}
+                    alt={lessonPublicName(lesson)}
                     fill
                     className="object-cover transition duration-500 group-hover:scale-105"
                     sizes="33vw"
@@ -99,7 +99,7 @@ export default async function HomePage() {
                 </div>
                 <div className="p-6">
                   <h3 className="text-lg font-semibold text-sky-400">
-                    {lesson.name}
+                    {lessonPublicName(lesson)}
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-zinc-400">
                     {lesson.description}
@@ -108,7 +108,7 @@ export default async function HomePage() {
                     href={reservarHref({ estilo: lesson.id })}
                     className="mt-4 inline-flex text-sm font-medium text-sky-400 transition hover:text-sky-300"
                   >
-                    Reservar {lesson.name.toLowerCase()} →
+                    Reservar {lessonPublicName(lesson).toLowerCase()} →
                   </Link>
                 </div>
               </article>
@@ -146,7 +146,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-4 py-12 sm:py-20">
         <SectionHeading
           title="Guías y consejos en pista"
-          subtitle="Guías sobre iniciación, carving, Sulayr, tarifas y cómo reservar tu clase."
+          subtitle="Guías sobre iniciación, carving, Snowpark Sulayr, tarifas y cómo reservar tu clase."
         />
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {latestPosts.map((post) => (

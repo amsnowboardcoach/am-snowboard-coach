@@ -1,32 +1,35 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthProvider";
 import { getCoachWhatsAppUrl } from "@/constants/coach-contact";
 import { LEGAL_PATHS } from "@/constants/legal-site";
 import { COACH_ROLES } from "@/constants/roles";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { STUDENT_AREA_PATH } from "@/constants/student-area";
+import { useClientHydrated } from "@/hooks/use-client-hydrated";
+
+const GUEST_ACCOUNT_LINKS = [
+  { href: STUDENT_AREA_PATH, label: "Área de alumno" },
+  { href: "/reservar", label: "Reservar" },
+] as const;
 
 export function SiteFooter() {
   const { user, profile, loading } = useAuth();
+  const hydrated = useClientHydrated();
   const isCoach = profile && COACH_ROLES.includes(profile.role);
+  const authReady = hydrated && !loading;
 
-  const accountLinks = (() => {
-    if (loading) {
-      return [{ href: STUDENT_AREA_PATH, label: "Área de alumno" }];
+  const accountLinks = useMemo(() => {
+    if (!authReady) {
+      return [...GUEST_ACCOUNT_LINKS];
     }
     if (!user) {
-      return [
-        { href: STUDENT_AREA_PATH, label: "Área de alumno" },
-        { href: "/reservar", label: "Reservar" },
-      ];
+      return [...GUEST_ACCOUNT_LINKS];
     }
     if (isCoach) {
-      return [
-        { href: STUDENT_AREA_PATH, label: "Área de alumno" },
-        { href: "/reservar", label: "Reservar" },
-      ];
+      return [...GUEST_ACCOUNT_LINKS];
     }
     return [
       { href: "/perfil", label: "Mi perfil" },
@@ -35,7 +38,9 @@ export function SiteFooter() {
       { href: "/tribu", label: "La Tribu" },
       { href: "/mercadillo", label: "Mercadillo" },
     ];
-  })();
+  }, [authReady, user, isCoach]);
+
+  const accountHeading = authReady && user ? "Tu cuenta" : "Alumnos";
 
   return (
     <footer className="border-t border-zinc-800 bg-zinc-950 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
@@ -60,7 +65,7 @@ export function SiteFooter() {
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            {user ? "Tu cuenta" : "Alumnos"}
+            {accountHeading}
           </p>
           <ul className="mt-4 space-y-2 text-sm text-zinc-400">
             {accountLinks.map((item) => (
@@ -73,7 +78,7 @@ export function SiteFooter() {
                 </Link>
               </li>
             ))}
-            {user && !isCoach && (
+            {authReady && user && !isCoach && (
               <li>
                 <a
                   href={getCoachWhatsAppUrl()}
@@ -85,7 +90,7 @@ export function SiteFooter() {
                 </a>
               </li>
             )}
-            {user && (
+            {authReady && user && (
               <li>
                 <SignOutButton className="inline-block min-h-8 py-0.5 text-zinc-400 hover:text-red-300" />
               </li>
@@ -117,7 +122,10 @@ export function SiteFooter() {
             Cookies
           </Link>
         </nav>
-        <p className="mt-4 text-center text-xs text-zinc-600">
+        <p
+          className="mt-4 text-center text-xs text-zinc-600"
+          suppressHydrationWarning
+        >
           © {new Date().getFullYear()} AM Snowboard Coach · Sierra Nevada
         </p>
       </div>

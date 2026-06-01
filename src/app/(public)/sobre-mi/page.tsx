@@ -21,7 +21,7 @@ export default async function SobreMiPage() {
       <PageHero
         eyebrow="Head Coach"
         title="Alejandro Martín"
-        subtitle="Fundador de AM Snowboard Coach · 15 temporadas en Sierra Nevada y Sulayr"
+        subtitle="Fundador de AM Snowboard Coach · 15 temporadas en Sierra Nevada y Snowpark Sulayr"
         imageSrc={media.coach.image.src}
         imageAlt={media.coach.image.alt}
       />
@@ -32,7 +32,7 @@ export default async function SobreMiPage() {
             <p>
               Más de <strong className="text-zinc-100">7.500 horas</strong> de
               clase en pista con alumnos de todos los niveles. Desde la primera
-              bajada hasta líneas en Sulayr con criterio y seguridad.
+              bajada hasta líneas en Snowpark Sulayr con criterio y seguridad.
             </p>
             <p>
               Combino técnica clara, Pasaporte de Trucos para ver tu progreso y La

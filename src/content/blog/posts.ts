@@ -45,7 +45,7 @@ Solicita tu plaza desde la [central de reservas](/reservar). Reviso cada petici�
     slug: "carving-snowboard-sierra-nevada",
     title: "Carving en snowboard: técnica y clases en Sierra Nevada",
     description:
-      "Mejora tus giros cerrados y velocidad controlada en pista con sesiones de carving en Sierra Nevada y Sulayr.",
+      "Mejora tus giros cerrados y velocidad controlada en pista con sesiones de carving en Sierra Nevada y Snowpark Sulayr.",
     publishedAt: "2026-01-22",
     readingMinutes: 6,
     tags: ["carving", "técnica", "intermedio"],
@@ -69,14 +69,14 @@ Recomiendo cantos afilados y tabla un poco más rígida si ya dominas el básico
   },
   {
     slug: "freestyle-sulayr-snowpark-sierra-nevada",
-    title: "Freestyle en Sulayr: guía del snowpark de Sierra Nevada",
+    title: "Freestyle en Snowpark Sulayr: guía del snowpark de Sierra Nevada",
     description:
-      "Cómo preparar tu sesión de freestyle en Sulayr: boxes, saltos, seguridad y clases con progresión en el park.",
+      "Cómo preparar tu sesión de freestyle en Snowpark Sulayr: boxes, saltos, seguridad y clases con progresión en el park.",
     publishedAt: "2026-02-05",
     readingMinutes: 8,
-    tags: ["freestyle", "Sulayr", "snowpark"],
+    tags: ["freestyle", "Snowpark Sulayr", "snowpark"],
     body: `
-**Sulayr** es el snowpark de referencia en Sierra Nevada. Cajones, rails y kickers para todos los niveles — siempre con respeto al código FIS y al flujo del park.
+**Snowpark Sulayr** es el snowpark de referencia en Sierra Nevada. Cajones, rails y kickers para todos los niveles — siempre con respeto al código FIS y al flujo del park.
 
 ## Antes de entrar al park
 
@@ -131,7 +131,7 @@ Tras confirmar tu plaza, recibirás un enlace para pagar con tarjeta (Stripe).
     slug: "mejor-epoca-snowboard-sierra-nevada",
     title: "Mejor época para snowboard en Sierra Nevada",
     description:
-      "Temporada, nieve, afluencia y consejos para elegir cuándo reservar tu clase en Sierra Nevada y Sulayr.",
+      "Temporada, nieve, afluencia y consejos para elegir cuándo reservar tu clase en Sierra Nevada y Snowpark Sulayr.",
     publishedAt: "2026-03-01",
     readingMinutes: 6,
     tags: ["temporada", "consejos", "Sierra Nevada"],
@@ -144,7 +144,7 @@ Máxima garantía de nieve en pista. Fines de semana y vacaciones escolares hay 
 
 ## Marzo–abril
 
-Días más largos y temperaturas agradables. Ideal para **carving** y sesiones de **freestyle** en Sulayr con sol.
+Días más largos y temperaturas agradables. Ideal para **carving** y sesiones de **freestyle** en Snowpark Sulayr con sol.
 
 ## Consejos de monitor
 

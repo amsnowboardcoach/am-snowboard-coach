@@ -22,7 +22,7 @@ service firebase.storage {
         && (request.auth.uid == userId || isCoach());
       allow write: if isSignedIn()
         && request.auth.uid == userId
-        && request.resource.size < 100 * 1024 * 1024
+        && request.resource.size < 200 * 1024 * 1024
         && request.resource.contentType.matches('video/.*');
       allow delete: if isCoach() || (isSignedIn() && request.auth.uid == userId);
     }
@@ -30,7 +30,7 @@ service firebase.storage {
     match /tribe/{postId}/{fileName} {
       allow read: if true;
       allow write: if isRegisteredStudent()
-        && request.resource.size < 50 * 1024 * 1024
+        && request.resource.size < 100 * 1024 * 1024
         && request.resource.contentType.matches('image/.*|video/.*');
     }
 

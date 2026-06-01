@@ -32,7 +32,7 @@ import {
 } from "@/constants/booking-payment";
 import { BOOKING_PAYMENT_OPTIONS_NOTE } from "@/constants/coach-contact";
 import { useAuth } from "@/contexts/AuthProvider";
-import { LESSON_TYPES } from "@/constants/lesson-types";
+import { LESSON_TYPES, lessonPublicName } from "@/constants/lesson-types";
 import {
   MAX_BOOKING_DAYS,
   formatDaysPlanLabel,
@@ -332,7 +332,7 @@ export function BookingForm() {
   const summaryLines = formatReservationSummaryLines({
     selectedDays,
     participantCount,
-    lessonName: lesson?.name,
+    lessonName: lesson ? lessonPublicName(lesson) : undefined,
     notes,
   });
 
@@ -842,7 +842,7 @@ export function BookingForm() {
           </li>
           <li>
             <span className="text-zinc-500">2. Estilo: </span>
-            {lesson?.name ?? "—"}
+            {lesson ? lessonPublicName(lesson) : "—"}
           </li>
           <li>
             <span className="text-zinc-500">3. Horario: </span>

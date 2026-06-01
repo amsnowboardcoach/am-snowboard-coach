@@ -115,30 +115,6 @@ export function CoachBookingsPanel({
 
   return (
     <div className="space-y-8">
-      {showCreateForm && (
-        <CreateBookingForm
-          coachId={coachId}
-          onCreated={load}
-          defaultOpen
-        />
-      )}
-
-      {pendingRequestCount > 0 && (
-        <p className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-4 py-2 text-sm text-sky-200">
-          {pendingRequestCount} solicitud
-          {pendingRequestCount > 1 ? "es" : ""} de reserva esperando tu
-          confirmación.
-        </p>
-      )}
-
-      {pendingInvoiceCount > 0 && (
-        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-200">
-          {pendingInvoiceCount} reserva
-          {pendingInvoiceCount > 1 ? "s" : ""} pagada
-          {pendingInvoiceCount > 1 ? "s" : ""} sin factura
-        </p>
-      )}
-
       <div className="flex flex-wrap gap-2">
         {filters.map((f) => (
           <button
@@ -156,6 +132,22 @@ export function CoachBookingsPanel({
         ))}
       </div>
 
+      {pendingRequestCount > 0 && (
+        <p className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-4 py-2 text-sm text-sky-200">
+          {pendingRequestCount} solicitud
+          {pendingRequestCount > 1 ? "es" : ""} de reserva esperando tu
+          confirmación.
+        </p>
+      )}
+
+      {pendingInvoiceCount > 0 && (
+        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-200">
+          {pendingInvoiceCount} reserva
+          {pendingInvoiceCount > 1 ? "s" : ""} pagada
+          {pendingInvoiceCount > 1 ? "s" : ""} sin factura
+        </p>
+      )}
+
       {loading && (
         <p className="text-center text-zinc-500">Cargando reservas…</p>
       )}
@@ -168,20 +160,31 @@ export function CoachBookingsPanel({
 
       {!loading && !error && filtered.length === 0 && (
         <p className="rounded-2xl border border-dashed border-zinc-700 py-16 text-center text-zinc-500">
-          No hay reservas con este filtro. Crea una con el botón de arriba.
+          No hay reservas con este filtro. Puedes crear una manual en el
+          formulario de abajo.
         </p>
       )}
 
-      <div className="space-y-4">
-        {filtered.map((booking) => (
-          <BookingCard
-            key={booking.id}
-            booking={booking}
-            coachId={coachId}
-            onUpdated={load}
-          />
-        ))}
-      </div>
+      {!loading && !error && filtered.length > 0 && (
+        <div className="space-y-4">
+          {filtered.map((booking) => (
+            <BookingCard
+              key={booking.id}
+              booking={booking}
+              coachId={coachId}
+              onUpdated={load}
+            />
+          ))}
+        </div>
+      )}
+
+      {showCreateForm && (
+        <CreateBookingForm
+          coachId={coachId}
+          onCreated={load}
+          defaultOpen={false}
+        />
+      )}
     </div>
   );
 }

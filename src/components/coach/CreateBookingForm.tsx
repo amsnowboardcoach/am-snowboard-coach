@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { LESSON_TYPES } from "@/constants/lesson-types";
+import { LESSON_TYPES, lessonPublicName } from "@/constants/lesson-types";
 import {
   SESSION_DURATIONS,
   sessionTotalEuros,
@@ -150,7 +150,7 @@ export function CreateBookingForm({
           >
             {LESSON_TYPES.map((l) => (
               <option key={l.id} value={l.id}>
-                {l.name}
+                {lessonPublicName(l)}
               </option>
             ))}
           </select>

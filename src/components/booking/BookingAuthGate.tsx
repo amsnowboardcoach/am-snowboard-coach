@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { useAuth } from "@/contexts/AuthProvider";
 import { studentAreaHref } from "@/constants/student-area";
+import { setBookingPendingSubmit } from "@/lib/booking/booking-draft";
 import { cn } from "@/lib/utils/cn";
 interface BookingAuthGateProps {
   totalEuros: number;
@@ -81,7 +82,12 @@ export function BookingAuthGate({
       <div className="mt-4">
         <GoogleAuthButton
           label="Continuar con Google y reservar"
+          redirectPath={returnPath}
           onError={onError}
+          onBeforeRedirect={() => {
+            setBookingPendingSubmit(true);
+            onGoogleSuccess?.();
+          }}
           onSuccess={() => {
             onGoogleSuccess?.();
           }}

@@ -1,5 +1,6 @@
 import { getMessaging } from "firebase-admin/messaging";
 import { getAdminApp, getAdminDb } from "@/lib/firebase/admin";
+import { resolveCoachPushUserIds } from "@/lib/push/coach-push-targets";
 import { getAppBaseUrl } from "@/constants/project";
 import {
   formatBookingInTimeZone,
@@ -11,22 +12,126 @@ function messaging() {
   return getMessaging(getAdminApp());
 }
 
-async function getTokensForUser(userId: string): Promise<string[]> {
+type TokenRef = { userId: string; token: string; docId: string };
+
+async function listTokenRefs(userId: string): Promise<TokenRef[]> {
   const snap = await getAdminDb()
     .collection("users")
     .doc(userId)
     .collection("fcm_tokens")
     .get();
-  const tokens = snap.docs
-    .map((d) => d.data().token as string)
-    .filter(Boolean);
-  return [...new Set(tokens)];
+  return snap.docs
+    .map((d) => ({
+      userId,
+      token: d.data().token as string,
+      docId: d.id,
+    }))
+    .filter((r) => Boolean(r.token));
 }
 
-function getCoachUserId(): string {
-  const id = process.env.NEXT_PUBLIC_DEFAULT_COACH_ID?.trim();
-  if (!id) throw new Error("NEXT_PUBLIC_DEFAULT_COACH_ID no configurado");
-  return id;
+async function pruneInvalidTokenRefs(
+  refs: TokenRef[],
+  responses: { success: boolean; error?: { code?: string } }[],
+): Promise<void> {
+  const db = getAdminDb();
+  await Promise.all(
+    responses.map(async (res, i) => {
+      if (res.success) return;
+      const code = res.error?.code;
+      if (
+        code !== "messaging/registration-token-not-registered" &&
+        code !== "messaging/invalid-argument"
+      ) {
+        return;
+      }
+      const ref = refs[i];
+      if (!ref) return;
+      try {
+        await db
+          .collection("users")
+          .doc(ref.userId)
+          .collection("fcm_tokens")
+          .doc(ref.docId)
+          .delete();
+      } catch {
+        /* ignore */
+      }
+    }),
+  );
+}
+
+async function sendMulticast(
+  refs: TokenRef[],
+  payload: PushPayload,
+): Promise<void> {
+  if (refs.length === 0) return;
+
+  const tokens = refs.map((r) => r.token);
+  const base = getAppBaseUrl();
+  const url = payload.url?.startsWith("http")
+    ? payload.url
+    : `${base}${payload.url ?? "/"}`;
+
+  const result = await messaging().sendEachForMulticast({
+    tokens,
+    notification: {
+      title: payload.title,
+      body: payload.body,
+    },
+    data: {
+      url,
+      tag: payload.tag ?? "default",
+      title: payload.title,
+      body: payload.body,
+    },
+    webpush: {
+      fcmOptions: { link: url },
+    },
+  });
+
+  await pruneInvalidTokenRefs(refs, result.responses);
+
+  if (result.failureCount > 0) {
+    console.warn(
+      `[push] ${result.failureCount}/${tokens.length} envíos fallidos`,
+      payload.tag,
+    );
+  }
+}
+
+/** Push a todos los dispositivos del coach (UID env + cuenta por email). */
+async function sendPushToCoach(payload: PushPayload): Promise<void> {
+  const userIds = await resolveCoachPushUserIds();
+  if (userIds.length === 0) {
+    console.warn(
+      "[push] Sin UIDs de coach. Configura NEXT_PUBLIC_DEFAULT_COACH_ID o el email del coach en Firestore.",
+    );
+    return;
+  }
+
+  const seen = new Set<string>();
+  const refs: TokenRef[] = [];
+  for (const userId of userIds) {
+    for (const ref of await listTokenRefs(userId)) {
+      if (seen.has(ref.token)) continue;
+      seen.add(ref.token);
+      refs.push(ref);
+    }
+  }
+
+  if (refs.length === 0) {
+    console.warn(
+      "[push] Coach sin tokens FCM. En el móvil: entra en /coach y pulsa «Activar» en el banner de avisos.",
+      { coachUserIds: userIds },
+    );
+    return;
+  }
+
+  try {
+    await sendMulticast(refs, payload);
+  } catch (err) {
+    console.error("[push] sendToCoach", err);
+  }
 }
 
 export type PushPayload = {
@@ -42,31 +147,11 @@ export async function sendPushToUser(
 ): Promise<void> {
   if (!userId) return;
 
-  const tokens = await getTokensForUser(userId);
-  if (tokens.length === 0) return;
-
-  const base = getAppBaseUrl();
-  const url = payload.url?.startsWith("http")
-    ? payload.url
-    : `${base}${payload.url ?? "/"}`;
+  const refs = await listTokenRefs(userId);
+  if (refs.length === 0) return;
 
   try {
-    await messaging().sendEachForMulticast({
-      tokens,
-      notification: {
-        title: payload.title,
-        body: payload.body,
-      },
-      data: {
-        url,
-        tag: payload.tag ?? "default",
-        title: payload.title,
-        body: payload.body,
-      },
-      webpush: {
-        fcmOptions: { link: url },
-      },
-    });
+    await sendMulticast(refs, payload);
   } catch (err) {
     console.error("[push] sendToUser", userId, err);
   }
@@ -81,7 +166,7 @@ export async function notifyCoachNewSessionRequest(details: {
   bookingId: string;
 }): Promise<void> {
   const when = formatBookingWhen(details.startAt, details.endAt);
-  await sendPushToUser(getCoachUserId(), {
+  await sendPushToCoach({
     title: "Nueva solicitud de clase",
     body: `${details.studentName} · ${when}`,
     url: "/coach?tab=reservas",
@@ -97,11 +182,25 @@ export async function notifyCoachNewVideoCorrectionRequest(details: {
 }): Promise<void> {
   const n = details.videoCount;
   const label = `${n} vídeo${n > 1 ? "s" : ""} a corregir`;
-  await sendPushToUser(getCoachUserId(), {
+  await sendPushToCoach({
     title: "Nueva solicitud de video corrección",
     body: `${details.studentName} · ${label}`,
     url: "/coach?tab=reservas",
     tag: `booking-${details.bookingId}`,
+  });
+}
+
+/** Coach: nuevo alumno en el área de alumno (registro Google o email) */
+export async function notifyCoachNewStudentRegistered(details: {
+  studentName: string;
+  studentEmail: string;
+  studentId: string;
+}): Promise<void> {
+  await sendPushToCoach({
+    title: "Nuevo alumno registrado",
+    body: `${details.studentName} · ${details.studentEmail}`,
+    url: "/coach?tab=alumnos",
+    tag: `student-reg-${details.studentId}`,
   });
 }
 
@@ -111,7 +210,7 @@ export async function notifyCoachStudentVideoUploaded(details: {
   videoTitle: string;
   studentId: string;
 }): Promise<void> {
-  await sendPushToUser(getCoachUserId(), {
+  await sendPushToCoach({
     title: "Vídeo nuevo de un alumno",
     body: `${details.studentName}: «${details.videoTitle}» — pendiente de revisión`,
     url: `/coach/alumnos/${details.studentId}`,
@@ -238,7 +337,7 @@ export async function notifyCoachPaymentReceived(details: {
   productLabel: string;
   bookingId: string;
 }): Promise<void> {
-  await sendPushToUser(getCoachUserId(), {
+  await sendPushToCoach({
     title: "Pago recibido — acepta la reserva",
     body: `${details.studentName} · ${details.productLabel} · ${details.amountEuros} €`,
     url: "/coach?tab=reservas",
@@ -292,7 +391,7 @@ export async function notifyCoachNewBookingRequest(details: {
     return;
   }
 
-  await sendPushToUser(getCoachUserId(), {
+  await sendPushToCoach({
     title: "Nueva solicitud de reserva",
     body: `${details.studentName} · ${details.dateLabel} · ${details.slotLabel}`,
     url: "/coach?tab=reservas",

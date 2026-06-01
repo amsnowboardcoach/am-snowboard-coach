@@ -1,6 +1,10 @@
+import { isFirebaseConfigured } from "@/lib/auth/config";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 
 async function coachAuthHeader(): Promise<HeadersInit> {
+  if (!isFirebaseConfigured()) {
+    throw new Error("Firebase no está configurado.");
+  }
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new Error("Inicia sesión como coach");
   const token = await user.getIdToken();

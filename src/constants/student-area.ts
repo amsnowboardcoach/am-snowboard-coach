@@ -1,3 +1,5 @@
+import { safeNextPath } from "@/lib/auth/paths";
+
 /** Ruta canónica del acceso (entrar o registrarse) */
 export const STUDENT_AREA_PATH = "/login";
 
@@ -7,7 +9,8 @@ export function studentAreaHref(options?: {
 }): string {
   const params = new URLSearchParams();
   if (options?.signup) params.set("registro", "1");
-  if (options?.next) params.set("next", options.next);
+  const safeNext = safeNextPath(options?.next);
+  if (safeNext) params.set("next", safeNext);
   const qs = params.toString();
   return qs ? `${STUDENT_AREA_PATH}?${qs}` : STUDENT_AREA_PATH;
 }

@@ -1,10 +1,14 @@
 import { signInAnonymously } from "firebase/auth";
+import { isFirebaseConfigured } from "@/lib/auth/config";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 
 const GUEST_NAME_KEY = "tribe_guest_name";
 
 /** Sesión mínima para reaccionar/comentar sin cuenta de alumno (Firebase Anonymous Auth). */
 export async function ensureTribeVisitorAuth(): Promise<string> {
+  if (!isFirebaseConfigured()) {
+    throw new Error("La Tribu no está disponible: falta configurar Firebase.");
+  }
   const auth = getFirebaseAuth();
   if (auth.currentUser) {
     return auth.currentUser.uid;

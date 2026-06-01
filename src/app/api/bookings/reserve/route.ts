@@ -11,7 +11,7 @@ import {
   formatDaysPlanLabel,
   type BookingDaysPlan,
 } from "@/constants/booking-plan";
-import { LESSON_TYPES } from "@/constants/lesson-types";
+import { LESSON_TYPES, lessonPublicName } from "@/constants/lesson-types";
 import {
   BOOKING_BALANCE_ON_SLOPE,
   BOOKING_DEPOSIT_PERCENT,
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
       const startAt = new Date(item.startUtc);
       if (!isDateInBookingSeason(startAt)) {
         return NextResponse.json(
-          { error: "Las reservas en pista son de noviembre a mayo" },
+          { error: "Las reservas en pista son de noviembre a junio" },
           { status: 400 },
         );
       }
@@ -198,12 +198,12 @@ export async function POST(request: NextRequest) {
         sessionsInput.length > 1
           ? `Día ${i + 1}/${sessionsInput.length}`
           : null,
-        lesson ? `Estilo: ${lesson.name}` : null,
+        lesson ? `Estilo: ${lessonPublicName(lesson)}` : null,
         notes?.trim() || null,
       ].filter(Boolean);
       const bookingNotes = noteParts.join(" · ");
 
-      const lessonTypeName = lesson?.name ?? session.name;
+      const lessonTypeName = lesson ? lessonPublicName(lesson) : session.name;
 
       let bookingId: string;
       try {
@@ -260,7 +260,7 @@ export async function POST(request: NextRequest) {
           chargeAmountCents: paymentBreakdown.chargeAmountCents,
           totalAmountCents: paymentBreakdown.totalAmountCents,
           session,
-          lessonTypeName: lesson?.name ?? session.name,
+          lessonTypeName: lesson ? lessonPublicName(lesson) : session.name,
           studentName,
           studentEmail,
           firstStartAt: first.startAt,
@@ -298,7 +298,7 @@ export async function POST(request: NextRequest) {
         slotLabel: first.slotLabel,
         startAt: first.startAt,
         endAt: first.endAt,
-        lessonTypeName: lesson?.name ?? session.name,
+        lessonTypeName: lesson ? lessonPublicName(lesson) : session.name,
         notes: notes?.trim() || undefined,
         participantCount,
         totalEuros,

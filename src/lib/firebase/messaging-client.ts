@@ -10,6 +10,7 @@ import {
 } from "firebase/messaging";
 import { getFirebaseApp } from "@/lib/firebase/client";
 import { saveFcmToken } from "@/lib/firebase/fcm-tokens";
+import { BRAND_ICON_192 } from "@/constants/brand-icons";
 import { registerPwaServiceWorker } from "@/lib/pwa/register-sw";
 
 /** Clave pública VAPID web (65 bytes en base64url, suele empezar por B). */
@@ -130,7 +131,7 @@ export function subscribeForegroundMessages(
       if (typeof Notification !== "undefined" && Notification.permission === "granted") {
         new Notification(title, {
           body,
-          icon: "/icons/icon-192.png",
+          icon: BRAND_ICON_192,
           data: { url },
         });
       }

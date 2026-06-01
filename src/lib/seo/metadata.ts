@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BRAND_ICON_OG } from "@/constants/brand-icons";
 import {
   DEFAULT_DESCRIPTION,
   SITE_KEYWORDS,
@@ -51,7 +52,14 @@ export function buildPageMetadata(input: PageSeoInput): Metadata {
       siteName: SITE_NAME,
       title: `${input.title} | ${SITE_NAME}`,
       description,
-      images: [{ url: ogImage, width: 1200, height: 630, alt: SITE_NAME }],
+      images: [
+        {
+          url: ogImage,
+          width: 512,
+          height: 512,
+          alt: SITE_NAME,
+        },
+      ],
       ...(input.publishedTime
         ? { publishedTime: input.publishedTime, modifiedTime: input.modifiedTime }
         : {}),

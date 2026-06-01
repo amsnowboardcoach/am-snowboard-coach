@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
+import { useClientHydrated } from "@/hooks/use-client-hydrated";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { SiteHeaderLogo } from "@/components/layout/SiteHeaderLogo";
 import { MobileNavDrawer, type MobileNavLink } from "@/components/layout/MobileNavDrawer";
@@ -21,7 +22,9 @@ interface SiteHeaderProps {
 
 export function SiteHeader({ className }: SiteHeaderProps) {
   const { user, profile, loading } = useAuth();
+  const hydrated = useClientHydrated();
   const signOut = useSignOut();
+  const authReady = hydrated && !loading;
   const isCoach = profile && COACH_ROLES.includes(profile.role);
   const privateHref = isCoach ? "/coach" : "/perfil";
   const privateLabel = isCoach ? "Panel coach" : "Mi perfil";
@@ -32,7 +35,7 @@ export function SiteHeader({ className }: SiteHeaderProps) {
       label: item.label,
     }));
 
-    if (user) {
+    if (authReady && user) {
       base.push(
         { href: privateHref, label: privateLabel },
         { href: SITE_HEADER_CTA.href, label: SITE_HEADER_CTA.label, primary: true },
@@ -77,7 +80,7 @@ export function SiteHeader({ className }: SiteHeaderProps) {
               {item.label}
             </Link>
           ))}
-          {!loading && user ? (
+          {authReady && user ? (
             <>
               <Link
                 href={privateHref}

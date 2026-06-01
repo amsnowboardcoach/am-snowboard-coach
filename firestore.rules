@@ -65,10 +65,53 @@ service cloud.firestore {
         || changed.hasOnly(['commentCount']);
     }
 
+    function isCoachSignupEmail() {
+      return request.auth.token.email == 'amsnowboardcoach@gmail.com';
+    }
+
+    function userCreateValid() {
+      return request.resource.data.uid == userId
+        && request.resource.data.email is string
+        && request.resource.data.displayName is string
+        && (
+          request.resource.data.role == 'student'
+          || (
+            request.resource.data.role == 'coach'
+            && isCoachSignupEmail()
+          )
+        );
+    }
+
+    function userSelfUpdateValid() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return request.resource.data.role == resource.data.role
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && changed.hasOnly([
+          'displayName',
+          'photoURL',
+          'phone',
+          'level',
+          'preferences',
+          'updatedAt',
+        ]);
+    }
+
+    /** Corrige perfil creado como alumno con email de coach (solo rol + updatedAt). */
+    function coachEmailRoleFix() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return isCoachSignupEmail()
+        && resource.data.role == 'student'
+        && request.resource.data.role == 'coach'
+        && changed.hasOnly(['role', 'updatedAt']);
+    }
+
     match /users/{userId} {
       allow read: if isOwner(userId) || isCoach();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || isCoach();
+      allow create: if isOwner(userId) && userCreateValid();
+      allow update: if isCoach()
+        || (isOwner(userId) && userSelfUpdateValid())
+        || (isOwner(userId) && coachEmailRoleFix());
 
       match /trick_progress/{trickId} {
         allow read: if isOwner(userId) || isCoach();

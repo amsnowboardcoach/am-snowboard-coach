@@ -3,13 +3,13 @@ import { getAppBaseUrl } from "@/constants/project";
 export const SITE_NAME = "AM Snowboard Coach";
 export const SITE_TAGLINE = "Clases de snowboard en Sierra Nevada";
 export const DEFAULT_DESCRIPTION =
-  "Clases de snowboard en Sierra Nevada (Granada) con Alejandro Martín. Iniciación, carving y freestyle en Sulayr. Reserva online, área de alumno con vídeos y seguimiento personalizado.";
+  "Clases de snowboard en Sierra Nevada (Granada) con Alejandro Martín. Iniciación, carving y freestyle en Snowpark Sulayr. Reserva online, área de alumno con vídeos y seguimiento personalizado.";
 
 export const SITE_KEYWORDS = [
   "clases snowboard Sierra Nevada",
   "profesor snowboard Granada",
   "snowboard Granada",
-  "clases snowboard Sulayr",
+  "clases snowboard Snowpark Sulayr",
   "monitor snowboard Sierra Nevada",
   "curso snowboard España",
   "Alejandro Martín snowboard",

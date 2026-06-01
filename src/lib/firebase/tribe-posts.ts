@@ -13,9 +13,14 @@ import {
   where,
   writeBatch,
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { getDownloadURL, ref } from "firebase/storage";
 import { COACH_ROLES } from "@/constants/roles";
 import { getFirebaseDb, getFirebaseStorage } from "@/lib/firebase/client";
+import {
+  mapStorageUploadError,
+  uploadUserFile,
+} from "@/lib/firebase/storage-upload";
+import { isImageFile, isVideoFile } from "@/lib/utils/media-file";
 import type { UserRole } from "@/constants/roles";
 import type {
   TribeComment,
@@ -26,7 +31,7 @@ import type {
 
 const POSTS = "tribe_posts";
 const MAX_PHOTO_BYTES = 12 * 1024 * 1024;
-const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
 
 function postsCol() {
   return collection(getFirebaseDb(), POSTS);
@@ -41,18 +46,18 @@ export function validateTribeMediaFile(
   mediaType: TribeMediaType,
 ): string | null {
   if (mediaType === "photo") {
-    if (!file.type.startsWith("image/")) {
-      return "Selecciona una imagen (JPG, PNG o WebP).";
+    if (!isImageFile(file)) {
+      return "Selecciona una imagen (JPG, PNG, HEIC o WebP).";
     }
     if (file.size > MAX_PHOTO_BYTES) {
       return "La imagen no puede superar 12 MB.";
     }
   } else {
-    if (!file.type.startsWith("video/")) {
-      return "Selecciona un vídeo (MP4, MOV o WebM).";
+    if (!isVideoFile(file)) {
+      return "Selecciona un vídeo (MP4 o MOV desde la galería).";
     }
     if (file.size > MAX_VIDEO_BYTES) {
-      return "El vídeo no puede superar 50 MB.";
+      return "El vídeo no puede superar 100 MB.";
     }
   }
   if (file.size < 512) {
@@ -83,7 +88,11 @@ export async function uploadTribePost(input: {
   const storagePath = `tribe/${postRef.id}/${safeName}`;
   const storageRef = ref(getFirebaseStorage(), storagePath);
 
-  await uploadBytes(storageRef, input.file, { contentType: input.file.type });
+  try {
+    await uploadUserFile(storageRef, input.file);
+  } catch (err) {
+    throw new Error(mapStorageUploadError(err));
+  }
   const mediaUrl = await getDownloadURL(storageRef);
 
   await setDoc(postRef, {

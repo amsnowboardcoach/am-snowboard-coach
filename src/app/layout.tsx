@@ -1,6 +1,12 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthProvider";
 import { PwaShell } from "@/components/pwa/PwaShell";
+import {
+  BRAND_ICON_180,
+  BRAND_ICON_192,
+  BRAND_ICON_32,
+  BRAND_ICON_512,
+} from "@/constants/brand-icons";
 import { rootMetadata } from "@/lib/seo/metadata";
 import "./globals.css";
 
@@ -22,12 +28,18 @@ export const metadata = {
     statusBarStyle: "black-translucent" as const,
     title: "AM Coach",
   },
+  applicationName: "AM Coach",
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
   icons: {
     icon: [
-      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
-      { url: "/icons/icon-512.png", type: "image/png", sizes: "512x512" },
+      { url: BRAND_ICON_32, type: "image/png", sizes: "32x32" },
+      { url: BRAND_ICON_192, type: "image/png", sizes: "192x192" },
+      { url: BRAND_ICON_512, type: "image/png", sizes: "512x512" },
     ],
-    apple: [{ url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" }],
+    apple: [{ url: BRAND_ICON_180, type: "image/png", sizes: "180x180" }],
+    shortcut: BRAND_ICON_192,
   },
 };
 

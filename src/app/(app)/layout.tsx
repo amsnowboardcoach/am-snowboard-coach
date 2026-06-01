@@ -1,25 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { useAuth } from "@/contexts/AuthProvider";
-import { COACH_ROLES } from "@/constants/roles";
 import { isFirebaseConfigured } from "@/lib/auth/config";
 import { PageWayfinding } from "@/components/layout/PageWayfinding";
 import { SiteChrome } from "@/components/layout/SiteChrome";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading, signOut } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isFirebaseConfigured() || loading) return;
-    if (!user) {
-      router.replace("/login");
-    }
-  }, [user, loading, router]);
+  const { user, loading } = useAuth();
 
   if (!isFirebaseConfigured()) {
     return (
@@ -33,13 +22,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="site-mesh flex min-h-screen items-center justify-center text-zinc-500">
-        Cargando…
+        Cargando tu sesión…
       </div>
     );
   }
 
   if (!user) {
-    return null;
+    return (
+      <div className="site-mesh flex min-h-screen items-center justify-center text-zinc-500">
+        Redirigiendo al acceso…
+      </div>
+    );
   }
 
   return (

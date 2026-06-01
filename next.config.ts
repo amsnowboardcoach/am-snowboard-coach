@@ -4,6 +4,16 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Firebase signInWithPopup needs opener ↔ popup communication (window.closed).
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin-allow-popups",
+          },
+        ],
+      },
+      {
         source: "/sw.js",
         headers: [
           {

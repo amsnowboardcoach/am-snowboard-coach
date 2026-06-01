@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { DeleteStudentButton } from "@/components/coach/DeleteStudentButton";
 import { fetchCoachStudents } from "@/lib/firebase/students";
 import { fetchStudentProgressVideos } from "@/lib/firebase/progress-videos";
 import { ensureTricksCatalog } from "@/lib/firebase/tricks";
@@ -19,6 +20,7 @@ export function CoachHubStudentsPanel({ coachId }: CoachHubStudentsPanelProps) {
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -53,7 +55,7 @@ export function CoachHubStudentsPanel({ coachId }: CoachHubStudentsPanelProps) {
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, refreshKey]);
 
   const pendingTotal = students.reduce((n, s) => n + s.pendingVideos, 0);
 
@@ -81,24 +83,39 @@ export function CoachHubStudentsPanel({ coachId }: CoachHubStudentsPanelProps) {
 
       <ul className="space-y-3">
         {students.map((s) => (
-          <li key={s.uid}>
-            <Link
-              href={`/coach/alumnos/${s.uid}`}
-              className="flex items-center justify-between gap-4 rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-4 transition hover:border-sky-500/40"
-            >
-              <div className="min-w-0">
+          <li
+            key={s.uid}
+            className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-4"
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <Link
+                href={`/coach/alumnos/${s.uid}`}
+                className="min-w-0 flex-1 transition hover:text-sky-300"
+              >
                 <p className="font-medium truncate">{s.displayName}</p>
                 <p className="text-sm text-zinc-500 truncate">{s.email}</p>
-              </div>
-              <div className="flex shrink-0 items-center gap-3">
                 {s.pendingVideos > 0 && (
-                  <span className="rounded-full bg-violet-500/20 px-2.5 py-0.5 text-xs font-medium text-violet-300">
-                    {s.pendingVideos} vídeo{s.pendingVideos > 1 ? "s" : ""}
+                  <span className="mt-2 inline-block rounded-full bg-violet-500/20 px-2.5 py-0.5 text-xs font-medium text-violet-300">
+                    {s.pendingVideos} vídeo{s.pendingVideos > 1 ? "s" : ""}{" "}
+                    pendiente{s.pendingVideos > 1 ? "s" : ""}
                   </span>
                 )}
-                <span className="text-sky-400 text-sm">Abrir →</span>
+              </Link>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <Link
+                  href={`/coach/alumnos/${s.uid}`}
+                  className="rounded-full border border-zinc-600 px-4 py-2 text-sm text-zinc-300 hover:border-sky-500/50"
+                >
+                  Abrir
+                </Link>
+                <DeleteStudentButton
+                  studentId={s.uid}
+                  studentName={s.displayName}
+                  studentEmail={s.email}
+                  onDeleted={() => setRefreshKey((k) => k + 1)}
+                />
               </div>
-            </Link>
+            </div>
           </li>
         ))}
       </ul>

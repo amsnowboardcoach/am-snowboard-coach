@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { LESSON_TYPES } from "@/constants/lesson-types";
+import { LESSON_TYPES, lessonPublicName } from "@/constants/lesson-types";
 import { MAX_BOOKING_DAYS } from "@/constants/booking-plan";
 import {
   BOOKING_ADVISORY,
@@ -28,7 +28,7 @@ export const metadata = buildPageMetadata({
   description:
     "Iniciación, carving y freestyle en Sierra Nevada. Clases de 2 h, 3 h o día completo. Reserva online con calendario en vivo.",
   path: "/clases",
-  keywords: ["clases snowboard iniciación", "carving Sierra Nevada", "freestyle Sulayr"],
+  keywords: ["clases snowboard iniciación", "carving Sierra Nevada", "freestyle Snowpark Sulayr"],
 });
 
 const LESSON_HIGHLIGHTS: Record<LessonTypeId, string[]> = {
@@ -43,7 +43,7 @@ const LESSON_HIGHLIGHTS: Record<LessonTypeId, string[]> = {
     "Técnica progresiva según tu nivel",
   ],
   "freestyle-sulayr": [
-    "Líneas y saltos en Sulayr",
+    "Líneas y saltos en Snowpark Sulayr",
     "Rails y boxes con progresión segura",
     "Snowpark de Sierra Nevada",
   ],
@@ -110,7 +110,7 @@ export default async function ClasesPage() {
                 <div className="relative h-44 overflow-hidden sm:h-48">
                   <Image
                     src={media.lessonCards[i]?.src ?? media.clase.image.src}
-                    alt={lesson.name}
+                    alt={lessonPublicName(lesson)}
                     fill
                     className="object-cover transition duration-500 group-hover:scale-105"
                     sizes="(max-width: 768px) 100vw, 33vw"
@@ -119,7 +119,7 @@ export default async function ClasesPage() {
                 </div>
                 <div className="flex flex-1 flex-col p-6">
                   <h2 className="text-xl font-semibold text-sky-400">
-                    {lesson.name}
+                    {lessonPublicName(lesson)}
                   </h2>
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-zinc-400">
                     {lesson.description}
@@ -138,7 +138,7 @@ export default async function ClasesPage() {
                     href={reservarHref({ estilo: lesson.id })}
                     className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-sky-500/15 py-2.5 text-sm font-semibold text-sky-200 ring-1 ring-sky-500/30 transition hover:bg-sky-500 hover:text-zinc-950"
                   >
-                    Reservar {lesson.name.toLowerCase()}
+                    Reservar {lessonPublicName(lesson).toLowerCase()}
                   </Link>
                 </div>
               </article>

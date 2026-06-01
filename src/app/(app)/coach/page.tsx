@@ -1,30 +1,34 @@
 "use client";
 
-import { useAuth } from "@/contexts/AuthProvider";
-import { COACH_ROLES } from "@/constants/roles";
-import { CoachHubShell } from "@/components/coach/CoachHubShell";
-import { CoachProfileSetup } from "@/components/coach/CoachProfileSetup";
-import { isCoachEmail } from "@/lib/auth/config";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthProvider";
+import { CoachHubShell } from "@/components/coach/CoachHubShell";
+import { CoachProfileSetup } from "@/components/coach/CoachProfileSetup";
+import { isCoachEmail } from "@/lib/auth/config";
+import { isCoachRole } from "@/lib/auth/paths";
 
 export default function CoachDashboardPage() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, refreshProfile } = useAuth();
   const router = useRouter();
 
-  const isCoachRole = profile && COACH_ROLES.includes(profile.role);
   const isCoachByEmail = user?.email ? isCoachEmail(user.email) : false;
+  const isCoach = profile ? isCoachRole(profile.role) : false;
 
   useEffect(() => {
-    if (loading || !user) return;
-    if (profile && !COACH_ROLES.includes(profile.role) && !isCoachByEmail) {
+    if (loading || !user || !profile) return;
+    if (!isCoach && !isCoachByEmail) {
       router.replace("/perfil");
     }
-  }, [profile, loading, router, user, isCoachByEmail]);
+  }, [loading, user, profile, isCoach, isCoachByEmail, router]);
 
   if (loading) {
-    return <p className="text-zinc-500">Cargando panel…</p>;
+    return (
+      <p className="text-center text-zinc-500" role="status">
+        Cargando panel del coach…
+      </p>
+    );
   }
 
   if (!user) {
@@ -35,34 +39,33 @@ export default function CoachDashboardPage() {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Panel del Coach</h1>
-        <CoachProfileSetup user={user} onReady={() => {}} />
+        <CoachProfileSetup
+          user={user}
+          onReady={() => void refreshProfile()}
+        />
       </div>
     );
   }
 
-  if (!isCoachRole && isCoachByEmail) {
+  if (!isCoach && isCoachByEmail) {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Panel del Coach</h1>
         <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-6">
           <p className="text-sm text-amber-200">
-            Tu perfil tiene rol <strong>{profile.role}</strong> pero tu email es
-            de coach. En Firebase Console → Firestore →{" "}
-            <code className="text-amber-100">users/{user.uid}</code> cambia{" "}
-            <code className="text-amber-100">role</code> a{" "}
-            <code className="text-amber-100">coach</code> y recarga la página.
+            Tu email es de coach pero el perfil tiene rol{" "}
+            <strong>{profile.role}</strong>. Crea o actualiza el perfil:
           </p>
-          <p className="mt-3 text-xs text-zinc-500">
-            O pulsa abajo para recrear el perfil (solo si el documento no existe
-            o quieres resetear).
-          </p>
-          <CoachProfileSetup user={user} onReady={() => {}} />
+          <CoachProfileSetup
+            user={user}
+            onReady={() => void refreshProfile()}
+          />
         </div>
       </div>
     );
   }
 
-  if (!isCoachRole) {
+  if (!isCoach) {
     return (
       <div className="space-y-4">
         <p className="text-zinc-400">

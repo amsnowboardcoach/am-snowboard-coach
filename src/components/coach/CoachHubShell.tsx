@@ -10,6 +10,7 @@ import {
   isCoachHubTab,
   type CoachHubTab,
 } from "@/constants/coach-hub";
+import { CoachPushActivator } from "@/components/coach/CoachPushActivator";
 import { CoachBookingsPanel } from "@/components/coach/CoachBookingsPanel";
 import { CoachHubInvoicingPanel } from "@/components/coach/CoachHubInvoicingPanel";
 import { CoachHubMarketplacePanel } from "@/components/coach/CoachHubMarketplacePanel";
@@ -45,6 +46,7 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
 
   return (
     <div className="lg:flex lg:gap-8">
+      <CoachPushActivator />
       <aside className="lg:w-56 lg:shrink-0">
         <nav
           className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0"

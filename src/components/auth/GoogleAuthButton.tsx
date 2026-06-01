@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { isFirebaseConfigured } from "@/lib/auth/config";
+import { useAuth } from "@/contexts/AuthProvider";
 import {
   mapAuthError,
   signInWithGoogle,
@@ -17,6 +18,8 @@ interface GoogleAuthButtonProps {
   redirectPath?: string;
   /** Si se define, no redirige; útil en formularios de reserva. */
   onSuccess?: (result: GoogleSignInResult) => void;
+  /** Antes de ir a Google (p. ej. guardar borrador de reserva). */
+  onBeforeRedirect?: () => void;
   className?: string;
 }
 
@@ -25,9 +28,11 @@ export function GoogleAuthButton({
   onError,
   redirectPath,
   onSuccess,
+  onBeforeRedirect,
   className,
 }: GoogleAuthButtonProps) {
   const router = useRouter();
+  const { refreshProfile } = useAuth();
   const [loading, setLoading] = useState(false);
 
   async function handleGoogle() {
@@ -38,17 +43,35 @@ export function GoogleAuthButton({
 
     setLoading(true);
     onError?.(null);
+    onBeforeRedirect?.();
+
+    const returnPath =
+      redirectPath ??
+      (typeof window !== "undefined"
+        ? `${window.location.pathname}${window.location.search}`
+        : undefined);
+
     try {
-      const result = await signInWithGoogle(
-        redirectPath ? { redirectPath } : undefined,
+      const outcome = await signInWithGoogle(
+        returnPath ? { redirectPath, returnPath } : undefined,
       );
-      onSuccess?.(result);
-      if (!onSuccess) {
-        router.push(redirectPath ?? result.redirectPath);
+
+      if ("mode" in outcome) {
+        return;
       }
+
+      const result = outcome;
+      await refreshProfile();
+
+      if (onSuccess) {
+        onSuccess(result);
+        setLoading(false);
+        return;
+      }
+
+      router.replace(result.redirectPath);
     } catch (err) {
       onError?.(mapAuthError(err));
-    } finally {
       setLoading(false);
     }
   }
@@ -64,7 +87,7 @@ export function GoogleAuthButton({
       )}
     >
       <GoogleIcon />
-      {loading ? "Conectando…" : label}
+      {loading ? "Abriendo Google…" : label}
     </button>
   );
 }

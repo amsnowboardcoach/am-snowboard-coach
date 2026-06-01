@@ -1,12 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthProvider";
 import { COACH_ROLES, ROLES } from "@/constants/roles";
+import {
+  TRIBE_UPLOAD_LEGAL_CHECKBOX,
+  TRIBE_UPLOAD_LEGAL_TITLE,
+} from "@/constants/tribe-legal";
 import { uploadTribePost } from "@/lib/firebase/tribe-posts";
+import { MobileFilePicker } from "@/components/ui/MobileFilePicker";
 import type { TribeMediaType } from "@/types/tribe-post";
-import { MediaUploadConsentModal } from "@/components/tribe/MediaUploadConsentModal";
 
 interface TribeUploadPanelProps {
   onUploaded?: () => void;
@@ -14,13 +18,13 @@ interface TribeUploadPanelProps {
 
 export function TribeUploadPanel({ onUploaded }: TribeUploadPanelProps) {
   const { user, profile, loading } = useAuth();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [mediaType, setMediaType] = useState<TribeMediaType>("photo");
   const [caption, setCaption] = useState("");
-  const [consentOpen, setConsentOpen] = useState(false);
+  const [legalAccepted, setLegalAccepted] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [lastFileName, setLastFileName] = useState<string | null>(null);
 
   const isStudent =
     profile?.role === ROLES.STUDENT &&
@@ -70,22 +74,17 @@ export function TribeUploadPanel({ onUploaded }: TribeUploadPanelProps) {
     );
   }
 
-  function openPicker() {
-    setConsentOpen(true);
-  }
-
-  function afterConsent() {
-    setConsentOpen(false);
-    fileRef.current?.click();
-  }
-
-  async function handleFileChange() {
-    const file = fileRef.current?.files?.[0];
-    if (!file || !user || !profile) return;
+  async function handleFileSelected(file: File) {
+    if (!user || !profile) return;
+    if (!legalAccepted) {
+      setError("Marca la casilla de consentimiento antes de elegir el archivo.");
+      return;
+    }
 
     setUploading(true);
     setError(null);
     setSuccess(null);
+    setLastFileName(file.name);
     try {
       await uploadTribePost({
         authorId: user.uid,
@@ -98,7 +97,7 @@ export function TribeUploadPanel({ onUploaded }: TribeUploadPanelProps) {
         legalConsent: true,
       });
       setCaption("");
-      if (fileRef.current) fileRef.current.value = "";
+      setLastFileName(null);
       setSuccess(
         "Enviado. Lo revisaré y aparecerá en el feed cuando lo apruebe.",
       );
@@ -110,12 +109,16 @@ export function TribeUploadPanel({ onUploaded }: TribeUploadPanelProps) {
     }
   }
 
+  const accept =
+    mediaType === "photo"
+      ? "image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
+      : "video/*,.mp4,.mov,.m4v";
+
   return (
     <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5">
       <h2 className="text-lg font-semibold text-zinc-100">Subir momento</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        Como alumno registrado. Antes de publicar verás el aviso legal sobre
-        derechos de imagen.
+        Fotos y vídeos desde la galería del móvil. Se publican tras revisión.
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -123,7 +126,11 @@ export function TribeUploadPanel({ onUploaded }: TribeUploadPanelProps) {
           <button
             key={t}
             type="button"
-            onClick={() => setMediaType(t)}
+            onClick={() => {
+              setMediaType(t);
+              setError(null);
+              setLastFileName(null);
+            }}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
               mediaType === t
                 ? "bg-sky-500/20 text-sky-300"
@@ -141,27 +148,45 @@ export function TribeUploadPanel({ onUploaded }: TribeUploadPanelProps) {
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
           maxLength={500}
-          placeholder="Día en Sulayr, primer 50-50…"
+          placeholder="Día en Snowpark Sulayr, primer 50-50…"
           className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100"
         />
       </label>
 
-      <input
-        ref={fileRef}
-        type="file"
-        accept={mediaType === "photo" ? "image/*" : "video/*"}
-        className="hidden"
-        onChange={() => void handleFileChange()}
-      />
+      <details className="mt-4 rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 py-2 text-sm">
+        <summary className="cursor-pointer font-medium text-sky-300/90">
+          {TRIBE_UPLOAD_LEGAL_TITLE}
+        </summary>
+        <p className="mt-2 text-xs leading-relaxed text-zinc-500">
+          Debes tener derecho a publicar el contenido y consentimiento de quien
+          aparece. El coach puede moderar o retirar publicaciones.
+        </p>
+      </details>
 
-      <button
-        type="button"
-        onClick={openPicker}
-        disabled={uploading}
-        className="mt-4 rounded-full bg-sky-500 px-6 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-sky-400 disabled:opacity-50"
-      >
-        {uploading ? "Subiendo…" : `Elegir ${mediaType === "photo" ? "foto" : "vídeo"}`}
-      </button>
+      <label className="mt-4 flex cursor-pointer gap-3 text-sm text-zinc-300">
+        <input
+          type="checkbox"
+          checked={legalAccepted}
+          onChange={(e) => setLegalAccepted(e.target.checked)}
+          className="mt-0.5 size-4 shrink-0 rounded border-zinc-600"
+        />
+        <span>{TRIBE_UPLOAD_LEGAL_CHECKBOX}</span>
+      </label>
+
+      <MobileFilePicker
+        className="mt-4"
+        accept={accept}
+        disabled={!legalAccepted}
+        loading={uploading}
+        label={`Elegir ${mediaType === "photo" ? "foto" : "vídeo"} del móvil`}
+        hint={
+          mediaType === "photo"
+            ? "JPG, PNG o HEIC · máx. 12 MB"
+            : "MP4 o MOV · máx. 100 MB"
+        }
+        selectedName={lastFileName}
+        onFileSelected={handleFileSelected}
+      />
 
       {error && (
         <p className="mt-3 text-sm text-red-400" role="alert">
@@ -173,12 +198,6 @@ export function TribeUploadPanel({ onUploaded }: TribeUploadPanelProps) {
           {success}
         </p>
       )}
-
-      <MediaUploadConsentModal
-        open={consentOpen}
-        onClose={() => setConsentOpen(false)}
-        onConfirm={afterConsent}
-      />
     </div>
   );
 }

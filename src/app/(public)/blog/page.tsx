@@ -9,7 +9,7 @@ import { getSiteMedia } from "@/lib/pexels/site-media";
 export const metadata = buildPageMetadata({
   title: "Blog de snowboard en Sierra Nevada",
   description:
-    "Consejos, técnica, tarifas y temporada en Sierra Nevada y Sulayr. Artículos del monitor Alejandro Martín (AM Snowboard Coach).",
+    "Consejos, técnica, tarifas y temporada en Sierra Nevada y Snowpark Sulayr. Artículos del monitor Alejandro Martín (AM Snowboard Coach).",
   path: "/blog",
   keywords: [
     "blog snowboard Sierra Nevada",
@@ -28,7 +28,7 @@ export default async function BlogIndexPage() {
       <PageHero
         eyebrow="Blog AM"
         title="Snowboard en Sierra Nevada"
-        subtitle="Consejos de técnica, Sulayr, tarifas y temporada: todo para planificar tu clase en Sierra Nevada."
+        subtitle="Consejos de técnica, Snowpark Sulayr, tarifas y temporada: todo para planificar tu clase en Sierra Nevada."
         imageSrc={media.sierra.image.src}
         imageAlt={media.sierra.image.alt}
       />

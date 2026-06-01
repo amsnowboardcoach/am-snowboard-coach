@@ -2,7 +2,6 @@ import {
   addDays,
   addMonths,
   endOfMonth,
-  format,
   isAfter,
   isBefore,
   parseISO,
@@ -19,19 +18,19 @@ function madridParts(ref: Date): { year: number; month: number; dateKey: string 
   return { year, month, dateKey };
 }
 
-/** Temporada en pista: noviembre → mayo (año de esquí cruzado). */
+/** Temporada en pista: noviembre → junio (año de esquí cruzado). */
 export const BOOKING_SEASON_FIRST_MONTH = 11;
-export const BOOKING_SEASON_LAST_MONTH = 5;
+export const BOOKING_SEASON_LAST_MONTH = 6;
 
 export function isBookingSeasonMonth(month1to12: number): boolean {
   return month1to12 >= BOOKING_SEASON_FIRST_MONTH || month1to12 <= BOOKING_SEASON_LAST_MONTH;
 }
 
 export function isDateInBookingSeason(date: Date): boolean {
-  const month = date.getMonth() + 1;
+  const month = Number(formatInTimeZone(date, BOOKING_TIMEZONE, "M"));
   if (!isBookingSeasonMonth(month)) return false;
   const { start, end } = getBookingSeasonBounds(date);
-  const key = format(date, "yyyy-MM-dd");
+  const key = formatInTimeZone(date, BOOKING_TIMEZONE, "yyyy-MM-dd");
   return key >= start && key <= end;
 }
 
@@ -45,18 +44,18 @@ export function getBookingSeasonBounds(ref = new Date()): {
   if (month >= BOOKING_SEASON_FIRST_MONTH) {
     return {
       start: `${year}-11-01`,
-      end: `${year + 1}-05-31`,
+      end: `${year + 1}-06-30`,
     };
   }
   if (month <= BOOKING_SEASON_LAST_MONTH) {
     return {
       start: `${year - 1}-11-01`,
-      end: `${year}-05-31`,
+      end: `${year}-06-30`,
     };
   }
   return {
     start: `${year}-11-01`,
-    end: `${year + 1}-05-31`,
+    end: `${year + 1}-06-30`,
   };
 }
 

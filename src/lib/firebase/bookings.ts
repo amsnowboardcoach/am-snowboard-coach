@@ -10,7 +10,7 @@ import {
   where,
 } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { LESSON_TYPES } from "@/constants/lesson-types";
+import { LESSON_TYPES, lessonPublicName } from "@/constants/lesson-types";
 import { getFirebaseDb, getFirebaseStorage } from "@/lib/firebase/client";
 import type {
   Booking,
@@ -63,7 +63,7 @@ export async function createBooking(input: CreateBookingInput): Promise<string> 
     studentDisplayName: input.studentDisplayName.trim(),
     studentEmail: input.studentEmail?.trim() ?? "",
     lessonTypeId: input.lessonTypeId,
-    lessonTypeName: lesson?.name ?? input.lessonTypeId,
+    lessonTypeName: lesson ? lessonPublicName(lesson) : input.lessonTypeId,
     startAt: Timestamp.fromDate(input.startAt),
     endAt: Timestamp.fromDate(endAt),
     timezone: "Europe/Madrid",

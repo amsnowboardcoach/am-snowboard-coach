@@ -1,4 +1,5 @@
-/** Service worker principal (PWA + push). Debe registrarse siempre, no solo con VAPID. */
+/** Service worker principal (PWA + push). Sin query en la URL (requerido en móvil). */
+export const PWA_SW_VERSION = "v5";
 export const PWA_SERVICE_WORKER_PATH = "/sw.js";
 
 export async function registerPwaServiceWorker(): Promise<ServiceWorkerRegistration | null> {
@@ -14,16 +15,21 @@ export async function registerPwaServiceWorker(): Promise<ServiceWorkerRegistrat
         existing.waiting?.scriptURL ??
         existing.installing?.scriptURL ??
         "";
-      if (scriptUrl && !scriptUrl.includes("/sw.js")) {
+      const isOurWorker =
+        scriptUrl.includes("/sw.js") &&
+        !scriptUrl.includes("firebase-messaging") &&
+        !scriptUrl.includes("sw.js?");
+      if (scriptUrl && (!isOurWorker || scriptUrl.includes("sw.js?"))) {
         await existing.unregister();
-      } else if (existing.active) {
-        return existing;
       }
     }
 
-    return await navigator.serviceWorker.register(PWA_SERVICE_WORKER_PATH, {
-      scope: "/",
-    });
+    const registration = await navigator.serviceWorker.register(
+      PWA_SERVICE_WORKER_PATH,
+      { scope: "/", updateViaCache: "none" },
+    );
+    await registration.update();
+    return registration;
   } catch (err) {
     console.warn("[pwa] No se pudo registrar el service worker:", err);
     return null;

@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import { getFirebaseAuthHeaders } from "@/lib/auth/firebase-auth-headers";
 import { ProgressVideoCard } from "@/components/videos/ProgressVideoCard";
+import { MobileFilePicker } from "@/components/ui/MobileFilePicker";
 import {
   fetchStudentProgressVideos,
   uploadStudentProgressVideo,
@@ -15,11 +16,11 @@ interface StudentVideosPanelProps {
 }
 
 export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
-  const fileRef = useRef<HTMLInputElement>(null);
   const [videos, setVideos] = useState<ProgressVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [title, setTitle] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -41,12 +42,11 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
 
   async function handleUpload(e: FormEvent) {
     e.preventDefault();
-    const file = fileRef.current?.files?.[0];
-    if (!file) {
-      setError("Selecciona un vídeo.");
+    if (!selectedFile) {
+      setError("Primero elige un vídeo de tu galería.");
       return;
     }
-    const validation = validateVideoFile(file);
+    const validation = validateVideoFile(selectedFile);
     if (validation) {
       setError(validation);
       return;
@@ -55,9 +55,13 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
     setUploading(true);
     setError(null);
     try {
-      const videoId = await uploadStudentProgressVideo(studentId, file, title);
+      const videoId = await uploadStudentProgressVideo(
+        studentId,
+        selectedFile,
+        title,
+      );
       setTitle("");
-      if (fileRef.current) fileRef.current.value = "";
+      setSelectedFile(null);
       try {
         await fetch("/api/push/video-uploaded", {
           method: "POST",
@@ -88,8 +92,8 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
           Subir un vídeo nuevo
         </h2>
         <p className="mt-2 text-sm text-zinc-400">
-          Formatos MP4, MOV o WebM (máx. 100 MB). Cuando Alejandro publique la
-          corrección, la verás aquí con sus apuntes.
+          Desde el móvil: galería o archivos. MP4, MOV o WebM (máx. 200 MB).
+          Cuando Alejandro publique la corrección, la verás aquí.
         </p>
 
         <label className="mt-4 block text-sm text-zinc-300">
@@ -102,15 +106,25 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
           />
         </label>
 
-        <label className="mt-4 block text-sm text-zinc-300">
-          Archivo de vídeo *
-          <input
-            ref={fileRef}
-            type="file"
-            accept="video/mp4,video/quicktime,video/webm,video/*"
-            className="mt-2 block w-full text-sm text-zinc-400 file:mr-4 file:rounded-full file:border-0 file:bg-violet-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-zinc-950"
-          />
-        </label>
+        <MobileFilePicker
+          className="mt-4"
+          accept="video/*,.mp4,.mov,.m4v,.webm"
+          disabled={uploading}
+          loading={uploading}
+          label="Elegir vídeo del móvil"
+          hint="Toca el botón y selecciona un vídeo de la galería"
+          selectedName={selectedFile?.name ?? null}
+          onFileSelected={(file) => {
+            const validation = validateVideoFile(file);
+            if (validation) {
+              setError(validation);
+              setSelectedFile(null);
+              return;
+            }
+            setError(null);
+            setSelectedFile(file);
+          }}
+        />
 
         {error && (
           <p className="mt-3 text-sm text-red-400" role="alert">
@@ -120,7 +134,7 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
 
         <button
           type="submit"
-          disabled={uploading}
+          disabled={uploading || !selectedFile}
           className="mt-4 rounded-full bg-violet-500 px-6 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-violet-400 disabled:opacity-50"
         >
           {uploading ? "Subiendo…" : "Subir vídeo"}

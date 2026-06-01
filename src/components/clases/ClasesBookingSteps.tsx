@@ -5,7 +5,7 @@ const STEPS = [
   {
     n: 1,
     title: "Elige duración y estilo",
-    body: "2 h, 3 h o día completo. Iniciación, carving o freestyle en Sulayr.",
+    body: "2 h, 3 h o día completo. Iniciación, carving o freestyle en Snowpark Sulayr.",
   },
   {
     n: 2,

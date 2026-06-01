@@ -26,7 +26,7 @@ const PHOTO_QUERIES = [
   "Sierra Nevada snowboard España",
   "Sierra Nevada estación esquí nieve Granada",
   "snowboard Sierra Nevada Granada invierno",
-  "Sierra Nevada pista snowboard Sulayr",
+  "Sierra Nevada pista snowboard Snowpark Sulayr",
   "esquiador snowboard Sierra Nevada España montaña",
   "Sierra Nevada telesilla nieve España",
   "Sierra Nevada estación invierno Granada",

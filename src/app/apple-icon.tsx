@@ -1,35 +1,9 @@
 import { ImageResponse } from "next/og";
+import { brandIconSquareMarkup } from "@/lib/brand/icon-markup";
 
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
 export default function AppleIcon() {
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#1a2332",
-          borderRadius: 36,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 72,
-            fontWeight: 800,
-            color: "#6eb0c8",
-            lineHeight: 1,
-          }}
-        >
-          AM
-        </div>
-      </div>
-    ),
-    { ...size },
-  );
+  return new ImageResponse(brandIconSquareMarkup(180), { ...size });
 }

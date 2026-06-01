@@ -9,28 +9,27 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { getDownloadURL, ref } from "firebase/storage";
 import { getFirebaseDb, getFirebaseStorage } from "@/lib/firebase/client";
+import {
+  mapStorageUploadError,
+  uploadUserFile,
+} from "@/lib/firebase/storage-upload";
+import { inferFileContentType, isVideoFile } from "@/lib/utils/media-file";
 import type { ProgressVideo, ProgressVideoStatus } from "@/types/progress-video";
 
-const MAX_VIDEO_BYTES = 100 * 1024 * 1024; // 100 MB
-const ALLOWED_TYPES = [
-  "video/mp4",
-  "video/quicktime",
-  "video/webm",
-  "video/x-msvideo",
-];
+const MAX_VIDEO_BYTES = 200 * 1024 * 1024; // 200 MB (vídeos de móvil suelen ser grandes)
 
 function videosCol(studentId: string) {
   return collection(getFirebaseDb(), "users", studentId, "progress_videos");
 }
 
 export function validateVideoFile(file: File): string | null {
-  if (!ALLOWED_TYPES.includes(file.type) && !file.type.startsWith("video/")) {
-    return "Formato no válido. Usa MP4, MOV o WebM.";
+  if (!isVideoFile(file)) {
+    return "Formato no válido. Usa MP4, MOV o WebM desde la galería del móvil.";
   }
   if (file.size > MAX_VIDEO_BYTES) {
-    return "El vídeo no puede superar 100 MB.";
+    return "El vídeo no puede superar 200 MB. Graba en 1080p o acorta el clip.";
   }
   if (file.size < 1024) {
     return "El archivo está vacío o es demasiado pequeño.";
@@ -51,14 +50,19 @@ export async function uploadStudentProgressVideo(
   const storagePath = `progress_videos/${studentId}/${videoRef.id}/${safeName}`;
 
   const storageRef = ref(getFirebaseStorage(), storagePath);
-  await uploadBytes(storageRef, file, { contentType: file.type });
+  const contentType = inferFileContentType(file);
+  try {
+    await uploadUserFile(storageRef, file);
+  } catch (err) {
+    throw new Error(mapStorageUploadError(err));
+  }
 
   await setDoc(videoRef, {
     studentId,
     title: title?.trim() || safeName.replace(/\.[^.]+$/, "") || "Mi vídeo",
     storagePath,
     fileName: safeName,
-    contentType: file.type,
+    contentType,
     sizeBytes: file.size,
     status: "pending_review" satisfies ProgressVideoStatus,
     coachNotes: "",

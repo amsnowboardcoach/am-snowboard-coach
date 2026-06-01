@@ -1,3 +1,4 @@
+import { BRAND_ICON_512 } from "@/constants/brand-icons";
 import { COACH_EMAIL, BOOKING_LOCATION } from "@/constants/project";
 import {
   COACH_NAME,
@@ -87,7 +88,7 @@ export function blogPostingJsonLd(post: {
       name: SITE_NAME,
       logo: {
         "@type": "ImageObject",
-        url: `${url}/icon.svg`,
+        url: `${url}${BRAND_ICON_512}`,
       },
     },
     mainEntityOfPage: postUrl,

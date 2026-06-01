@@ -1,30 +1,26 @@
 import { FirebaseApp, getApp, getApps, initializeApp } from "firebase/app";
+import {
+  getFirebasePublicConfig,
+  isFirebaseConfigured,
+} from "@/lib/auth/config";
 import { Auth, getAuth } from "firebase/auth";
 import { Firestore, getFirestore } from "firebase/firestore";
 import { FirebaseStorage, getStorage } from "firebase/storage";
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
-
 function assertFirebaseConfig(): void {
-  const missing = Object.entries(firebaseConfig)
-    .filter(([, value]) => !value)
-    .map(([key]) => key);
-
-  if (missing.length > 0) {
+  if (!isFirebaseConfigured()) {
     throw new Error(
-      `Firebase: faltan variables en .env.local: ${missing.join(", ")}. Copia .env.example y rellena los valores.`,
+      "Firebase no está configurado. Revisa NEXT_PUBLIC_FIREBASE_* en .env.local o en Vercel y vuelve a desplegar.",
     );
   }
 }
 
+function firebaseConfig() {
+  return getFirebasePublicConfig();
+}
+
 let appInstance: FirebaseApp | null = null;
+let authInstance: Auth | null = null;
 
 export function getFirebaseApp(): FirebaseApp {
   if (appInstance) {
@@ -37,12 +33,21 @@ export function getFirebaseApp(): FirebaseApp {
   }
 
   assertFirebaseConfig();
-  appInstance = initializeApp(firebaseConfig);
+  appInstance = initializeApp(firebaseConfig());
   return appInstance;
 }
 
 export function getFirebaseAuth(): Auth {
-  return getAuth(getFirebaseApp());
+  assertFirebaseConfig();
+
+  if (authInstance) {
+    return authInstance;
+  }
+
+  const app = getFirebaseApp();
+  // getAuth (no initializeAuth): compatible con signInWithRedirect / getRedirectResult
+  authInstance = getAuth(app);
+  return authInstance;
 }
 
 export function getFirebaseDb(): Firestore {

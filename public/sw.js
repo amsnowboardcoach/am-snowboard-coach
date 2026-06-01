@@ -1,32 +1,27 @@
 /* eslint-disable no-undef */
-/* Service worker PWA + Firebase Cloud Messaging */
+/* Service worker PWA + push — v5: sin caché de HTML/JS (evita bundles antiguos) */
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
-});
-
-/** Requerido para que Chrome permita instalar la PWA */
-self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
-  event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
-    }),
+  event.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+      await self.clients.claim();
+    })(),
   );
 });
 
-importScripts(
-  "https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js",
-);
-importScripts(
-  "https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging-compat.js",
-);
-
-let messaging = null;
+/** Requerido para instalabilidad PWA; solo red (no cachear la app) */
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+  event.respondWith(fetch(event.request));
+});
 
 function resolveNotificationUrl(raw) {
   const path = raw || "/";
@@ -46,14 +41,25 @@ function showNotification(payload) {
     payload.data?.url || payload.fcmOptions?.link || "/",
   );
 
-  self.registration.showNotification(title, {
+  return self.registration.showNotification(title, {
     body,
     icon: "/icons/icon-192.png",
-    badge: "/icons/icon-192.png",
+    badge: "/icons/icon-32.png",
     data: { url },
     tag: payload.data?.tag || "am-snowboard",
   });
 }
+
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch {
+    return;
+  }
+  event.waitUntil(showNotification(payload));
+});
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
@@ -79,26 +85,4 @@ self.addEventListener("notificationclick", (event) => {
         }
       }),
   );
-});
-
-fetch("/api/firebase-public-config")
-  .then((r) => r.json())
-  .then((config) => {
-    if (!config.apiKey) return;
-    firebase.initializeApp(config);
-    messaging = firebase.messaging();
-    messaging.onBackgroundMessage((payload) => {
-      showNotification(payload);
-    });
-  })
-  .catch((err) => console.error("[sw] FCM init:", err));
-
-self.addEventListener("push", (event) => {
-  if (!event.data) return;
-  try {
-    const payload = event.data.json();
-    event.waitUntil(showNotification(payload));
-  } catch {
-    /* onBackgroundMessage */
-  }
 });

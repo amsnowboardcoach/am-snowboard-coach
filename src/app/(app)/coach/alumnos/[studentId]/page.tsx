@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
+import { DeleteStudentButton } from "@/components/coach/DeleteStudentButton";
 import { CoachVideoReviewPanel } from "@/components/videos/CoachVideoReviewPanel";
 import { StudentTrickManager } from "@/components/coach/StudentTrickManager";
 import { useAuth } from "@/contexts/AuthProvider";
@@ -76,6 +77,21 @@ export default function CoachAlumnoDetailPage() {
       <section className="mt-12">
         <h2 className="mb-4 text-lg font-semibold">Pasaporte de Trucos</h2>
         <StudentTrickManager student={student} coachId={user.uid} />
+      </section>
+
+      <section className="mt-12 rounded-2xl border border-red-500/25 bg-red-500/5 p-6">
+        <h2 className="text-lg font-semibold text-red-200">Zona de peligro</h2>
+        <p className="mt-2 text-sm text-zinc-400">
+          Elimina la cuenta del alumno y todo su contenido (vídeos, Tribu,
+          reservas, etc.). No se puede deshacer.
+        </p>
+        <DeleteStudentButton
+          className="mt-4"
+          studentId={studentId}
+          studentName={student.displayName}
+          studentEmail={student.email}
+          redirectToList
+        />
       </section>
     </div>
   );

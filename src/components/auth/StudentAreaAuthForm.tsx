@@ -8,28 +8,28 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 import { AuthDivider } from "@/components/auth/AuthDivider";
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { FirebaseSetupNotice } from "@/components/auth/FirebaseSetupNotice";
+import { useAuth } from "@/contexts/AuthProvider";
 import { LEGAL_PATHS } from "@/constants/legal-site";
 import { isCoachEmail, isFirebaseConfigured } from "@/lib/auth/config";
-import { getAuthRedirectPath } from "@/lib/auth/redirect";
-import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase/client";
+import { consumeGoogleAuthError } from "@/lib/auth/google-sign-in";
+import { mapEmailAuthError } from "@/lib/auth/map-email-auth-error";
+import { resolvePostLoginPath, safeNextPath } from "@/lib/auth/paths";
+import { getFirebaseAuth } from "@/lib/firebase/client";
 import { createUserProfile } from "@/lib/firebase/users";
+import { requestCoachNotifyStudentRegistered } from "@/lib/push/request-coach-student-registered";
+import { usePostAuthRedirect } from "@/hooks/use-post-auth-redirect";
 import { cn } from "@/lib/utils/cn";
-import type { UserProfile } from "@/types/firestore";
 
 type EmailMode = "signin" | "signup";
 
-function safeNextPath(next: string | null): string | null {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
-  return next;
-}
-
 export function StudentAreaAuthForm() {
+  usePostAuthRedirect();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { syncSessionAfterLogin } = useAuth();
   const nextPath = safeNextPath(searchParams.get("next"));
   const initialSignup = searchParams.get("registro") === "1";
 
@@ -47,6 +47,11 @@ export function StudentAreaAuthForm() {
     setEmailMode(initialSignup ? "signup" : "signin");
   }, [initialSignup]);
 
+  useEffect(() => {
+    const msg = consumeGoogleAuthError();
+    if (msg) setError(msg);
+  }, []);
+
   async function handleSignIn(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -56,31 +61,31 @@ export function StudentAreaAuthForm() {
       return;
     }
 
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail || password.length < 1) {
+      setError("Introduce email y contraseña.");
+      return;
+    }
+
     setLoading(true);
     try {
-      const credential = await signInWithEmailAndPassword(
+      await signInWithEmailAndPassword(
         getFirebaseAuth(),
-        email.trim(),
+        trimmedEmail,
         password,
       );
 
-      const snap = await getDoc(
-        doc(getFirebaseDb(), "users", credential.user.uid),
-      );
-      const profile = snap.exists() ? (snap.data() as UserProfile) : null;
-
+      const profile = await syncSessionAfterLogin();
       if (!profile) {
         setError(
-          "No hay perfil asociado. Crea tu cuenta en la pestaña «Registrarme» o usa Google.",
+          "No hay perfil asociado. Regístrate o usa «Continuar con Google».",
         );
         return;
       }
 
-      router.push(nextPath ?? getAuthRedirectPath(profile.role));
+      router.replace(resolvePostLoginPath(profile.role, nextPath));
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Error al iniciar sesión",
-      );
+      setError(mapEmailAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -102,6 +107,7 @@ export function StudentAreaAuthForm() {
       return;
     }
 
+    const trimmedEmail = email.trim().toLowerCase();
     if (password.length < 8) {
       setError("La contraseña debe tener al menos 8 caracteres.");
       return;
@@ -111,27 +117,32 @@ export function StudentAreaAuthForm() {
     try {
       const credential = await createUserWithEmailAndPassword(
         getFirebaseAuth(),
-        email.trim(),
+        trimmedEmail,
         password,
       );
 
-      const name = displayName.trim() || email.trim().split("@")[0];
+      const name = displayName.trim() || trimmedEmail.split("@")[0];
       await updateProfile(credential.user, { displayName: name });
 
       await createUserProfile({
         uid: credential.user.uid,
-        email: email.trim(),
+        email: trimmedEmail,
         displayName: name,
       });
 
-      router.push(
-        nextPath ??
-          getAuthRedirectPath(isCoachEmail(email) ? "coach" : "student"),
-      );
+      if (!isCoachEmail(trimmedEmail)) {
+        await requestCoachNotifyStudentRegistered();
+      }
+
+      const profile = await syncSessionAfterLogin();
+      if (!profile) {
+        setError("No se pudo cargar tu perfil. Recarga la página e inténtalo.");
+        return;
+      }
+
+      router.replace(resolvePostLoginPath(profile.role, nextPath));
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Error al crear la cuenta",
-      );
+      setError(mapEmailAuthError(err));
     } finally {
       setLoading(false);
     }

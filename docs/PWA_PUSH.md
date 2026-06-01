@@ -2,9 +2,10 @@
 
 ## Instalar en el móvil
 
-1. Abre la web en Chrome/Safari (producción HTTPS).
-2. **Android Chrome:** menú → «Instalar aplicación» o banner «Instalar».
-3. **iPhone Safari:** Compartir → «Añadir a pantalla de inicio».
+1. Abre la web en **Chrome (Android)** o **Safari (iPhone)** — no desde Instagram/Facebook.
+2. **Android:** pulsa «Instalar ahora» en el banner o menú ⋮ → «Instalar aplicación».
+3. **iPhone:** solo en **Safari** → Compartir → «Añadir a pantalla de inicio» (Chrome en iOS no instala PWAs).
+4. Si no ves la opción, recarga la página tras unos segundos (el service worker debe registrarse).
 
 Atajos en la app: Panel coach (`/coach`), Reservar, Perfil.
 

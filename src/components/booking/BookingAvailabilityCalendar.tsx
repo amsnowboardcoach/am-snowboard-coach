@@ -446,9 +446,6 @@ export function BookingAvailabilityCalendar({
     onVisibleMonthChange?.(safeViewMonth);
   }, [safeViewMonth, onVisibleMonthChange]);
 
-  const monthStart = startOfMonth(safeViewMonth);
-  const monthEnd = endOfMonth(safeViewMonth);
-
   const canGoPrev = canShowPrevSeasonMonth(safeViewMonth, rangeStartDate);
   const canGoNext = canShowNextSeasonMonth(safeViewMonth, navigationEndDate);
 
@@ -497,39 +494,44 @@ export function BookingAvailabilityCalendar({
         ))}
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-2">
-        <button
-          type="button"
-          disabled={!canGoPrev || calendarDisabled}
-          onClick={() => setViewMonth(subMonths(safeViewMonth, 1))}
-          className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 transition hover:bg-zinc-800/80 hover:text-zinc-200 disabled:opacity-25"
-          aria-label="Mes anterior"
+      <div className="mx-auto w-full max-w-sm">
+        <div
+          className="grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-1"
+          role="group"
+          aria-label="Cambiar mes del calendario"
         >
-          <span aria-hidden className="text-lg leading-none">
-            ‹
-          </span>
-        </button>
-        <p className="min-w-0 flex-1 text-center text-sm font-medium capitalize text-zinc-200">
-          {monthLabel}
+          <button
+            type="button"
+            disabled={!canGoPrev || calendarDisabled}
+            onClick={() => setViewMonth(subMonths(safeViewMonth, 1))}
+            className="flex h-9 w-9 items-center justify-center justify-self-start rounded-md text-zinc-400 transition hover:bg-zinc-800/80 hover:text-zinc-200 disabled:opacity-25"
+            aria-label="Mes anterior"
+          >
+            <span aria-hidden className="text-lg leading-none">
+              ‹
+            </span>
+          </button>
+          <p className="text-center text-sm font-medium capitalize text-zinc-200">
+            {monthLabel}
+          </p>
+          <button
+            type="button"
+            disabled={!canGoNext || calendarDisabled}
+            onClick={() => setViewMonth(addMonths(safeViewMonth, 1))}
+            className="flex h-9 w-9 items-center justify-center justify-self-end rounded-md text-zinc-400 transition hover:bg-zinc-800/80 hover:text-zinc-200 disabled:opacity-25"
+            aria-label="Mes siguiente"
+          >
+            <span aria-hidden className="text-lg leading-none">
+              ›
+            </span>
+          </button>
+        </div>
+
+        <p className="mt-2 text-center text-[11px] text-zinc-600">
+          Temporada {BOOKING_SEASON_LABEL} · máx. {MAX_BOOKING_DAYS} días
         </p>
-        <button
-          type="button"
-          disabled={!canGoNext || calendarDisabled}
-          onClick={() => setViewMonth(addMonths(safeViewMonth, 1))}
-          className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 transition hover:bg-zinc-800/80 hover:text-zinc-200 disabled:opacity-25"
-          aria-label="Mes siguiente"
-        >
-          <span aria-hidden className="text-lg leading-none">
-            ›
-          </span>
-        </button>
-      </div>
 
-      <p className="mt-2 text-center text-[11px] text-zinc-600">
-        Temporada {BOOKING_SEASON_LABEL} · máx. {MAX_BOOKING_DAYS} días
-      </p>
-
-      <div className="mx-auto mt-2 max-w-sm grid grid-cols-7 gap-1 text-center">
+        <div className="mt-2 grid grid-cols-7 gap-1 text-center">
         {WEEKDAY_LABELS.map((label) => (
           <div key={label} className="py-1 text-[10px] text-zinc-600">
             {label}
@@ -596,6 +598,7 @@ export function BookingAvailabilityCalendar({
             </div>
           );
         })}
+        </div>
       </div>
 
       <div className="mt-6 border-t border-zinc-800/80 pt-5">

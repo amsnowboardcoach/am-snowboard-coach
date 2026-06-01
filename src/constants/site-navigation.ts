@@ -104,7 +104,7 @@ export function getPageWayfinding(pathname: string): WayfindingBlock | null {
     "/reservar": {
       title: "Antes o después de reservar",
       links: [
-        { href: "/clases", label: "Tipos de clase", description: "Iniciación, carving, Sulayr" },
+        { href: "/clases", label: "Tipos de clase", description: "Iniciación, carving, Snowpark Sulayr" },
         { href: "/tarifas", label: "Tarifas", description: "Personas extra y precios" },
         { href: "/sobre-mi", label: "Sobre el coach", description: "Quién te enseña" },
         {
