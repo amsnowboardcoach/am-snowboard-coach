@@ -6,10 +6,12 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import {
+  COACH_HUB_DEFAULT_TAB,
   COACH_HUB_TABS,
   coachHubHref,
+  isCoachHubTab,
   parseCoachHubTab,
   type CoachHubTab,
 } from "@/constants/coach-hub";
@@ -40,26 +42,24 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const activeTab = parseCoachHubTab(tabParam);
+  const tabFromUrl = parseCoachHubTab(tabParam);
+
+  const [activeTab, setActiveTab] = useState<CoachHubTab>(tabFromUrl);
+
+  useEffect(() => {
+    setActiveTab(tabFromUrl);
+  }, [tabFromUrl]);
 
   useEffect(() => {
     if (pathname !== "/coach") return;
-    if (tabParam !== activeTab) {
-      router.replace(coachHubHref(activeTab), { scroll: false });
+    if (tabParam === null) {
+      router.replace(coachHubHref(COACH_HUB_DEFAULT_TAB), { scroll: false });
+      return;
     }
-  }, [pathname, tabParam, activeTab, router]);
-
-  const navigateTab = useCallback(
-    (tab: CoachHubTab) => {
-      if (tab === activeTab) {
-        scrollToTop({ behavior: "auto" });
-        return;
-      }
-      router.push(coachHubHref(tab), { scroll: false });
-      scrollToTop({ behavior: "auto" });
-    },
-    [activeTab, router],
-  );
+    if (!isCoachHubTab(tabParam)) {
+      router.replace(coachHubHref(COACH_HUB_DEFAULT_TAB), { scroll: false });
+    }
+  }, [pathname, tabParam, router]);
 
   const activeMeta = useMemo(
     () => COACH_HUB_TABS.find((t) => t.id === activeTab) ?? COACH_HUB_TABS[0],
@@ -77,10 +77,14 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
           aria-label="Secciones del panel coach"
         >
           {COACH_HUB_TABS.map((tab) => (
-            <button
+            <Link
               key={tab.id}
-              type="button"
-              onClick={() => navigateTab(tab.id)}
+              href={coachHubHref(tab.id)}
+              scroll={false}
+              onClick={() => {
+                setActiveTab(tab.id);
+                scrollToTop({ behavior: "auto" });
+              }}
               aria-current={activeTab === tab.id ? "page" : undefined}
               className={cn(
                 "flex shrink-0 touch-manipulation items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition active:scale-[0.98] sm:text-sm",
@@ -93,7 +97,7 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
                 {TAB_ICONS[tab.id]}
               </span>
               {tab.label}
-            </button>
+            </Link>
           ))}
         </nav>
       </div>
@@ -105,20 +109,24 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
           aria-label="Secciones del panel coach"
         >
           {COACH_HUB_TABS.map((tab) => (
-            <button
+            <Link
               key={tab.id}
-              type="button"
-              onClick={() => navigateTab(tab.id)}
+              href={coachHubHref(tab.id)}
+              scroll={false}
+              onClick={() => {
+                setActiveTab(tab.id);
+                scrollToTop({ behavior: "auto" });
+              }}
               aria-current={activeTab === tab.id ? "page" : undefined}
               className={cn(
-                "min-h-11 w-full touch-manipulation rounded-xl px-3 py-2.5 text-left text-sm font-medium transition",
+                "flex min-h-11 w-full touch-manipulation items-center rounded-xl px-3 py-2.5 text-sm font-medium transition",
                 activeTab === tab.id
                   ? "bg-sky-500 text-zinc-950"
                   : "border border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200",
               )}
             >
               {tab.label}
-            </button>
+            </Link>
           ))}
         </nav>
 
