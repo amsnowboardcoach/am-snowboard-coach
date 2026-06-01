@@ -5,6 +5,7 @@ import { getAuthRedirectPath } from "@/lib/auth/redirect";
 /** Rutas internas permitidas tras login (evita open redirect). */
 const ALLOWED_NEXT_PREFIXES = [
   "/perfil",
+  "/perfil/avisos",
   "/coach",
   "/reservar",
   "/tribu",

@@ -1,13 +1,18 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { useAuth } from "@/contexts/AuthProvider";
 import { isFirebaseConfigured } from "@/lib/auth/config";
 import { SiteChrome } from "@/components/layout/SiteChrome";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { cn } from "@/lib/utils/cn";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const pathname = usePathname() ?? "";
+  const isCoachHub =
+    pathname === "/coach" || pathname.startsWith("/coach/");
 
   if (!isFirebaseConfigured()) {
     return (
@@ -39,7 +44,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AppHeader />
       <main
         id="main-content"
-        className="page-container max-w-6xl flex-1 overflow-x-hidden py-8 sm:py-10 lg:py-12"
+        className={cn(
+          "page-container max-w-6xl flex-1 overflow-x-hidden py-6 sm:py-10 lg:py-12",
+          isCoachHub && "py-4 sm:py-10",
+        )}
       >
         {children}
       </main>

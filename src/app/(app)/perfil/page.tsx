@@ -1,13 +1,32 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { CoachWhatsAppCard } from "@/components/contact/CoachWhatsAppCard";
 import { DeleteAccountSection } from "@/components/perfil/DeleteAccountSection";
+import { StudentNoticesPanel } from "@/components/perfil/StudentNoticesPanel";
+import { StudentNoticesUnreadBadge } from "@/components/perfil/StudentNoticesUnreadBadge";
 import { useAuth } from "@/contexts/AuthProvider";
-import { COACH_ROLES } from "@/constants/roles";
+import { isStudentProfile } from "@/lib/auth/coach-role";
 import { studentLevelLabel } from "@/lib/booking/contact-notes";
 
-const links = [
+type PerfilLink = {
+  href: string;
+  title: string;
+  desc: string;
+  icon: string;
+  showUnreadBadge?: boolean;
+};
+
+const links: PerfilLink[] = [
+  {
+    href: "/perfil/avisos",
+    title: "Avisos del coach",
+    desc: "Estación cerrada, retrasos y mensajes de Alejandro",
+    icon: "📢",
+    showUnreadBadge: true,
+  },
   {
     href: "/perfil/pasaporte",
     title: "Pasaporte de Trucos",
@@ -30,7 +49,14 @@ const links = [
 
 export default function PerfilPage() {
   const { user, profile } = useAuth();
-  const isStudent = profile && !COACH_ROLES.includes(profile.role);
+  const router = useRouter();
+  const isStudent = profile ? isStudentProfile(profile) : false;
+
+  useEffect(() => {
+    if (profile && !isStudentProfile(profile)) {
+      router.replace("/coach");
+    }
+  }, [profile, router]);
 
   return (
     <div className="stack-page">
@@ -42,6 +68,25 @@ export default function PerfilPage() {
           Tu espacio personal: progreso, vídeos y comunidad
         </p>
       </header>
+
+      {isStudent && user?.uid && (
+        <section className="glass-panel rounded-2xl p-5 sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-base font-semibold text-zinc-100">
+              Últimos avisos
+            </h2>
+            <Link
+              href="/perfil/avisos"
+              className="text-sm font-medium text-sky-400 hover:text-sky-300"
+            >
+              Ver todos →
+            </Link>
+          </div>
+          <div className="mt-4">
+            <StudentNoticesPanel studentId={user.uid} compact />
+          </div>
+        </section>
+      )}
 
       {isStudent && (
         <CoachWhatsAppCard
@@ -70,8 +115,14 @@ export default function PerfilPage() {
           <Link
             key={item.href}
             href={item.href}
-            className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 transition hover:border-sky-500/40"
+            className="relative rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 transition hover:border-sky-500/40"
           >
+            {item.showUnreadBadge && user?.uid && (
+              <StudentNoticesUnreadBadge
+                studentId={user.uid}
+                className="absolute right-4 top-4"
+              />
+            )}
             <span className="text-2xl">{item.icon}</span>
             <h2 className="mt-3 font-semibold">{item.title}</h2>
             <p className="mt-1 text-sm text-zinc-500">{item.desc}</p>

@@ -20,6 +20,7 @@ export async function ensureUserProfile(user: User): Promise<UserProfile> {
     ) {
       await updateDoc(ref, {
         role: ROLES.COACH,
+        assignedCoachId: user.uid,
         updatedAt: serverTimestamp(),
       });
       const fixed = await getDoc(ref);
@@ -46,7 +47,7 @@ export async function ensureUserProfile(user: User): Promise<UserProfile> {
     email: user.email,
     displayName,
     photoURL: user.photoURL ?? undefined,
-    role: isStudent ? ROLES.STUDENT : undefined,
+    role: isStudent ? ROLES.STUDENT : ROLES.COACH,
   });
 
   if (isStudent) {

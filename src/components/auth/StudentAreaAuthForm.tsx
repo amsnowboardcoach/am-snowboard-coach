@@ -113,6 +113,13 @@ export function StudentAreaAuthForm() {
       return;
     }
 
+    if (isCoachEmail(trimmedEmail)) {
+      setError(
+        "Esta cuenta es del monitor. No te registres aquí: entra en /coach con tu email de coach.",
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const credential = await createUserWithEmailAndPassword(

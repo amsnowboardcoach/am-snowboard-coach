@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthProvider";
 import { COACH_ROLES, ROLES } from "@/constants/roles";
+import { isStudentProfile } from "@/lib/auth/coach-role";
 import {
   TRIBE_UPLOAD_LEGAL_CHECKBOX,
   TRIBE_UPLOAD_LEGAL_TITLE,
@@ -55,7 +56,7 @@ export function TribeUploadPanel({ onUploaded }: TribeUploadPanelProps) {
   const [lastFileName, setLastFileName] = useState<string | null>(null);
 
   const isStudent =
-    profile?.role === ROLES.STUDENT &&
+    Boolean(profile && isStudentProfile(profile)) &&
     Boolean(user) &&
     !user?.isAnonymous;
 

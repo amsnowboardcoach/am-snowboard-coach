@@ -27,6 +27,14 @@ interface CoachHubShellProps {
   displayName: string;
 }
 
+const TAB_ICONS: Record<CoachHubTab, string> = {
+  reservas: "📅",
+  facturacion: "🧾",
+  alumnos: "👥",
+  tribu: "🔥",
+  mercadillo: "🏷️",
+};
+
 function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -34,7 +42,6 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
   const tabParam = searchParams.get("tab");
   const activeTab = parseCoachHubTab(tabParam);
 
-  /** Normaliza /coach sin ?tab= o con tab inválido (evita secciones atascadas en móvil). */
   useEffect(() => {
     if (pathname !== "/coach") return;
     if (tabParam !== activeTab) {
@@ -62,9 +69,11 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
   return (
     <div className="lg:flex lg:gap-10 xl:gap-12">
       <CoachPushActivator />
-      <aside className="lg:w-56 lg:shrink-0">
+
+      {/* Móvil: pestañas horizontales compactas */}
+      <div className="sticky top-[calc(3.25rem+env(safe-area-inset-top,0px))] z-30 -mx-4 border-b border-zinc-800/90 bg-zinc-950/95 px-4 py-2.5 backdrop-blur-md sm:-mx-6 lg:hidden">
         <nav
-          className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-1 lg:gap-2"
+          className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           aria-label="Secciones del panel coach"
         >
           {COACH_HUB_TABS.map((tab) => (
@@ -74,7 +83,35 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
               onClick={() => navigateTab(tab.id)}
               aria-current={activeTab === tab.id ? "page" : undefined}
               className={cn(
-                "min-h-11 touch-manipulation rounded-xl px-3 py-2.5 text-sm font-medium transition active:scale-[0.98] lg:w-full lg:text-left",
+                "flex shrink-0 touch-manipulation items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition active:scale-[0.98] sm:text-sm",
+                activeTab === tab.id
+                  ? "bg-sky-500 text-zinc-950 shadow-md shadow-sky-500/20"
+                  : "border border-zinc-700/90 bg-zinc-900/60 text-zinc-400",
+              )}
+            >
+              <span aria-hidden className="text-sm leading-none">
+                {TAB_ICONS[tab.id]}
+              </span>
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Escritorio: barra lateral */}
+      <aside className="hidden lg:block lg:w-56 lg:shrink-0">
+        <nav
+          className="grid gap-2"
+          aria-label="Secciones del panel coach"
+        >
+          {COACH_HUB_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => navigateTab(tab.id)}
+              aria-current={activeTab === tab.id ? "page" : undefined}
+              className={cn(
+                "min-h-11 w-full touch-manipulation rounded-xl px-3 py-2.5 text-left text-sm font-medium transition",
                 activeTab === tab.id
                   ? "bg-sky-500 text-zinc-950"
                   : "border border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200",
@@ -85,7 +122,7 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
           ))}
         </nav>
 
-        <div className="mt-6 hidden space-y-2 lg:block">
+        <div className="mt-6 space-y-2">
           <Link
             href="/reservar"
             className="flex w-full items-center justify-center rounded-full bg-sky-500/15 py-2.5 text-sm font-medium text-sky-300 ring-1 ring-sky-500/30 hover:bg-sky-500/25"
@@ -101,14 +138,30 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
         </div>
       </aside>
 
-      <div key={activeTab} className="min-w-0 flex-1">
-        <header className="mb-8 sm:mb-10">
-          <p className="text-xs font-semibold uppercase tracking-wider text-sky-400/90">
-            Panel del coach
+      <div key={activeTab} className="min-w-0 flex-1 lg:pt-0">
+        <header className="mb-5 sm:mb-8 lg:mb-10">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-sky-400/90 sm:text-xs">
+                Panel del coach
+              </p>
+              <h1 className="mt-0.5 truncate text-xl font-bold sm:text-2xl lg:text-3xl">
+                {activeMeta.label}
+              </h1>
+              <p className="mt-1 truncate text-xs text-zinc-500 sm:text-sm">
+                {displayName}
+              </p>
+            </div>
+            <Link
+              href="/reservar"
+              className="flex min-h-10 shrink-0 touch-manipulation items-center rounded-full bg-sky-500 px-4 py-2 text-xs font-semibold text-zinc-950 shadow-lg shadow-sky-500/20 transition hover:bg-sky-400 sm:text-sm lg:hidden"
+            >
+              + Reserva
+            </Link>
+          </div>
+          <p className="mt-2 hidden text-sm text-zinc-400 sm:block">
+            {activeMeta.description}
           </p>
-          <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{activeMeta.label}</h1>
-          <p className="mt-1 text-sm text-zinc-500">{displayName}</p>
-          <p className="mt-2 text-sm text-zinc-400">{activeMeta.description}</p>
         </header>
 
         {activeTab === "reservas" && (
@@ -124,16 +177,16 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
         )}
 
         {activeTab === "tribu" && (
-          <div className="space-y-6">
+          <div className="space-y-5 sm:space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-zinc-400">
                 Aprueba o rechaza publicaciones antes de que salgan en La Tribu.
               </p>
               <Link
                 href="/tribu"
-                className="text-sm text-sky-400 hover:text-sky-300"
+                className="shrink-0 text-sm font-medium text-sky-400 hover:text-sky-300"
               >
-                Ver feed público →
+                Ver feed →
               </Link>
             </div>
             <TribeModerationPanel hideWhenEmpty={false} />

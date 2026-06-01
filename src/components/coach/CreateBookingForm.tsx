@@ -20,6 +20,8 @@ interface CreateBookingFormProps {
   coachId: string;
   onCreated: () => void;
   defaultOpen?: boolean;
+  /** Barra fija inferior en móvil (panel coach). */
+  stickyMobileCta?: boolean;
   /** Pre-rellena datos del alumno (ficha del coach). */
   studentPrefill?: CreateBookingStudentPrefill;
   title?: string;
@@ -30,6 +32,7 @@ export function CreateBookingForm({
   coachId,
   onCreated,
   defaultOpen = false,
+  stickyMobileCta = false,
   studentPrefill,
   title = "Nueva reserva",
   description = "No sustituye la reserva online; úsala para casos puntuales.",
@@ -114,20 +117,40 @@ export function CreateBookingForm({
   }
 
   if (!open) {
+    const hint = studentPrefill
+      ? `Reserva para ${studentPrefill.displayName} con los turnos de la web.`
+      : "Reservas manuales (teléfono, WhatsApp) con los mismos turnos que la web.";
+
+    const openButton = (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="min-h-12 w-full touch-manipulation rounded-full bg-sky-500 px-6 py-3.5 text-sm font-semibold text-zinc-950 shadow-lg shadow-sky-500/25 transition hover:bg-sky-400 active:scale-[0.98] sm:min-h-11 sm:w-auto sm:py-3 sm:shadow-none"
+      >
+        + Reservar clase
+      </button>
+    );
+
+    if (stickyMobileCta) {
+      return (
+        <>
+          <p className="hidden text-sm text-zinc-400 sm:block">{hint}</p>
+          <div
+            className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-800/90 bg-zinc-950/95 px-4 py-3 backdrop-blur-md sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none"
+            style={{
+              paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+            }}
+          >
+            {openButton}
+          </div>
+        </>
+      );
+    }
+
     return (
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-zinc-400">
-          {studentPrefill
-            ? `Reserva una clase para ${studentPrefill.displayName} con los turnos de la web.`
-            : "Reservas manuales (teléfono, WhatsApp) con los mismos turnos que la web."}
-        </p>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="min-h-11 shrink-0 touch-manipulation rounded-full bg-sky-500 px-6 py-3 text-sm font-semibold text-zinc-950 hover:bg-sky-400"
-        >
-          + Reservar clase
-        </button>
+        <p className="text-sm text-zinc-400">{hint}</p>
+        {openButton}
       </div>
     );
   }

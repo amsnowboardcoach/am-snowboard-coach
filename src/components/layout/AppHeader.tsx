@@ -26,6 +26,7 @@ export function AppHeader() {
       ]
     : [
         { href: "/perfil", label: "Perfil" },
+        { href: "/perfil/avisos", label: "Avisos del coach" },
         { href: "/perfil/pasaporte", label: "Pasaporte de trucos" },
         { href: "/perfil/videos", label: "Mis vídeos" },
         { href: "/tribu", label: "La Tribu" },
@@ -57,6 +58,13 @@ export function AppHeader() {
                 className="transition-colors duration-200 hover:text-white"
               >
                 Perfil
+              </Link>
+              <Link
+                href="/perfil/avisos"
+                onClick={() => scrollToTop()}
+                className="transition-colors duration-200 hover:text-white"
+              >
+                Avisos
               </Link>
               <Link
                 href="/perfil/pasaporte"

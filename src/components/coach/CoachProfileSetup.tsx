@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import type { User } from "firebase/auth";
-import { isCoachEmail } from "@/lib/auth/config";
 import { createUserProfile } from "@/lib/firebase/users";
 import { ROLES } from "@/constants/roles";
 
@@ -23,7 +22,7 @@ export function CoachProfileSetup({ user, onReady }: CoachProfileSetupProps) {
         uid: user.uid,
         email: user.email ?? "",
         displayName: user.displayName ?? "Alejandro Martín",
-        role: isCoachEmail(user.email ?? "") ? ROLES.COACH : ROLES.STUDENT,
+        role: ROLES.COACH,
       });
       onReady();
       window.location.reload();

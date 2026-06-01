@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ROLES } from "@/constants/roles";
+import { isCoachEmail } from "@/lib/auth/config";
 import { verifyUserBearer } from "@/lib/auth/verify-user-token";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { coachNotifyStudentRegistered } from "@/lib/notify/coach";
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
   }
 
   const data = userSnap.data()!;
-  if (data.role !== ROLES.STUDENT) {
+  if (data.role !== ROLES.STUDENT || isCoachEmail(data.email as string)) {
     return NextResponse.json({ ok: true, skipped: "not_student" });
   }
 

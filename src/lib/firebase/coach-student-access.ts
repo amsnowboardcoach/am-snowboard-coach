@@ -1,5 +1,7 @@
 import { COACH_ROLES, ROLES } from "@/constants/roles";
+import { isStudentProfile } from "@/lib/auth/coach-role";
 import { getAdminDb } from "@/lib/firebase/admin";
+import type { UserProfile } from "@/types/firestore";
 
 /** Comprueba que el coach puede gestionar este alumno en el panel. */
 export async function assertCoachCanManageStudent(
@@ -13,7 +15,8 @@ export async function assertCoachCanManageStudent(
   }
 
   const student = studentSnap.data()!;
-  if (student.role !== ROLES.STUDENT) {
+  const email = (student.email as string | undefined) ?? "";
+  if (!isStudentProfile({ role: student.role as UserProfile["role"], email })) {
     throw new Error("Solo puedes gestionar alumnos");
   }
 

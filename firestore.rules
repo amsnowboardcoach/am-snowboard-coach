@@ -139,6 +139,14 @@ service cloud.firestore {
       match /fcm_tokens/{tokenId} {
         allow read, write: if isOwner(userId);
       }
+
+      match /coach_notices/{noticeId} {
+        allow read: if isOwner(userId) || isCoach();
+        allow create: if false;
+        allow update: if isOwner(userId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readAt']);
+        allow delete: if isCoach();
+      }
     }
 
     match /bookings/{bookingId} {

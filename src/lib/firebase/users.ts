@@ -1,6 +1,6 @@
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { ROLES, type UserRole } from "@/constants/roles";
-import { isCoachEmail } from "@/lib/auth/config";
+import { roleForRegistration } from "@/lib/auth/coach-role";
 import { getFirebaseDb } from "@/lib/firebase/client";
 
 export async function createUserProfile(params: {
@@ -14,8 +14,7 @@ export async function createUserProfile(params: {
   const assignedCoachId =
     process.env.NEXT_PUBLIC_DEFAULT_COACH_ID ?? uid;
 
-  const userRole =
-    role ?? (isCoachEmail(email) ? ROLES.COACH : ROLES.STUDENT);
+  const userRole = roleForRegistration(email, role);
 
   const coachId =
     userRole === ROLES.COACH ? uid : assignedCoachId;

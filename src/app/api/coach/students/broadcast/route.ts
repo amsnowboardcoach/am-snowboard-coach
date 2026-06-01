@@ -9,6 +9,7 @@ import { assertCoachCanManageStudent } from "@/lib/firebase/coach-student-access
 import { getAdminDb } from "@/lib/firebase/admin";
 import { sendStudentBroadcastEmail } from "@/lib/email/send-student-broadcast";
 import { isEmailConfigured } from "@/lib/email/send-booking";
+import { saveCoachNoticeForStudent } from "@/lib/firebase/coach-notices-admin";
 import { sendPushToUser } from "@/lib/push/send-push";
 
 export const runtime = "nodejs";
@@ -111,13 +112,27 @@ export async function POST(request: NextRequest) {
 
       let pushOk = false;
       let emailOk = false;
+      let savedNotice = false;
+
+      try {
+        await saveCoachNoticeForStudent({
+          studentId,
+          title,
+          body,
+          templateId,
+          coachId: coachUid,
+        });
+        savedNotice = true;
+      } catch (noticeErr) {
+        console.error("[broadcast] save notice", studentId, noticeErr);
+      }
 
       if (sendPush) {
         try {
           await sendPushToUser(studentId, {
             title,
             body,
-            url: "/perfil",
+            url: "/perfil/avisos",
             tag: `coach-broadcast-${templateId}`,
           });
           pushOk = true;
@@ -138,17 +153,29 @@ export async function POST(request: NextRequest) {
         } catch (emailErr) {
           console.error("[broadcast] email", studentId, emailErr);
         }
-      } else if (sendEmail && !studentEmail) {
+      }
+
+      const emailWarning =
+        sendEmail && !studentEmail && !savedNotice
+          ? "Sin email en el perfil"
+          : undefined;
+
+      if (!savedNotice && !pushOk && !emailOk) {
         results.push({
           studentId,
-          push: pushOk,
+          push: false,
           email: false,
-          error: "Sin email en el perfil",
+          error: "No se pudo guardar ni enviar el aviso",
         });
         continue;
       }
 
-      results.push({ studentId, push: pushOk, email: emailOk });
+      results.push({
+        studentId,
+        push: pushOk,
+        email: emailOk,
+        ...(emailWarning ? { error: emailWarning } : {}),
+      });
     } catch (err) {
       results.push({
         studentId,
@@ -159,8 +186,8 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const sent = results.filter((r) => r.push || r.email).length;
-  const failed = results.filter((r) => r.error && !r.push && !r.email);
+  const sent = results.filter((r) => !r.error).length;
+  const failed = results.filter((r) => r.error);
 
   return NextResponse.json({
     ok: sent > 0,

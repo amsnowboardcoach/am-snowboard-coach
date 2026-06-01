@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthProvider";
 import { ROLES } from "@/constants/roles";
+import { isStudentProfile } from "@/lib/auth/coach-role";
 import {
   ensureTribeVisitorAuth,
   getStoredTribeGuestName,
@@ -55,7 +56,7 @@ export function TribePostCard({
   const isStudentAccount =
     Boolean(user) &&
     !user?.isAnonymous &&
-    profile?.role === ROLES.STUDENT;
+    Boolean(profile && isStudentProfile(profile));
   const needsGuestName = !isStudentAccount && !profile?.displayName;
 
   useEffect(() => {
