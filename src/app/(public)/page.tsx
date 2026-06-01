@@ -20,7 +20,7 @@ export default async function HomePage() {
         tall
         eyebrow="Sierra Nevada · Granada"
         title="Aprende snowboard con método, en Sierra Nevada"
-        subtitle="Alejandro Martín, Head Coach con más de 7.500 horas en pista. De tu primera bajada al freestyle en Snowpark Sulayr: clases claras, seguimiento real y comunidad AM."
+        subtitle="Alejandro Martín, Head Coach con más de 7.500 horas en pista. De tu primera bajada al freestyle en Snowpark Sulayr: clases claras, seguimiento real y comunidad."
         imageSrc={media.hero.image.src}
         imageAlt={media.hero.image.alt}
         videoSrc={media.hero.video?.src}
@@ -67,7 +67,7 @@ export default async function HomePage() {
               </li>
               <li className="flex gap-3">
                 <span className="text-sky-400">✓</span>
-                Instala la web en el móvil y recibe avisos al confirmar tu clase
+                Instala la web en el móvil y recibe avisos en tiempo real
               </li>
             </ul>
           </div>

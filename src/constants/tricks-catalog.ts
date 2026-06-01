@@ -14,6 +14,10 @@ export interface TrickCatalogEntry {
   sortOrder: number;
 }
 
+/**
+ * Catálogo del Pasaporte de Trucos (progresión flat: pluma → guirnalda → giros verde → carving azul/roja).
+ * Las descripciones las ve el alumno en cada tarjeta; el coach desbloquea estados en el panel.
+ */
 export const TRICKS_CATALOG: TrickCatalogEntry[] = [
   {
     id: "pluma-backside",
@@ -22,7 +26,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     category: "flat",
     difficulty: 1,
     description:
-      "Descenso en zigzag controlando el canto de talones (backside).",
+      "Descenso en zigzag en pista verde, controlando el canto de talones (backside).",
     sortOrder: 1,
   },
   {
@@ -32,7 +36,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     category: "flat",
     difficulty: 1,
     description:
-      "Descenso en zigzag controlando el canto de puntas (frontside).",
+      "Descenso en zigzag en pista verde, controlando el canto de puntas (frontside).",
     sortOrder: 2,
   },
   {
@@ -41,7 +45,8 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     slug: "garland",
     category: "flat",
     difficulty: 1,
-    description: "Transiciones en C con cambio de canto.",
+    description:
+      "Transiciones en C sin cambio de canto (mismo canto de talón o de punta).",
     sortOrder: 3,
   },
   {
@@ -50,7 +55,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     slug: "basic-turns",
     category: "flat",
     difficulty: 2,
-    description: "Giros cerrados en pista azul.",
+    description: "Giros básicos enlazados en pista verde.",
     sortOrder: 4,
   },
   {
@@ -60,7 +65,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     category: "flat",
     difficulty: 4,
     description:
-      "Arcos amplios con cantos marcados, velocidad y control en pista dura.",
+      "Giros cerrados y carving en pista azul o roja: cantos marcados, velocidad y control.",
     sortOrder: 5,
   },
   {
@@ -69,7 +74,8 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     slug: "switch-riding",
     category: "flat",
     difficulty: 3,
-    description: "Deslizar con el pie débil delante.",
+    description:
+      "Deslizar con el pie débil delante en pista azul, con giros controlados.",
     sortOrder: 6,
   },
   {
@@ -78,7 +84,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     slug: "ollie",
     category: "jumps",
     difficulty: 2,
-    description: "Salto estático sin rampa.",
+    description: "Salto estático en plano (sin kicker), despegue y aterrizaje controlados.",
     sortOrder: 10,
   },
   {
@@ -87,7 +93,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     slug: "straight-air",
     category: "jumps",
     difficulty: 2,
-    description: "Salto en kickers pequeños.",
+    description: "Salto recto en kicker pequeño, aterrizaje estable.",
     sortOrder: 11,
   },
   {
@@ -96,7 +102,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     slug: "indy-grab",
     category: "jumps",
     difficulty: 3,
-    description: "Agarre entre los pies en el aire.",
+    description: "Agarre con la mano trasera entre los pies en el aire.",
     sortOrder: 12,
   },
   {
@@ -105,7 +111,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     slug: "frontside-180",
     category: "jumps",
     difficulty: 4,
-    description: "Media vuelta frontside en salto.",
+    description: "Media vuelta frontside al salir del kicker, aterrizaje switch o natural.",
     sortOrder: 13,
   },
   {
@@ -114,7 +120,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     slug: "50-50",
     category: "rails",
     difficulty: 3,
-    description: "Caja o barra recta.",
+    description: "Caja o barra en sentido de la marcha (50-50), entrada y salida limpias.",
     sortOrder: 20,
   },
   {
@@ -123,7 +129,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     slug: "boardslide",
     category: "rails",
     difficulty: 4,
-    description: "Deslizar perpendicular en caja.",
+    description: "Deslizar perpendicular sobre caja o barra (boardslide).",
     sortOrder: 21,
   },
   {
@@ -132,7 +138,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     slug: "powder-turns",
     category: "freeride",
     difficulty: 3,
-    description: "Control en nieve virgen.",
+    description: "Giros fluidos y control en nieve virgen, postura centrada.",
     sortOrder: 30,
   },
   {
@@ -141,7 +147,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     slug: "short-turns-steep",
     category: "freeride",
     difficulty: 4,
-    description: "Pendiente fuerte, radio corto.",
+    description: "Giros cortos y rápidos en pendiente fuerte (pista roja o negra).",
     sortOrder: 31,
   },
 ];
