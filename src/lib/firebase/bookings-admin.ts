@@ -39,6 +39,7 @@ import type { BookingPaymentOption } from "@/constants/booking-payment";
 import { isOnlinePaymentOption } from "@/constants/booking-payment";
 import { computeBookingPaymentBreakdown } from "@/lib/booking/payment-amounts";
 import { isStripeConfigured } from "@/lib/stripe/config";
+import { refundBookingStripePayment } from "@/lib/stripe/refund-booking";
 import type { ParsedCalBooking } from "@/lib/cal/parse-payload";
 import type { CalTriggerEvent } from "@/lib/cal/types";
 import { getAdminDb } from "@/lib/firebase/admin";
@@ -225,6 +226,7 @@ export interface AdminBookingRecord {
     paymentGroupId?: string;
     status: "pending" | "deposit_paid" | "paid" | "refunded";
     stripeSessionId?: string;
+    stripePaymentIntentId?: string;
   };
 }
 
@@ -272,6 +274,9 @@ export async function getBookingById(
         | "refunded",
       stripeSessionId: (d.payment as { stripeSessionId?: string })
         .stripeSessionId,
+      stripePaymentIntentId: (
+        d.payment as { stripePaymentIntentId?: string }
+      ).stripePaymentIntentId,
     },
   };
 }
@@ -858,8 +863,20 @@ export async function rejectBookingByCoach(bookingId: string): Promise<void> {
     throw new Error("Esta reserva ya no está pendiente");
   }
 
+  let paymentRefunded = false;
+  if (
+    booking.payment.status === "deposit_paid" ||
+    booking.payment.status === "paid"
+  ) {
+    const refundResult = await refundBookingStripePayment(booking.payment);
+    paymentRefunded = refundResult.refunded;
+  }
+
   await adminDb().collection(BOOKINGS).doc(bookingId).update({
     status: "cancelled" satisfies BookingStatus,
+    "payment.status": (paymentRefunded
+      ? "refunded"
+      : booking.payment.status) as AdminBookingRecord["payment"]["status"],
     updatedAt: FieldValue.serverTimestamp(),
   });
 
@@ -884,7 +901,10 @@ export async function rejectBookingByCoach(bookingId: string): Promise<void> {
   if (!session) throw new Error("Duración de sesión inválida");
 
   if (booking.studentEmail) {
-    await sendBookingRejectedEmail(bookingToEmailDetails(booking, session));
+    await sendBookingRejectedEmail({
+      ...bookingToEmailDetails(booking, session),
+      paymentRefunded,
+    });
   }
 
   await notifyStudentBookingRejected({
@@ -893,5 +913,6 @@ export async function rejectBookingByCoach(bookingId: string): Promise<void> {
     startAt: booking.startAt,
     endAt: booking.endAt,
     isVideoCorrection: false,
+    paymentRefunded,
   });
 }

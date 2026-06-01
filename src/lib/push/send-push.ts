@@ -281,13 +281,17 @@ export async function notifyStudentSessionRejected(details: {
   userId: string;
   startAt: Date;
   endAt: Date;
+  paymentRefunded?: boolean;
 }): Promise<void> {
   if (!details.userId) return;
 
   const when = formatBookingWhen(details.startAt, details.endAt);
+  const refundNote = details.paymentRefunded
+    ? " El importe pagado con tarjeta se devuelve automáticamente."
+    : "";
   await sendPushToUser(details.userId, {
     title: "Clase no disponible",
-    body: `No hemos podido confirmar: ${when}. Elige otra fecha en la web.`,
+    body: `No hemos podido confirmar: ${when}.${refundNote} Elige otra fecha en la web.`,
     url: "/reservar",
     tag: "booking-rejected",
   });
@@ -447,6 +451,7 @@ export async function notifyStudentBookingRejected(details: {
   isVideoCorrection?: boolean;
   startAt?: Date;
   endAt?: Date;
+  paymentRefunded?: boolean;
 }): Promise<void> {
   if (details.isVideoCorrection) {
     await notifyStudentVideoCorrectionRejected({ userId: details.userId });
@@ -458,6 +463,7 @@ export async function notifyStudentBookingRejected(details: {
       userId: details.userId,
       startAt: details.startAt,
       endAt: details.endAt,
+      paymentRefunded: details.paymentRefunded,
     });
     return;
   }

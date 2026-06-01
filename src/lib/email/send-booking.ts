@@ -77,6 +77,8 @@ export interface BookingEmailDetails {
   chargeEuros?: number;
   /** Resto en efectivo o Bizum en pista */
   balanceEuros?: number;
+  /** Tras rechazo del coach con devolución Stripe */
+  paymentRefunded?: boolean;
 }
 
 /** Alumno: solicitud recibida; coach opcional (solo si no hay pago online pendiente). */
@@ -462,6 +464,11 @@ export async function sendBookingRejectedEmail(
       <li>${details.session.name} (${details.slotLabel})</li>
       <li>${when}</li>
     </ul>
+    ${
+      details.paymentRefunded
+        ? "<p>Si pagaste con tarjeta, el importe se devuelve automáticamente al mismo método (suele verse en 5–10 días laborables según tu banco).</p>"
+        : ""
+    }
     <p>Puedes elegir otra fecha en <a href="${getAppBaseUrl()}/reservar">reservar</a> o escribir a ${COACH_EMAIL}.</p>
     <p>— Alejandro, AM Snowboard Coach</p>
   `;

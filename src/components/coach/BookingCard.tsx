@@ -91,7 +91,7 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
   async function rejectRequest() {
     if (
       !window.confirm(
-        "¿Rechazar esta solicitud? Se avisará al alumno y, si había pago, gestionarás la devolución según tu política.",
+        "¿Rechazar esta solicitud? Se avisará al alumno y, si pagó con tarjeta, se devolverá el importe automáticamente.",
       )
     ) {
       return;
