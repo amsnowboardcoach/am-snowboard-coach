@@ -52,8 +52,13 @@ function StudentAreaIcon({ className }: { className: string }) {
   );
 }
 
-function NavItemIcon({ href }: { href: string }) {
+function NavItemIcon({ href, label }: { href: string; label?: string }) {
   const className = "size-5 shrink-0 text-zinc-500";
+  const isStudentArea =
+    isStudentAreaHref(href) ||
+    label === "Área de alumno" ||
+    label === "Entrar";
+
   if (href.startsWith("/coach")) {
     return (
       <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
@@ -64,7 +69,7 @@ function NavItemIcon({ href }: { href: string }) {
       </svg>
     );
   }
-  if (isStudentAreaHref(href) || href.startsWith("/perfil")) {
+  if (isStudentArea || href.startsWith("/perfil")) {
     return <StudentAreaIcon className={className} />;
   }
   if (href.startsWith("/clases")) {
@@ -109,8 +114,8 @@ function NavItemIcon({ href }: { href: string }) {
   if (href.startsWith("/sobre-mi")) {
     return (
       <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-        <circle cx="12" cy="7" r="3.5" />
-        <path d="M6 21v-1a6 6 0 0112 0v1" strokeLinecap="round" />
+        <path d="M4 20h16" strokeLinecap="round" />
+        <path d="M6 20l5-12 2.5 6 2.5-6L19 20" strokeLinejoin="round" />
       </svg>
     );
   }
@@ -281,7 +286,7 @@ export function MobileNavDrawer({ links, className }: MobileNavDrawerProps) {
                       }}
                       className={rowClass}
                     >
-                      <NavItemIcon href={item.href} />
+                      <NavItemIcon href={item.href} label={item.label} />
                       <span className="min-w-0 flex-1">{item.label}</span>
                     </button>
                   ) : (
@@ -294,7 +299,7 @@ export function MobileNavDrawer({ links, className }: MobileNavDrawerProps) {
                       className={rowClass}
                       aria-current={active ? "page" : undefined}
                     >
-                      <NavItemIcon href={item.href} />
+                      <NavItemIcon href={item.href} label={item.label} />
                       <span className="min-w-0 flex-1">{item.label}</span>
                       {active && (
                         <span
@@ -320,7 +325,7 @@ export function MobileNavDrawer({ links, className }: MobileNavDrawerProps) {
                 className="btn-primary-md flex w-full min-h-12 items-center justify-center gap-2 shadow-lg shadow-sky-950/40"
               >
                 <span className="text-zinc-950">
-                  <NavItemIcon href={cta.href} />
+                  <NavItemIcon href={cta.href} label={cta.label} />
                 </span>
                 {cta.label}
               </Link>
