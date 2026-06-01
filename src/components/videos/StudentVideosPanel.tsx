@@ -9,7 +9,10 @@ import {
   uploadStudentProgressVideo,
   validateVideoFile,
 } from "@/lib/firebase/progress-videos";
+import { fetchStudentVideoCorrectionAllowance } from "@/lib/firebase/video-correction-quota";
+import type { VideoCorrectionAllowance } from "@/lib/firebase/video-correction-quota";
 import type { ProgressVideo } from "@/types/progress-video";
+import Link from "next/link";
 
 interface StudentVideosPanelProps {
   studentId: string;
@@ -17,6 +20,9 @@ interface StudentVideosPanelProps {
 
 export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
   const [videos, setVideos] = useState<ProgressVideo[]>([]);
+  const [allowance, setAllowance] = useState<VideoCorrectionAllowance | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [title, setTitle] = useState("");
@@ -27,8 +33,12 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
     setLoading(true);
     setError(null);
     try {
-      const list = await fetchStudentProgressVideos(studentId);
+      const [list, quota] = await Promise.all([
+        fetchStudentProgressVideos(studentId),
+        fetchStudentVideoCorrectionAllowance(studentId),
+      ]);
       setVideos(list);
+      setAllowance(quota);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al cargar vídeos");
     } finally {
@@ -42,6 +52,12 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
 
   async function handleUpload(e: FormEvent) {
     e.preventDefault();
+    if (allowance && !allowance.canUpload) {
+      setError(
+        "No tienes cupos de corrección disponibles. Solicita y paga una corrección en Reservar.",
+      );
+      return;
+    }
     if (!selectedFile) {
       setError("Primero elige un vídeo de tu galería.");
       return;
@@ -82,11 +98,46 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
     }
   }
 
+  const uploadDisabled = Boolean(allowance && !allowance.canUpload);
+
   return (
     <div className="space-y-8">
+      {allowance?.pendingRequest && (
+        <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          Tienes una solicitud de video corrección pendiente de confirmación.
+          Cuando Alejandro la acepte, recibirás el enlace de pago.
+        </p>
+      )}
+      {allowance?.awaitingPayment && (
+        <p className="rounded-xl border border-sky-500/40 bg-sky-500/10 px-4 py-3 text-sm text-sky-100">
+          Tu corrección está confirmada: revisa el email o{" "}
+          <Link href="/perfil" className="underline">
+            tu perfil
+          </Link>{" "}
+          para completar el pago y activar la subida.
+        </p>
+      )}
+      {allowance && allowance.paidSlots > 0 && (
+        <p className="text-sm text-zinc-400">
+          Cupos pagados: {allowance.paidSlots} · Subidos: {allowance.uploadedCount}
+          {allowance.remainingSlots > 0
+            ? ` · Puedes subir ${allowance.remainingSlots} más`
+            : " · Sin cupos libres"}
+        </p>
+      )}
+      {uploadDisabled && !allowance?.pendingRequest && !allowance?.awaitingPayment && (
+        <p className="rounded-xl border border-zinc-700 bg-zinc-900/50 px-4 py-3 text-sm text-zinc-300">
+          Para subir un vídeo a corregir,{" "}
+          <Link href="/reservar?tipo=video" className="text-violet-300 underline">
+            solicita video corrección
+          </Link>{" "}
+          (20 €/vídeo). Tras confirmación y pago podrás subir aquí.
+        </p>
+      )}
+
       <form
         onSubmit={handleUpload}
-        className="glass-panel rounded-2xl border-violet-500/20 p-6"
+        className={`glass-panel rounded-2xl border-violet-500/20 p-6 ${uploadDisabled ? "opacity-60" : ""}`}
       >
         <h2 className="text-lg font-semibold text-violet-200">
           Subir un vídeo nuevo
@@ -109,7 +160,7 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
         <MobileFilePicker
           className="mt-4"
           accept="video/*,.mp4,.mov,.m4v,.webm"
-          disabled={uploading}
+          disabled={uploading || uploadDisabled}
           loading={uploading}
           label="Elegir vídeo del móvil"
           hint="Toca el botón y selecciona un vídeo de la galería"
@@ -134,7 +185,7 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
 
         <button
           type="submit"
-          disabled={uploading || !selectedFile}
+          disabled={uploading || uploadDisabled || !selectedFile}
           className="mt-4 rounded-full bg-violet-500 px-6 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-violet-400 disabled:opacity-50"
         >
           {uploading ? "Subiendo…" : "Subir vídeo"}

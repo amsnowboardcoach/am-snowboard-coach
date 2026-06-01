@@ -118,6 +118,11 @@ service cloud.firestore {
         allow write: if isCoach();
       }
 
+      match /passport_section_notes/{categoryId} {
+        allow read: if isOwner(userId) || isCoach();
+        allow write: if isCoach();
+      }
+
       match /progress_videos/{videoId} {
         allow read: if isOwner(userId) || isCoach();
         allow create: if isOwner(userId)

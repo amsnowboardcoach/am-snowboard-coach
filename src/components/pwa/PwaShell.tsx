@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthProvider";
-import { COACH_ROLES } from "@/constants/roles";
+import { COACH_ROLES, ROLES } from "@/constants/roles";
 import {
   isPushConfigured,
   isPushSupported,
@@ -25,6 +25,13 @@ import {
   triggerNativePwaInstall,
 } from "@/lib/pwa/install-prompt";
 import { registerPwaServiceWorker } from "@/lib/pwa/register-sw";
+import {
+  hasStudentNotifyConsent,
+  isStudentNotifySetupComplete,
+  isStudentNotifySetupDismissed,
+  markStudentNotifySetupComplete,
+} from "@/lib/pwa/student-notify-setup";
+import { StudentPwaNotifySetup } from "@/components/pwa/StudentPwaNotifySetup";
 import { cn } from "@/lib/utils/cn";
 
 const PWA_INSTALLED_KEY = "am-coach-pwa-installed";
@@ -66,9 +73,12 @@ export function PwaShell() {
   const [pushDismissed, setPushDismissed] = useState(true);
   const [pushLoading, setPushLoading] = useState(false);
   const [pushConfigured, setPushConfigured] = useState(false);
+  const [studentSetupDismissed, setStudentSetupDismissed] = useState(false);
+  const [studentSetupComplete, setStudentSetupComplete] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
 
   const isCoach = profile && COACH_ROLES.includes(profile.role);
+  const isStudent = profile?.role === ROLES.STUDENT;
   const aboveTabBar = hasPublicMobileTabBar(pathname);
 
   useEffect(() => {
@@ -85,6 +95,9 @@ export function PwaShell() {
     } catch {
       setPushDismissed(false);
     }
+
+    setStudentSetupDismissed(isStudentNotifySetupDismissed());
+    setStudentSetupComplete(isStudentNotifySetupComplete());
 
     const alreadyInstalled = isPwaInstalled();
     if (alreadyInstalled) markPwaInstalled();
@@ -121,20 +134,47 @@ export function PwaShell() {
     (async () => {
       const ok = await isPushSupported();
       if (cancelled || !ok) return;
-      const coachUser = profile && COACH_ROLES.includes(profile.role);
-      const dismissed =
-        !coachUser && localStorage.getItem(PUSH_BANNER_DISMISSED_KEY) === "1";
 
-      if (Notification.permission === "default" && !dismissed) {
-        setPushBanner(true);
-      } else if (Notification.permission === "granted") {
+      if (Notification.permission === "granted") {
         await requestPushPermissionAndToken(user.uid).catch(() => null);
+        if (isStudent) {
+          markStudentNotifySetupComplete();
+          setStudentSetupComplete(true);
+        }
+        return;
+      }
+
+      const coachUser = profile && COACH_ROLES.includes(profile.role);
+      if (coachUser) {
+        if (Notification.permission === "default") {
+          setPushBanner(true);
+        }
+        return;
+      }
+
+      if (isStudent && !isStudentNotifySetupDismissed()) {
+        const iosNeedsInstall = isIosDevice() && !isPwaInstalled();
+        if (
+          Notification.permission === "default" ||
+          iosNeedsInstall ||
+          hasStudentNotifyConsent()
+        ) {
+          if (!isStudentNotifySetupComplete()) {
+            setStudentSetupComplete(false);
+          }
+        }
+      } else {
+        const dismissed =
+          localStorage.getItem(PUSH_BANNER_DISMISSED_KEY) === "1";
+        if (Notification.permission === "default" && !dismissed) {
+          setPushBanner(true);
+        }
       }
     })().catch(() => null);
     return () => {
       cancelled = true;
     };
-  }, [user, profile, loading, pushConfigured]);
+  }, [user, profile, loading, pushConfigured, isStudent]);
 
   useEffect(() => {
     let unsub: (() => void) | null = null;
@@ -204,22 +244,28 @@ export function PwaShell() {
     }
   }
 
-  async function enablePush() {
-    if (!user) return;
+  async function enablePush(): Promise<boolean> {
+    if (!user) return false;
     if (isIos && !isStandaloneDisplay()) {
       setToast({
         message:
           "En iPhone: instala la app en la pantalla de inicio (Safari → Compartir → Añadir) y luego activa los avisos.",
       });
-      return;
+      return false;
     }
     setPushLoading(true);
     try {
       const token = await requestPushPermissionAndToken(user.uid);
       if (token) {
         setPushBanner(false);
+        if (isStudent) {
+          markStudentNotifySetupComplete();
+          setStudentSetupComplete(true);
+        }
         setToast({ message: "Notificaciones activadas en este dispositivo" });
-      } else if (Notification.permission === "denied") {
+        return true;
+      }
+      if (Notification.permission === "denied") {
         setToast({
           message:
             "Permiso denegado. Actívalo en Ajustes del navegador → Notificaciones.",
@@ -227,8 +273,10 @@ export function PwaShell() {
       } else {
         setToast({ message: "No se pudieron activar las notificaciones" });
       }
+      return false;
     } catch {
       setToast({ message: "No se pudieron activar las notificaciones" });
+      return false;
     } finally {
       setPushLoading(false);
     }
@@ -256,15 +304,29 @@ export function PwaShell() {
   const showIosWrongBrowser =
     isIos && !iosSafari && !installed && !installDismissed && !showInAppHint;
   const showInstall =
-    showInAppHint || showAndroidInstall || showIosInstall || showIosWrongBrowser;
+    !isStudent &&
+    (showInAppHint || showAndroidInstall || showIosInstall || showIosWrongBrowser);
   const showPush =
     pushBanner &&
     user &&
     pushConfigured &&
     !showInstall &&
-    (isCoach || !pushDismissed);
+    isCoach;
+  const studentNeedsIosInstall = isStudent && isIos && !installed;
+  const showStudentNotifySetup =
+    isStudent &&
+    user &&
+    pushConfigured &&
+    !loading &&
+    !studentSetupDismissed &&
+    !studentSetupComplete &&
+    (studentNeedsIosInstall ||
+      Notification.permission === "default" ||
+      (hasStudentNotifyConsent() && Notification.permission !== "granted"));
 
-  if (!showInstall && !showPush && !toast) return null;
+  if (!showInstall && !showPush && !showStudentNotifySetup && !toast) {
+    return null;
+  }
 
   const installTitle = isCoach
     ? "Instala la app del coach"
@@ -283,6 +345,53 @@ export function PwaShell() {
           : "Cuando aparezca la opción, usa «Instalar ahora». Si no, menú ⋮ → «Instalar aplicación» o «Añadir a pantalla de inicio».";
 
   return (
+    <>
+      {showStudentNotifySetup && (
+        <StudentPwaNotifySetup
+          aboveTabBar={aboveTabBar}
+          installed={installed}
+          isIos={isIos}
+          iosSafari={iosSafari}
+          inAppBrowser={inAppBrowser}
+          androidInstallBrowser={androidInstallBrowser}
+          nativeInstallReady={nativeInstallReady}
+          installLoading={installLoading}
+          pushLoading={pushLoading}
+          onNativeInstall={handleNativeInstall}
+          onEnablePush={enablePush}
+          onToast={(message) => setToast({ message })}
+          onDismiss={() => setStudentSetupDismissed(true)}
+        />
+      )}
+
+      {toast && (
+        <div
+          className={cn(
+            "pointer-events-none fixed inset-x-0 z-[56] flex justify-center px-4",
+            showStudentNotifySetup
+              ? "bottom-[calc(14rem+env(safe-area-inset-bottom,0px))] sm:bottom-[calc(12rem+env(safe-area-inset-bottom,0px))]"
+              : aboveTabBar
+                ? "bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))]"
+                : "bottom-0 pb-[max(1rem,env(safe-area-inset-bottom,0px))]",
+          )}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              if (toast.url) router.push(toast.url);
+              setToast(null);
+            }}
+            className="pointer-events-auto max-w-md rounded-xl border border-sky-500/40 bg-zinc-900 px-4 py-3 text-left text-sm text-zinc-100 shadow-xl active:bg-zinc-800"
+          >
+            {toast.message}
+            {toast.url && (
+              <span className="mt-1 block text-xs text-sky-400">Toca para abrir</span>
+            )}
+          </button>
+        </div>
+      )}
+
+      {(showInstall || showPush) && (
     <div
       className={cn(
         "pointer-events-none fixed inset-x-0 z-[55] flex flex-col items-center gap-2 px-4 pt-2",
@@ -291,22 +400,6 @@ export function PwaShell() {
           : "bottom-0 pb-[max(1rem,env(safe-area-inset-bottom,0px))]",
       )}
     >
-      {toast && (
-        <button
-          type="button"
-          onClick={() => {
-            if (toast.url) router.push(toast.url);
-            setToast(null);
-          }}
-          className="pointer-events-auto max-w-md rounded-xl border border-sky-500/40 bg-zinc-900 px-4 py-3 text-left text-sm text-zinc-100 shadow-xl active:bg-zinc-800"
-        >
-          {toast.message}
-          {toast.url && (
-            <span className="mt-1 block text-xs text-sky-400">Toca para abrir</span>
-          )}
-        </button>
-      )}
-
       {showInstall && (
         <div className="pointer-events-auto flex w-full max-w-md flex-col gap-3 rounded-2xl border border-sky-500/40 bg-zinc-900 p-4 shadow-2xl sm:flex-row sm:items-center">
           <div className="flex-1 text-sm">
@@ -403,7 +496,7 @@ export function PwaShell() {
             <button
               type="button"
               disabled={pushLoading}
-              onClick={enablePush}
+              onClick={() => void enablePush()}
               className="rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 disabled:opacity-50"
             >
               {pushLoading ? "…" : "Activar"}
@@ -412,5 +505,7 @@ export function PwaShell() {
         </div>
       )}
     </div>
+      )}
+    </>
   );
 }

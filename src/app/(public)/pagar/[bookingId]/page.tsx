@@ -98,7 +98,7 @@ export default function PagarBookingPage() {
               "Alejandro debe aceptar tu solicitud antes de poder pagar. Te avisaremos por email."}
           </p>
           <Link href="/reservar" className="mt-6 text-sky-400 hover:underline">
-            Volver a reservar
+            Ir a reservar
           </Link>
         </>
       )}

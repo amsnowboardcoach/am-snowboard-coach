@@ -53,14 +53,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         })}
       />
 
-      <Link
-        href="/blog"
-        className="text-sm text-zinc-500 transition hover:text-sky-400"
-      >
-        ← Volver al blog
-      </Link>
-
-      <header className="mt-8">
+      <header>
         <div className="flex flex-wrap gap-2">
           {post.tags.map((tag) => (
             <span

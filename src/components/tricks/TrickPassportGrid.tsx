@@ -1,6 +1,8 @@
 "use client";
 
 import { TRICK_CATEGORY_LABELS } from "@/constants/tricks-catalog";
+import type { TrickCategory } from "@/constants/tricks-catalog";
+import type { PassportSectionNotesMap } from "@/lib/firebase/passport-section-notes";
 import type { TrickStatus, TrickWithProgress } from "@/types/tricks";
 
 const statusConfig: Record<
@@ -32,11 +34,13 @@ const statusConfig: Record<
 interface TrickPassportGridProps {
   tricks: TrickWithProgress[];
   showCoachNotes?: boolean;
+  sectionNotes?: PassportSectionNotesMap;
 }
 
 export function TrickPassportGrid({
   tricks,
   showCoachNotes = true,
+  sectionNotes = {},
 }: TrickPassportGridProps) {
   const byCategory = tricks.reduce(
     (acc, trick) => {
@@ -60,11 +64,20 @@ export function TrickPassportGrid({
         {unlocked} de {tricks.length} maniobras desbloqueadas
       </p>
 
-      {Object.entries(byCategory).map(([category, items]) => (
+      {Object.entries(byCategory).map(([category, items]) => {
+        const cat = category as TrickCategory;
+        const sectionNote = sectionNotes[cat]?.trim();
+        return (
         <section key={category}>
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-sky-400">
-            {TRICK_CATEGORY_LABELS[category as keyof typeof TRICK_CATEGORY_LABELS]}
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-sky-400">
+            {TRICK_CATEGORY_LABELS[cat]}
           </h3>
+          {sectionNote && (
+            <p className="mb-4 rounded-xl border border-sky-500/25 bg-sky-500/10 px-4 py-3 text-sm text-sky-100/90">
+              <span className="font-medium text-sky-300">Notas del coach: </span>
+              {sectionNote}
+            </p>
+          )}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((trick) => {
               const status = trick.progress?.status ?? "locked";
@@ -97,7 +110,8 @@ export function TrickPassportGrid({
             })}
           </div>
         </section>
-      ))}
+      );
+      })}
     </div>
   );
 }

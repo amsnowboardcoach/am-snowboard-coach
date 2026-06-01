@@ -83,7 +83,7 @@ function CoachVideoReviewForm({
         disabled={saving}
         className="mt-3 rounded-full bg-sky-500 px-5 py-2 text-sm font-semibold text-zinc-950 hover:bg-sky-400 disabled:opacity-50"
       >
-        {saving ? "Guardando…" : "Publicar apuntes al alumno"}
+        {saving ? "Publicando…" : "Confirmar y notificar al alumno"}
       </button>
     </form>
   );
@@ -115,8 +115,8 @@ export function CoachVideoReviewPanel({ studentId }: CoachVideoReviewPanelProps)
   return (
     <div className="space-y-6">
       <p className="text-sm text-zinc-400">
-        Revisa los vídeos del alumno y escribe apuntes. El alumno los verá en su
-        área de vídeos.
+        Revisa los vídeos del alumno y escribe apuntes. Pulsa confirmar para
+        publicarlos; el alumno recibirá un aviso en el móvil.
       </p>
 
       {pending.length > 0 && (

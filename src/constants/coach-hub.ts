@@ -44,6 +44,12 @@ export function isCoachHubTab(value: string | null): value is CoachHubTab {
 }
 
 export function coachHubHref(tab: CoachHubTab = COACH_HUB_DEFAULT_TAB): string {
-  if (tab === COACH_HUB_DEFAULT_TAB) return "/coach";
   return `/coach?tab=${tab}`;
+}
+
+export function parseCoachHubTab(
+  tabParam: string | null | undefined,
+): CoachHubTab {
+  const value = tabParam ?? null;
+  return isCoachHubTab(value) ? value : COACH_HUB_DEFAULT_TAB;
 }

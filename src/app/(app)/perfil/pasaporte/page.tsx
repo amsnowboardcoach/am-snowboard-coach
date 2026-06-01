@@ -1,58 +1,95 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthProvider";
 import { TrickPassportGrid } from "@/components/tricks/TrickPassportGrid";
-import { ensureTricksCatalog, mergeTricksWithProgress } from "@/lib/firebase/tricks";
+import {
+  fetchPassportSectionNotes,
+  type PassportSectionNotesMap,
+} from "@/lib/firebase/passport-section-notes";
+import { mergeTricksWithProgress } from "@/lib/firebase/tricks";
 import type { TrickWithProgress } from "@/types/tricks";
 
+function formatPasaporteError(err: unknown): string {
+  if (err instanceof Error) {
+    if (err.message.includes("permission") || err.message.includes("Permission")) {
+      return "No tienes permiso para ver el pasaporte. Cierra sesión y vuelve a entrar.";
+    }
+    if (err.message.includes("Failed to fetch") || err.message.includes("network")) {
+      return "Sin conexión o error de red. Comprueba internet e inténtalo de nuevo.";
+    }
+    return err.message;
+  }
+  return "Error al cargar el pasaporte";
+}
+
 export default function PasaportePage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [tricks, setTricks] = useState<TrickWithProgress[]>([]);
+  const [sectionNotes, setSectionNotes] = useState<PassportSectionNotesMap>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!user) return;
-    let active = true;
-    (async () => {
-      setLoading(true);
-      try {
-        await ensureTricksCatalog();
-        const data = await mergeTricksWithProgress(user.uid);
-        if (active) setTricks(data);
-      } catch (err) {
-        if (active) {
-          setError(err instanceof Error ? err.message : "Error al cargar");
-        }
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
-    return () => {
-      active = false;
-    };
+    setLoading(true);
+    setError(null);
+    try {
+      const [data, notes] = await Promise.all([
+        mergeTricksWithProgress(user.uid),
+        fetchPassportSectionNotes(user.uid),
+      ]);
+      setTricks(data);
+      setSectionNotes(notes);
+    } catch (err) {
+      setError(formatPasaporteError(err));
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    void load();
+  }, [authLoading, user, load]);
 
   return (
     <div>
-      <Link
-        href="/perfil"
-        className="text-sm text-zinc-500 hover:text-sky-400"
-      >
-        ← Volver al perfil
-      </Link>
-      <h1 className="mt-4 text-3xl font-bold">Pasaporte de Trucos</h1>
+      <h1 className="text-3xl font-bold">Pasaporte de Trucos</h1>
       <p className="mt-2 text-zinc-400">
         Maniobras que Alejandro te va desbloqueando según tu progreso en pista.
       </p>
 
-      {loading && <p className="mt-8 text-zinc-500">Cargando…</p>}
-      {error && (
-        <p className="mt-8 text-sm text-red-400">{error}</p>
+      {authLoading && <p className="mt-8 text-zinc-500">Cargando…</p>}
+
+      {!authLoading && !user && (
+        <p className="mt-8 text-sm text-amber-200">
+          Inicia sesión para ver tu pasaporte.
+        </p>
       )}
-      {!loading && !error && <TrickPassportGrid tricks={tricks} />}
+
+      {user && loading && <p className="mt-8 text-zinc-500">Cargando pasaporte…</p>}
+
+      {user && error && (
+        <div className="mt-8 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-4">
+          <p className="text-sm text-red-300">{error}</p>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="mt-3 rounded-full border border-red-500/50 px-4 py-2 text-sm text-red-200 hover:bg-red-500/10"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {user && !loading && !error && (
+        <TrickPassportGrid tricks={tricks} sectionNotes={sectionNotes} />
+      )}
     </div>
   );
 }

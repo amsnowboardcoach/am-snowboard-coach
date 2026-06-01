@@ -1,7 +1,6 @@
 import {
   collection,
   doc,
-  getDoc,
   getDocs,
   serverTimestamp,
   setDoc,
@@ -14,30 +13,52 @@ import type { TrickCatalogDoc } from "@/types/tricks";
 
 const CATALOG = "tricks_catalog";
 
+/** Solo coaches (reglas Firestore). Sincroniza el catálogo en `tricks_catalog`. */
 export async function ensureTricksCatalog(): Promise<void> {
   const db = getFirebaseDb();
-  const first = await getDoc(doc(db, CATALOG, TRICKS_CATALOG[0].id));
-  if (first.exists()) return;
-
+  const catalogIds = new Set(TRICKS_CATALOG.map((t) => t.id));
   const batch = writeBatch(db);
+
   for (const trick of TRICKS_CATALOG) {
-    batch.set(doc(db, CATALOG, trick.id), {
-      ...trick,
-      active: true,
-    });
+    batch.set(
+      doc(db, CATALOG, trick.id),
+      { ...trick, active: true },
+      { merge: true },
+    );
   }
+
+  const snap = await getDocs(collection(db, CATALOG));
+  for (const d of snap.docs) {
+    if (!catalogIds.has(d.id)) {
+      batch.set(d.ref, { active: false }, { merge: true });
+    }
+  }
+
   await batch.commit();
 }
 
+/** Catálogo embebido en la app (siempre disponible para alumnos sin escribir en Firestore). */
+function catalogFromConstants(): TrickCatalogDoc[] {
+  return TRICKS_CATALOG.map((t) => ({ ...t, active: true }));
+}
+
 export async function fetchTricksCatalog(): Promise<TrickCatalogDoc[]> {
-  const snap = await getDocs(collection(getFirebaseDb(), CATALOG));
-  if (snap.empty) {
-    return TRICKS_CATALOG.map((t) => ({ ...t, active: true }));
+  const baseline = catalogFromConstants();
+
+  try {
+    const snap = await getDocs(collection(getFirebaseDb(), CATALOG));
+    if (snap.empty) return baseline;
+
+    const firestoreById = new Map(
+      snap.docs.map((d) => [d.id, { id: d.id, ...d.data() } as TrickCatalogDoc]),
+    );
+
+    return baseline
+      .filter((t) => firestoreById.get(t.id)?.active !== false)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  } catch {
+    return baseline;
   }
-  return snap.docs
-    .map((d) => ({ id: d.id, ...d.data() }) as TrickCatalogDoc)
-    .filter((t) => t.active)
-    .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
 export async function fetchStudentTrickProgress(
@@ -52,10 +73,22 @@ export async function fetchStudentTrickProgress(
 export async function mergeTricksWithProgress(
   studentId: string,
 ): Promise<TrickWithProgress[]> {
-  const [catalog, progressList] = await Promise.all([
-    fetchTricksCatalog(),
-    fetchStudentTrickProgress(studentId),
-  ]);
+  const catalog = await fetchTricksCatalog();
+  let progressList: TrickProgressDoc[];
+  try {
+    progressList = await fetchStudentTrickProgress(studentId);
+  } catch (err) {
+    const code =
+      err && typeof err === "object" && "code" in err
+        ? String((err as { code: string }).code)
+        : "";
+    if (code === "permission-denied") {
+      throw new Error(
+        "Permission denied: no se pudo leer tu progreso en el pasaporte",
+      );
+    }
+    throw err;
+  }
   const progressMap = new Map(progressList.map((p) => [p.trickId, p]));
 
   return catalog.map((trick) => ({

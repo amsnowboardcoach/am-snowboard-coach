@@ -173,6 +173,21 @@ export async function fetchTribeFeedPosts(
   );
 }
 
+/** Publicaciones de un alumno (panel coach). */
+export async function fetchTribePostsByAuthor(
+  authorId: string,
+  max = 24,
+): Promise<TribePost[]> {
+  const q = query(
+    postsCol(),
+    where("authorId", "==", authorId),
+    orderBy("createdAt", "desc"),
+    limit(max),
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as TribePost);
+}
+
 export async function userHasFired(
   postId: string,
   userId: string,

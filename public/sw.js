@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-/* Service worker PWA + push — v5: sin caché de HTML/JS (evita bundles antiguos) */
+/* Service worker PWA + push — v6: sin interceptar fetch (evita Failed to fetch en Next.js) */
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
@@ -13,14 +13,6 @@ self.addEventListener("activate", (event) => {
       await self.clients.claim();
     })(),
   );
-});
-
-/** Requerido para instalabilidad PWA; solo red (no cachear la app) */
-self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
-  const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return;
-  event.respondWith(fetch(event.request));
 });
 
 function resolveNotificationUrl(raw) {

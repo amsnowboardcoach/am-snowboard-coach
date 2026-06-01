@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useMemo } from "react";
 import {
-  COACH_HUB_DEFAULT_TAB,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo } from "react";
+import {
   COACH_HUB_TABS,
   coachHubHref,
-  isCoachHubTab,
+  parseCoachHubTab,
   type CoachHubTab,
 } from "@/constants/coach-hub";
 import { CoachPushActivator } from "@/components/coach/CoachPushActivator";
@@ -16,6 +19,7 @@ import { CoachHubInvoicingPanel } from "@/components/coach/CoachHubInvoicingPane
 import { CoachHubMarketplacePanel } from "@/components/coach/CoachHubMarketplacePanel";
 import { CoachHubStudentsPanel } from "@/components/coach/CoachHubStudentsPanel";
 import { TribeModerationPanel } from "@/components/coach/TribeModerationPanel";
+import { scrollToTop } from "@/lib/navigation/scroll";
 import { cn } from "@/lib/utils/cn";
 
 interface CoachHubShellProps {
@@ -24,12 +28,31 @@ interface CoachHubShellProps {
 }
 
 function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const activeTab: CoachHubTab =
-    tabParam === "inicio" || !isCoachHubTab(tabParam)
-      ? COACH_HUB_DEFAULT_TAB
-      : tabParam;
+  const activeTab = parseCoachHubTab(tabParam);
+
+  /** Normaliza /coach sin ?tab= o con tab inválido (evita secciones atascadas en móvil). */
+  useEffect(() => {
+    if (pathname !== "/coach") return;
+    if (tabParam !== activeTab) {
+      router.replace(coachHubHref(activeTab), { scroll: false });
+    }
+  }, [pathname, tabParam, activeTab, router]);
+
+  const navigateTab = useCallback(
+    (tab: CoachHubTab) => {
+      if (tab === activeTab) {
+        scrollToTop({ behavior: "auto" });
+        return;
+      }
+      router.push(coachHubHref(tab), { scroll: false });
+      scrollToTop({ behavior: "auto" });
+    },
+    [activeTab, router],
+  );
 
   const activeMeta = useMemo(
     () => COACH_HUB_TABS.find((t) => t.id === activeTab) ?? COACH_HUB_TABS[0],
@@ -41,23 +64,24 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
       <CoachPushActivator />
       <aside className="lg:w-56 lg:shrink-0">
         <nav
-          className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0"
+          className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-1 lg:gap-1"
           aria-label="Secciones del panel coach"
         >
           {COACH_HUB_TABS.map((tab) => (
-            <Link
+            <button
               key={tab.id}
-              href={coachHubHref(tab.id)}
-              scroll={false}
+              type="button"
+              onClick={() => navigateTab(tab.id)}
+              aria-current={activeTab === tab.id ? "page" : undefined}
               className={cn(
-                "shrink-0 rounded-xl px-4 py-2.5 text-sm font-medium transition lg:w-full lg:text-left",
+                "min-h-11 touch-manipulation rounded-xl px-3 py-2.5 text-sm font-medium transition active:scale-[0.98] lg:w-full lg:text-left",
                 activeTab === tab.id
                   ? "bg-sky-500 text-zinc-950"
                   : "border border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200",
               )}
             >
               {tab.label}
-            </Link>
+            </button>
           ))}
         </nav>
 
@@ -77,7 +101,7 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
         </div>
       </aside>
 
-      <div className="min-w-0 flex-1">
+      <div key={activeTab} className="min-w-0 flex-1">
         <header className="mb-8">
           <p className="text-xs font-semibold uppercase tracking-wider text-sky-400/90">
             Panel del coach

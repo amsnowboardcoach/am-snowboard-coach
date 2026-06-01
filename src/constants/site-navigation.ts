@@ -39,7 +39,11 @@ export const SITE_HEADER_CTA: SiteNavItem = SITE_NAV_PUBLIC.find(
 
 /** Barra inferior móvil (máx. 5 ítems) */
 export const SITE_MOBILE_TAB_BAR: SiteNavItem[] = [
-  { href: "/", label: "Inicio", shortLabel: "Inicio" },
+  {
+    href: STUDENT_AREA_PATH,
+    label: "Área de alumno",
+    shortLabel: "Entrar",
+  },
   { href: "/clases", label: "Clases", shortLabel: "Clases" },
   { href: "/reservar", label: "Reservar", shortLabel: "Reservar", primary: true },
   { href: "/mercadillo", label: "Mercadillo", shortLabel: "Mercado" },

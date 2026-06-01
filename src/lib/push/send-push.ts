@@ -300,14 +300,56 @@ export async function notifyStudentSessionRejected(details: {
 /** Alumno: video corrección (reserva) no confirmada */
 export async function notifyStudentVideoCorrectionRejected(details: {
   userId: string;
+  paymentRefunded?: boolean;
 }): Promise<void> {
   if (!details.userId) return;
 
+  const refundNote = details.paymentRefunded
+    ? " Si habías pagado, el importe se devuelve automáticamente."
+    : "";
+
   await sendPushToUser(details.userId, {
     title: "Solicitud de vídeo no confirmada",
-    body: "Puedes enviar otra solicitud de video corrección cuando quieras.",
+    body: `Puedes enviar otra solicitud cuando quieras.${refundNote}`,
     url: "/reservar?tipo=video",
     tag: "video-booking-rejected",
+  });
+}
+
+/** Alumno: pago de video corrección completado — puede subir vídeos */
+export async function notifyStudentVideoCorrectionPaid(details: {
+  userId: string;
+  amountEuros: number;
+  videoCount: number;
+}): Promise<void> {
+  if (!details.userId) return;
+
+  const n = details.videoCount;
+  const label = `${n} vídeo${n > 1 ? "s" : ""}`;
+
+  await sendPushToUser(details.userId, {
+    title: "Pago recibido — sube tu material",
+    body: `${label} · ${details.amountEuros} €. Entra en Mis vídeos y sube el riding a corregir.`,
+    url: "/perfil/videos",
+    tag: "video-booking-paid",
+  });
+}
+
+/** Coach: alumno pagó video corrección (ya confirmada antes) */
+export async function notifyCoachVideoCorrectionPaid(details: {
+  studentName: string;
+  amountEuros: number;
+  videoCount: number;
+  bookingId: string;
+}): Promise<void> {
+  const n = details.videoCount;
+  const label = `${n} vídeo${n > 1 ? "s" : ""}`;
+
+  await sendPushToCoach({
+    title: "Video corrección pagada",
+    body: `${details.studentName} · ${label} · ${details.amountEuros} € — avisaré cuando suba el material`,
+    url: "/coach?tab=reservas",
+    tag: `video-paid-${details.bookingId}`,
   });
 }
 
@@ -346,6 +388,27 @@ export async function notifyCoachPaymentReceived(details: {
     body: `${details.studentName} · ${details.productLabel} · ${details.amountEuros} €`,
     url: "/coach?tab=reservas",
     tag: `paid-${details.bookingId}`,
+  });
+}
+
+/** Alumno: el coach publicó cambios en el pasaporte de trucos */
+export async function notifyStudentPassportUpdated(details: {
+  userId: string;
+  updateCount: number;
+  highlightTrickName?: string;
+}): Promise<void> {
+  if (!details.userId) return;
+
+  const body =
+    details.updateCount === 1 && details.highlightTrickName
+      ? `Alejandro ha actualizado «${details.highlightTrickName}». Míralo en tu pasaporte.`
+      : `Alejandro ha actualizado ${details.updateCount} trucos en tu pasaporte. Ábrelo en Perfil.`;
+
+  await sendPushToUser(details.userId, {
+    title: "¡Tu pasaporte de trucos ha cambiado!",
+    body,
+    url: "/perfil/pasaporte",
+    tag: "passport-updated",
   });
 }
 
@@ -454,7 +517,10 @@ export async function notifyStudentBookingRejected(details: {
   paymentRefunded?: boolean;
 }): Promise<void> {
   if (details.isVideoCorrection) {
-    await notifyStudentVideoCorrectionRejected({ userId: details.userId });
+    await notifyStudentVideoCorrectionRejected({
+      userId: details.userId,
+      paymentRefunded: details.paymentRefunded,
+    });
     return;
   }
 
@@ -484,6 +550,7 @@ export async function notifyAfterBookingPaid(booking: {
   lessonTypeId: string;
   lessonTypeName: string;
   productKind?: string;
+  videoCount?: number;
   sessionDurationId?: string | null;
   sessionSlotLabel?: string;
   startAt: Date;
@@ -497,16 +564,33 @@ export async function notifyAfterBookingPaid(booking: {
     booking.productKind === "video_correction" ||
     isVideoCorrectionProduct(booking.lessonTypeId);
 
-  const productLabel = isVideo
-    ? "Video corrección"
-    : booking.sessionSlotLabel || booking.lessonTypeName;
+  if (isVideo) {
+    const videoCount = booking.videoCount ?? 1;
+    if (booking.userId) {
+      await notifyStudentVideoCorrectionPaid({
+        userId: booking.userId,
+        amountEuros,
+        videoCount,
+      });
+    }
+    await notifyCoachVideoCorrectionPaid({
+      studentName,
+      amountEuros,
+      videoCount,
+      bookingId: booking.id,
+    });
+    return;
+  }
+
+  const productLabel =
+    booking.sessionSlotLabel || booking.lessonTypeName;
 
   if (booking.userId) {
     await notifyStudentPaymentReceived({
       userId: booking.userId,
       amountEuros,
       productLabel,
-      startAt: isVideo ? undefined : booking.startAt,
+      startAt: booking.startAt,
     });
   }
 

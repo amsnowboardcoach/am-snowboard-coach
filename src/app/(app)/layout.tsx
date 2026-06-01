@@ -3,7 +3,6 @@
 import { AppHeader } from "@/components/layout/AppHeader";
 import { useAuth } from "@/contexts/AuthProvider";
 import { isFirebaseConfigured } from "@/lib/auth/config";
-import { PageWayfinding } from "@/components/layout/PageWayfinding";
 import { SiteChrome } from "@/components/layout/SiteChrome";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
@@ -43,7 +42,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         className="mx-auto w-full max-w-6xl flex-1 overflow-x-hidden px-4 py-6 pb-24 sm:py-8 sm:pb-8"
       >
         {children}
-        <PageWayfinding />
       </main>
       <SiteFooter />
       <SiteChrome />

@@ -102,9 +102,21 @@ export function VideoCorrectionBookingHub() {
         <p className="mt-4 text-zinc-300">
           Revisaré tu petición de {videoCount}{" "}
           {videoCount === 1 ? "vídeo" : "vídeos"}. Si la confirmo, te enviaré el
-          enlace para pagar {totalEuros} € y podrás subir el material desde tu
-          área de alumno.
+          enlace para pagar {totalEuros} € y podrás subir el material desde{" "}
+          <Link href="/perfil/videos" className="text-sky-400 hover:underline">
+            Mis vídeos
+          </Link>
+          .
         </p>
+        <p className="mt-2 text-sm text-zinc-500">
+          Te avisaremos por email y notificación cuando haya novedades.
+        </p>
+        <Link
+          href="/perfil/videos"
+          className="mt-6 inline-block rounded-full border border-violet-500/50 px-6 py-3 text-sm font-medium text-violet-200 hover:bg-violet-500/10"
+        >
+          Ir a Mis vídeos
+        </Link>
         <button
           type="button"
           onClick={() => {

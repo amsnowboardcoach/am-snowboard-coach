@@ -17,6 +17,7 @@
 ## Subcolecciones
 
 - `users/{uid}/trick_progress/{trickId}`
+- `users/{uid}/passport_section_notes/{categoryId}` — notas del coach por sección del pasaporte (flat, jumps, …)
 - `users/{uid}/progress_videos/{videoId}`
 - `tribe_posts/{id}/comments/{id}`
 - `tribe_posts/{id}/fires/{userId}`

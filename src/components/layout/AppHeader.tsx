@@ -13,11 +13,11 @@ export function AppHeader() {
   const signOut = useSignOut();
   const isCoach = profile && COACH_ROLES.includes(profile.role);
 
-  const homeHref = isCoach ? "/coach" : "/perfil";
+  const homeHref = isCoach ? "/coach?tab=reservas" : "/perfil";
 
   const mobileLinks: MobileNavLink[] = isCoach
     ? [
-        { href: "/coach", label: "Panel coach" },
+        { href: "/coach?tab=reservas", label: "Panel coach" },
         { href: "/reservar", label: "Nueva reserva", primary: true },
         { href: "/tribu", label: "La Tribu" },
         { href: "/mercadillo", label: "Mercadillo" },
@@ -77,7 +77,7 @@ export function AppHeader() {
           {isCoach && (
             <>
               <Link
-                href="/coach"
+                href="/coach?tab=reservas"
                 onClick={() => scrollToTop()}
                 className="transition-colors duration-200 hover:text-white"
               >

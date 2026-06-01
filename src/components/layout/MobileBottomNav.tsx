@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SITE_MOBILE_TAB_BAR } from "@/constants/site-navigation";
+import { STUDENT_AREA_PATH } from "@/constants/student-area";
 import { cn } from "@/lib/utils/cn";
 import { scrollToTop } from "@/lib/navigation/scroll";
 
@@ -17,9 +18,12 @@ export function MobileBottomNav() {
       <ul className="mx-auto flex max-w-lg items-stretch justify-around px-1 pt-1">
         {SITE_MOBILE_TAB_BAR.map((item) => {
           const active =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            item.href === STUDENT_AREA_PATH
+              ? pathname === STUDENT_AREA_PATH ||
+                pathname.startsWith("/registro") ||
+                pathname.startsWith("/perfil")
+              : pathname === item.href ||
+                pathname.startsWith(`${item.href}/`);
           const isPrimary = item.primary;
 
           if (isPrimary) {
@@ -27,6 +31,7 @@ export function MobileBottomNav() {
               <li key={item.href} className="flex flex-1 justify-center px-1">
                 <Link
                   href={item.href}
+                  aria-label={item.label}
                   onClick={() => scrollToTop()}
                   className={cn(
                     "-mt-4 flex min-h-14 min-w-[4.5rem] flex-col items-center justify-center rounded-full bg-sky-500 px-3 py-2 text-center text-[10px] font-bold text-zinc-950 shadow-lg shadow-sky-500/30 transition active:scale-95 active:bg-sky-400",
@@ -43,6 +48,7 @@ export function MobileBottomNav() {
             <li key={item.href} className="flex flex-1">
               <Link
                 href={item.href}
+                aria-label={item.label}
                 onClick={() => scrollToTop()}
                 className={cn(
                   "flex min-h-14 w-full flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-medium transition active:scale-95",
@@ -63,10 +69,11 @@ export function MobileBottomNav() {
 function TabIcon({ href, active }: { href: string; active: boolean }) {
   const className = cn("size-5", active ? "text-sky-400" : "text-zinc-500");
   switch (href) {
-    case "/":
+    case STUDENT_AREA_PATH:
       return (
         <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-          <path d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-9.5z" strokeLinejoin="round" />
+          <circle cx="12" cy="8" r="3.5" />
+          <path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6" strokeLinecap="round" />
         </svg>
       );
     case "/clases":

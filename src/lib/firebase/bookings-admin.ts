@@ -33,6 +33,7 @@ import {
 import { formatBookingInTimeZone } from "@/lib/booking/format-datetime";
 import {
   sendVideoCorrectionConfirmedEmails,
+  sendVideoCorrectionPaidEmail,
   sendVideoCorrectionRejectedEmail,
 } from "@/lib/email/send-booking";
 import type { BookingPaymentOption } from "@/constants/booking-payment";
@@ -439,6 +440,7 @@ export async function markBookingsPaidFromStripe(input: {
         lessonTypeId: sessionBooking.lessonTypeId,
         lessonTypeName: sessionBooking.lessonTypeName,
         productKind: sessionBooking.productKind,
+        videoCount: sessionBooking.videoCount,
         sessionDurationId: sessionBooking.sessionDurationId,
         sessionSlotLabel: sessionBooking.sessionSlotLabel,
         startAt: sessionBooking.startAt,
@@ -447,6 +449,46 @@ export async function markBookingsPaidFromStripe(input: {
       });
     } catch (pushErr) {
       console.error("[markBookingPaid] Push:", pushErr);
+    }
+  }
+
+  const videoBookings = paidBookings.filter(
+    (b) =>
+      b.productKind === "video_correction" ||
+      isVideoCorrectionProduct(b.lessonTypeId),
+  );
+
+  for (const videoBooking of videoBookings) {
+    const details = videoEmailDetails(videoBooking);
+    if (details.studentEmail) {
+      try {
+        await sendVideoCorrectionPaidEmail({
+          ...details,
+          paidWithCard: true,
+        });
+      } catch (mailErr) {
+        console.error("[markBookingPaid] Email video:", mailErr);
+      }
+    }
+
+    try {
+      await notifyAfterBookingPaid({
+        id: videoBooking.id,
+        userId: videoBooking.userId,
+        studentDisplayName: videoBooking.studentDisplayName,
+        studentEmail: videoBooking.studentEmail,
+        lessonTypeId: videoBooking.lessonTypeId,
+        lessonTypeName: videoBooking.lessonTypeName,
+        productKind: videoBooking.productKind,
+        videoCount: videoBooking.videoCount,
+        sessionDurationId: videoBooking.sessionDurationId,
+        sessionSlotLabel: videoBooking.sessionSlotLabel,
+        startAt: videoBooking.startAt,
+        endAt: videoBooking.endAt,
+        amountCents: videoBooking.payment.amountCents,
+      });
+    } catch (pushErr) {
+      console.error("[markBookingPaid] Push video:", pushErr);
     }
   }
 }
@@ -891,6 +933,7 @@ export async function rejectBookingByCoach(bookingId: string): Promise<void> {
       userId: booking.userId,
       dateLabel: "Video corrección",
       isVideoCorrection: true,
+      paymentRefunded,
     });
     return;
   }

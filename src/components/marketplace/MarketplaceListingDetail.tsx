@@ -53,7 +53,7 @@ export function MarketplaceListingDetail({
           href="/mercadillo"
           className="mt-4 inline-block text-sky-400 hover:underline"
         >
-          Volver al mercadillo
+          Ir al mercadillo
         </Link>
       </div>
     );
@@ -131,13 +131,7 @@ export function MarketplaceListingDetail({
       )}
 
       <div className="p-6">
-        <Link
-          href="/mercadillo"
-          className="text-sm text-zinc-500 hover:text-sky-400"
-        >
-          ← Mercadillo
-        </Link>
-        <h1 className="mt-3 text-2xl font-bold text-zinc-100">{listing.title}</h1>
+        <h1 className="text-2xl font-bold text-zinc-100">{listing.title}</h1>
         <p className="mt-1 text-xs text-zinc-500">
           {categoryLabel} · {conditionLabel} ·{" "}
           {formatFirestoreDate(listing.createdAt)}

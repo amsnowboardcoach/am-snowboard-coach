@@ -1,5 +1,5 @@
 /** Service worker principal (PWA + push). Sin query en la URL (requerido en móvil). */
-export const PWA_SW_VERSION = "v5";
+export const PWA_SW_VERSION = "v6";
 export const PWA_SERVICE_WORKER_PATH = "/sw.js";
 
 export async function registerPwaServiceWorker(): Promise<ServiceWorkerRegistration | null> {

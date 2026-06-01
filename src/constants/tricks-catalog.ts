@@ -16,13 +16,24 @@ export interface TrickCatalogEntry {
 
 export const TRICKS_CATALOG: TrickCatalogEntry[] = [
   {
-    id: "falling-leaf",
-    name: "Hoja caduca",
-    slug: "falling-leaf",
+    id: "pluma-backside",
+    name: "Pluma backside (talones)",
+    slug: "pluma-backside",
     category: "flat",
     difficulty: 1,
-    description: "Control de cantos en pendiente suave.",
+    description:
+      "Descenso en zigzag controlando el canto de talones (backside).",
     sortOrder: 1,
+  },
+  {
+    id: "pluma-frontside",
+    name: "Pluma frontside (puntas)",
+    slug: "pluma-frontside",
+    category: "flat",
+    difficulty: 1,
+    description:
+      "Descenso en zigzag controlando el canto de puntas (frontside).",
+    sortOrder: 2,
   },
   {
     id: "garland",
@@ -31,7 +42,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     category: "flat",
     difficulty: 1,
     description: "Transiciones en C con cambio de canto.",
-    sortOrder: 2,
+    sortOrder: 3,
   },
   {
     id: "basic-turns",
@@ -40,7 +51,17 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     category: "flat",
     difficulty: 2,
     description: "Giros cerrados en pista azul.",
-    sortOrder: 3,
+    sortOrder: 4,
+  },
+  {
+    id: "advanced-carving",
+    name: "Giros avanzados (carving)",
+    slug: "advanced-carving",
+    category: "flat",
+    difficulty: 4,
+    description:
+      "Arcos amplios con cantos marcados, velocidad y control en pista dura.",
+    sortOrder: 5,
   },
   {
     id: "switch-riding",
@@ -49,7 +70,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
     category: "flat",
     difficulty: 3,
     description: "Deslizar con el pie débil delante.",
-    sortOrder: 4,
+    sortOrder: 6,
   },
   {
     id: "ollie",
@@ -116,7 +137,7 @@ export const TRICKS_CATALOG: TrickCatalogEntry[] = [
   },
   {
     id: "short-turns-steep",
-    name: "Giros cortos en rojo",
+    name: "Giros cortos en pistas rojas",
     slug: "short-turns-steep",
     category: "freeride",
     difficulty: 4,

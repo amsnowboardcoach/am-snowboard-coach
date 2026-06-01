@@ -67,6 +67,7 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
       booking.source === "web");
 
   const canAcceptSession = needsApproval && !isVideo && paymentReady;
+  const canAcceptVideo = needsApproval && isVideo;
 
   const studentName =
     booking.studentDisplayName ||
@@ -147,29 +148,49 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
             </span>
           )}
           <ol className="mt-3 space-y-1 text-sm text-zinc-400">
-            <li>
-              <span className="text-zinc-500">1. Día: </span>
-              {formatFirestoreDate(booking.startAt)}
-            </li>
-            <li>
-              <span className="text-zinc-500">2. Estilo: </span>
-              <span className="text-sky-400/90">{booking.lessonTypeName}</span>
-            </li>
-            {booking.sessionSlotLabel && (
-              <li>
-                <span className="text-zinc-500">3. Horario: </span>
-                {booking.sessionSlotLabel}
-              </li>
-            )}
-            <li>
-              <span className="text-zinc-500">4. Personas: </span>
-              {booking.participantCount ?? 1} en pista
-            </li>
-            {booking.bookingNotes && (
-              <li>
-                <span className="text-zinc-500">5. Notas: </span>
-                {booking.bookingNotes}
-              </li>
+            {isVideo ? (
+              <>
+                <li>
+                  <span className="text-zinc-500">Producto: </span>
+                  <span className="text-violet-300/90">
+                    {booking.sessionSlotLabel ||
+                      `${booking.videoCount ?? 1} vídeo${(booking.videoCount ?? 1) > 1 ? "s" : ""}`}
+                  </span>
+                </li>
+                {booking.bookingNotes && (
+                  <li>
+                    <span className="text-zinc-500">Notas: </span>
+                    {booking.bookingNotes}
+                  </li>
+                )}
+              </>
+            ) : (
+              <>
+                <li>
+                  <span className="text-zinc-500">1. Día: </span>
+                  {formatFirestoreDate(booking.startAt)}
+                </li>
+                <li>
+                  <span className="text-zinc-500">2. Estilo: </span>
+                  <span className="text-sky-400/90">{booking.lessonTypeName}</span>
+                </li>
+                {booking.sessionSlotLabel && (
+                  <li>
+                    <span className="text-zinc-500">3. Horario: </span>
+                    {booking.sessionSlotLabel}
+                  </li>
+                )}
+                <li>
+                  <span className="text-zinc-500">4. Personas: </span>
+                  {booking.participantCount ?? 1} en pista
+                </li>
+                {booking.bookingNotes && (
+                  <li>
+                    <span className="text-zinc-500">5. Notas: </span>
+                    {booking.bookingNotes}
+                  </li>
+                )}
+              </>
             )}
           </ol>
         </div>
@@ -207,14 +228,18 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
                   : "Nueva solicitud — acepta para bloquear el calendario y avisar al alumno (o rechaza)."}
           </p>
           <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
-            {canAcceptSession && (
+            {(canAcceptSession || canAcceptVideo) && (
               <button
                 type="button"
                 disabled={confirming || rejecting}
                 onClick={confirmRequest}
                 className="min-h-11 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white active:bg-emerald-500 disabled:opacity-50"
               >
-                {confirming ? "Aceptando…" : "Aceptar reserva"}
+                {confirming
+                  ? "Aceptando…"
+                  : isVideo
+                    ? "Confirmar y enviar pago"
+                    : "Aceptar reserva"}
               </button>
             )}
             {!isVideo && !awaitsOnlinePayment && !canAcceptSession && (

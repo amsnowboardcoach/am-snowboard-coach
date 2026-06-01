@@ -360,7 +360,7 @@ export async function sendVideoCorrectionRequestEmails(
       <li>Precio: <strong>${details.totalEuros} €</strong> (${details.videoCount} × 20 €/vídeo)</li>
     </ul>
     ${details.notes ? `<p>Notas: ${details.notes}</p>` : ""}
-    <p>Cuando Alejandro confirme, recibirás el enlace de pago por email.</p>
+    <p>Cuando Alejandro confirme, recibirás el enlace de pago por email. Después podrás subir el material en <a href="${getAppBaseUrl()}/perfil/videos">Mis vídeos</a>.</p>
   `;
 
   const coachHtml = `
@@ -407,13 +407,14 @@ export async function sendVideoCorrectionConfirmedEmails(
     ${details.notes ? `<p>Tus notas: ${details.notes}</p>` : ""}
     ${
       details.paidWithCard
-        ? "<p><strong>Pago recibido.</strong> En breve recibirás feedback sobre tu vídeo.</p>"
+        ? `<p><strong>Pago recibido.</strong> Sube ${label} desde tu área de alumno:</p>
+           <p style="margin:24px 0"><a href="${getAppBaseUrl()}/perfil/videos" style="display:inline-block;background:#6eb0c8;color:#1a2332;padding:14px 28px;border-radius:9999px;font-weight:600;text-decoration:none">Subir vídeos</a></p>`
         : details.paymentUrl
           ? `<p><strong>Paga con tarjeta</strong> para activar la corrección:</p>
-             <p style="margin:24px 0"><a href="${details.paymentUrl}" style="display:inline-block;background:#6eb0c8;color:#1a2332;padding:14px 28px;border-radius:9999px;font-weight:600;text-decoration:none">Pagar ${total} €</a></p>`
-          : `<p>Coordina el pago de ${total} € con Alejandro.</p>`
+             <p style="margin:24px 0"><a href="${details.paymentUrl}" style="display:inline-block;background:#6eb0c8;color:#1a2332;padding:14px 28px;border-radius:9999px;font-weight:600;text-decoration:none">Pagar ${total} €</a></p>
+             <p>Tras pagar, sube el material en <a href="${getAppBaseUrl()}/perfil/videos">Mis vídeos</a>.</p>`
+          : `<p>Coordina el pago de ${total} € con Alejandro. Luego sube el material en <a href="${getAppBaseUrl()}/perfil/videos">Mis vídeos</a>.</p>`
     }
-    <p>Envía o comparte el enlace del vídeo respondiendo a este email si aún no lo hiciste.</p>
   `;
 
   await transport.sendMail({
@@ -422,6 +423,32 @@ export async function sendVideoCorrectionConfirmedEmails(
     replyTo: COACH_EMAIL,
     subject: `Video corrección confirmada — ${label}`,
     html: studentHtml,
+  });
+}
+
+/** Tras pagar video corrección (Stripe) */
+export async function sendVideoCorrectionPaidEmail(
+  details: VideoCorrectionEmailDetails,
+): Promise<void> {
+  if (!isEmailConfigured()) return;
+
+  const transport = getTransport();
+  const from = fromAddress();
+  const label = `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`;
+  const videosUrl = `${getAppBaseUrl()}/perfil/videos`;
+
+  await transport.sendMail({
+    from: `"AM Snowboard Coach" <${from}>`,
+    to: details.studentEmail,
+    replyTo: COACH_EMAIL,
+    subject: `Pago recibido — sube tu material (${label})`,
+    html: `
+      <h2>Pago confirmado</h2>
+      <p>Hola ${details.studentName},</p>
+      <p>Hemos recibido <strong>${details.totalEuros} €</strong> por la corrección de <strong>${label}</strong>.</p>
+      <p style="margin:24px 0"><a href="${videosUrl}" style="display:inline-block;background:#6eb0c8;color:#1a2332;padding:14px 28px;border-radius:9999px;font-weight:600;text-decoration:none">Subir vídeos</a></p>
+      <p>Cuando Alejandro publique la corrección, la verás en la misma página.</p>
+    `,
   });
 }
 

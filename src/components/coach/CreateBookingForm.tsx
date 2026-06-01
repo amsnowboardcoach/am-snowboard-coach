@@ -10,16 +10,29 @@ import { createBooking } from "@/lib/firebase/bookings";
 import { fromDatetimeLocalValue, toDatetimeLocalValue } from "@/lib/utils/dates";
 import type { BookingStatus, PaymentStatus } from "@/types/firestore";
 
+export interface CreateBookingStudentPrefill {
+  displayName: string;
+  email?: string;
+  userId?: string;
+}
+
 interface CreateBookingFormProps {
   coachId: string;
   onCreated: () => void;
   defaultOpen?: boolean;
+  /** Pre-rellena datos del alumno (ficha del coach). */
+  studentPrefill?: CreateBookingStudentPrefill;
+  title?: string;
+  description?: string;
 }
 
 export function CreateBookingForm({
   coachId,
   onCreated,
   defaultOpen = false,
+  studentPrefill,
+  title = "Nueva reserva",
+  description = "No sustituye la reserva online; úsala para casos puntuales.",
 }: CreateBookingFormProps) {
   const defaultStart = new Date();
   defaultStart.setHours(10, 0, 0, 0);
@@ -28,8 +41,10 @@ export function CreateBookingForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [studentDisplayName, setStudentDisplayName] = useState("");
-  const [studentEmail, setStudentEmail] = useState("");
+  const [studentDisplayName, setStudentDisplayName] = useState(
+    studentPrefill?.displayName ?? "",
+  );
+  const [studentEmail, setStudentEmail] = useState(studentPrefill?.email ?? "");
   const [lessonTypeId, setLessonTypeId] = useState<string>(LESSON_TYPES[0].id);
   const [startAt, setStartAt] = useState(toDatetimeLocalValue(defaultStart));
   const [sessionId, setSessionId] = useState<string>("2h");
@@ -77,6 +92,7 @@ export function CreateBookingForm({
         coachId,
         studentDisplayName,
         studentEmail: studentEmail || undefined,
+        userId: studentPrefill?.userId,
         lessonTypeId,
         startAt: fromDatetimeLocalValue(startAt),
         durationMinutes,
@@ -84,8 +100,10 @@ export function CreateBookingForm({
         paymentStatus,
         status,
       });
-      setStudentDisplayName("");
-      setStudentEmail("");
+      if (!studentPrefill) {
+        setStudentDisplayName("");
+        setStudentEmail("");
+      }
       setOpen(false);
       onCreated();
     } catch (err) {
@@ -99,14 +117,16 @@ export function CreateBookingForm({
     return (
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-zinc-400">
-          Reservas manuales (teléfono, WhatsApp) con los mismos turnos que la web.
+          {studentPrefill
+            ? `Reserva una clase para ${studentPrefill.displayName} con los turnos de la web.`
+            : "Reservas manuales (teléfono, WhatsApp) con los mismos turnos que la web."}
         </p>
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="shrink-0 rounded-full bg-sky-500 px-6 py-3 text-sm font-semibold text-zinc-950 hover:bg-sky-400"
+          className="min-h-11 shrink-0 touch-manipulation rounded-full bg-sky-500 px-6 py-3 text-sm font-semibold text-zinc-950 hover:bg-sky-400"
         >
-          + Nueva reserva manual
+          + Reservar clase
         </button>
       </div>
     );
@@ -117,28 +137,28 @@ export function CreateBookingForm({
       onSubmit={handleSubmit}
       className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6"
     >
-      <h2 className="text-lg font-semibold">Nueva reserva</h2>
-      <p className="mt-1 text-sm text-zinc-500">
-        No sustituye la reserva online; úsala para casos puntuales.
-      </p>
+      <h2 className="text-lg font-semibold">{title}</h2>
+      <p className="mt-1 text-sm text-zinc-500">{description}</p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <label className="block text-sm text-zinc-300">
           Nombre del alumno *
           <input
             required
+            readOnly={Boolean(studentPrefill)}
             value={studentDisplayName}
             onChange={(e) => setStudentDisplayName(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2"
+            className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 read-only:opacity-80"
           />
         </label>
         <label className="block text-sm text-zinc-300">
-          Email (opcional)
+          Email {studentPrefill ? "" : "(opcional)"}
           <input
             type="email"
+            readOnly={Boolean(studentPrefill?.email)}
             value={studentEmail}
             onChange={(e) => setStudentEmail(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2"
+            className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 read-only:opacity-80"
           />
         </label>
         <label className="block text-sm text-zinc-300">

@@ -20,13 +20,7 @@ export default function VideosPage() {
 
   return (
     <div>
-      <Link
-        href="/perfil"
-        className="text-sm text-zinc-500 hover:text-sky-400"
-      >
-        ← Mi perfil
-      </Link>
-      <h1 className="mt-4 text-3xl font-bold">Video corrección</h1>
+      <h1 className="text-3xl font-bold">Video corrección</h1>
       <p className="mt-2 text-zinc-400">
         Sube tu vídeo y consulta aquí los apuntes de Alejandro cuando publique la
         corrección.
