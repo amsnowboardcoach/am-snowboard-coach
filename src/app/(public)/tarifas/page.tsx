@@ -14,8 +14,6 @@ import {
 } from "@/constants/booking-payment";
 import {
   SESSION_DURATIONS,
-  formatExtraParticipantsNote,
-  formatSessionPrice,
   sessionTotalEuros,
   type SessionDuration,
 } from "@/constants/session-schedules";
@@ -75,12 +73,6 @@ function PricingCard({
         <p className="text-4xl font-bold tracking-tight text-sky-300">
           {total}
           <span className="ml-1 text-lg font-medium text-zinc-500">€</span>
-        </p>
-        <p className="mt-1 text-xs text-zinc-500">
-          1 persona · {formatSessionPrice(session)}
-        </p>
-        <p className="mt-2 text-xs text-zinc-600">
-          {formatExtraParticipantsNote(session)}
         </p>
       </div>
 

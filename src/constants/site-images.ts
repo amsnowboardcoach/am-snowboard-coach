@@ -30,6 +30,18 @@ export const FALLBACK_SITE_MEDIA = {
       alt: "Monitor en pista, Sierra Nevada",
     },
   },
+  sobreMi: {
+    image: {
+      src: "https://images.unsplash.com/photo-1519904986952-783f3e629f72?w=1600&q=80",
+      alt: "Monitor de snowboard con alumno en Sierra Nevada",
+    },
+  },
+  sobreMiPortrait: {
+    image: {
+      src: "https://images.unsplash.com/photo-1591279019529-929381550c80?w=900&q=80",
+      alt: "Clase de snowboard en nieve, Sierra Nevada",
+    },
+  },
   reservar: {
     image: {
       src: "https://images.unsplash.com/photo-1471295253337-452af363e55f?w=1600&q=80",

@@ -35,6 +35,7 @@ const PHOTO_QUERIES = [
   "snowboard freestyle Sierra Nevada España",
   "Sierra Nevada resort snow Spain mountains",
   "monitor snowboard Sierra Nevada pista",
+  "snowboard instructor teaching student snow mountain",
 ] as const;
 
 const VIDEO_QUERIES = [

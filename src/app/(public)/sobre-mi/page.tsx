@@ -1,8 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { PageHero } from "@/components/layout/PageHero";
+import {
+  COACH_PUBLIC_HOURS,
+  COACH_PUBLIC_HOURS_NOTE,
+  COACH_WHATSAPP_DISPLAY,
+  getCoachPhoneTelUrl,
+} from "@/constants/coach-contact";
+import { COACH_EMAIL } from "@/constants/project";
 import { getSiteMedia } from "@/lib/pexels/site-media";
-
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata = buildPageMetadata({
@@ -22,8 +28,8 @@ export default async function SobreMiPage() {
         eyebrow="Head Coach"
         title="Alejandro Martín"
         subtitle="Fundador de AM Snowboard Coach · 15 temporadas en Sierra Nevada y Snowpark Sulayr"
-        imageSrc={media.coach.image.src}
-        imageAlt={media.coach.image.alt}
+        imageSrc={media.sobreMi.image.src}
+        imageAlt={media.sobreMi.image.alt}
       />
 
       <section className="page-container section-pad">
@@ -46,7 +52,7 @@ export default async function SobreMiPage() {
             </p>
             <Link
               href="/reservar"
-              className="inline-flex rounded-full bg-sky-500 px-8 py-3 font-semibold text-zinc-950 hover:bg-sky-400"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-sky-500 px-8 py-3.5 font-semibold text-zinc-950 shadow-xl shadow-sky-500/25 transition hover:bg-sky-400 sm:w-auto"
             >
               Reservar una clase
             </Link>
@@ -54,25 +60,46 @@ export default async function SobreMiPage() {
           <div className="space-y-4">
             <div className="relative aspect-[3/4] overflow-hidden rounded-2xl">
               <Image
-                src={media.pista.image.src}
-                alt={media.pista.image.alt}
+                src={media.sobreMiPortrait.image.src}
+                alt={media.sobreMiPortrait.image.alt}
                 fill
                 className="object-cover"
                 sizes="340px"
               />
             </div>
-            <div className="glass-panel rounded-2xl p-5 text-sm text-zinc-400">
-              <p className="font-medium text-zinc-200">Sierra Nevada</p>
-              <p className="mt-1">Sierra Nevada · Granada · Horario diurno</p>
-              <p className="mt-4 font-medium text-zinc-200">Contacto</p>
-              <p className="mt-1">
-                <a
-                  href="mailto:amsnowboardcoach@gmail.com"
-                  className="text-sky-400 hover:underline"
-                >
-                  amsnowboardcoach@gmail.com
-                </a>
-              </p>
+            <div className="glass-panel space-y-4 rounded-2xl p-5 text-sm text-zinc-400 sm:p-6">
+              <div>
+                <p className="font-medium text-zinc-200">Ubicación</p>
+                <p className="mt-1">Sierra Nevada · Granada</p>
+              </div>
+              <div>
+                <p className="font-medium text-zinc-200">Horario de atención</p>
+                <p className="mt-1 text-zinc-300">{COACH_PUBLIC_HOURS}</p>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+                  {COACH_PUBLIC_HOURS_NOTE}
+                </p>
+              </div>
+              <div>
+                <p className="font-medium text-zinc-200">Contacto</p>
+                <ul className="mt-2 space-y-2">
+                  <li>
+                    <a
+                      href={`mailto:${COACH_EMAIL}`}
+                      className="text-sky-400 transition hover:text-sky-300 hover:underline"
+                    >
+                      {COACH_EMAIL}
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href={getCoachPhoneTelUrl()}
+                      className="text-sky-400 transition hover:text-sky-300 hover:underline"
+                    >
+                      {COACH_WHATSAPP_DISPLAY}
+                    </a>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

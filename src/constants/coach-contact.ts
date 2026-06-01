@@ -16,6 +16,16 @@ export const COACH_WHATSAPP_DISPLAY =
   DEFAULT_ISSUER.phone ||
   "+34 617 354 031";
 
+/** Horario de atención al público (consultas, reservas). */
+export const COACH_PUBLIC_HOURS = "9:00 – 20:00";
+export const COACH_PUBLIC_HOURS_NOTE =
+  "Atención al público de 9:00 a 20:00, todos los días.";
+
+/** Enlace tel: para llamar al coach. */
+export function getCoachPhoneTelUrl(): string {
+  return `tel:+${coachWhatsAppDigits()}`;
+}
+
 /** Enlace wa.me para abrir chat (opcional mensaje precargado). */
 export function getCoachWhatsAppUrl(prefill?: string): string {
   const base = `https://wa.me/${coachWhatsAppDigits()}`;

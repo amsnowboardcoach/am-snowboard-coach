@@ -19,6 +19,9 @@ export interface SiteMedia {
   sierra: MediaSlot;
   coach: MediaSlot;
   reservar: MediaSlot;
+  /** Hero y retrato de /sobre-mi (monitor, clase en pista) */
+  sobreMi: MediaSlot;
+  sobreMiPortrait: MediaSlot;
   lessonCards: PexelsPhoto[];
   gallery: PexelsPhoto[];
   videos: PexelsVideo[];
@@ -34,6 +37,8 @@ const SLOT_INDEX = {
   reservar: 5,
   lessonStart: 6,
   galleryStart: 9,
+  sobreMi: 10,
+  sobreMiPortrait: 11,
 } as const;
 
 function slotFromPhoto(
@@ -86,6 +91,14 @@ export async function getSiteMedia(): Promise<SiteMedia> {
     reservar: slotFromPhoto(
       pickPhoto(pool, SLOT_INDEX.reservar),
       fb.reservar.image,
+    ),
+    sobreMi: slotFromPhoto(
+      pickPhoto(pool, SLOT_INDEX.sobreMi),
+      fb.sobreMi.image,
+    ),
+    sobreMiPortrait: slotFromPhoto(
+      pickPhoto(pool, SLOT_INDEX.sobreMiPortrait),
+      fb.sobreMiPortrait.image,
     ),
     lessonCards:
       lessonCards.length >= 3

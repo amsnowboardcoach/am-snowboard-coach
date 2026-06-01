@@ -54,7 +54,7 @@ export function TribePhotoGrid() {
             {photos.map((photo) => (
               <Link
                 key={photo.id}
-                href="/tribu"
+                href={`/tribu?post=${photo.id}`}
                 className="group relative aspect-square overflow-hidden rounded-xl bg-zinc-900"
               >
                 <Image

@@ -27,6 +27,7 @@ interface TribePostCardProps {
   compact?: boolean;
   videoVertical?: boolean;
   highlighted?: boolean;
+  openCommentsOnMount?: boolean;
   onFireChange?: (postId: string, fireCount: number) => void;
 }
 
@@ -35,13 +36,14 @@ export function TribePostCard({
   compact = false,
   videoVertical = false,
   highlighted = false,
+  openCommentsOnMount = false,
   onFireChange,
 }: TribePostCardProps) {
   const { user, profile } = useAuth();
   const [fired, setFired] = useState(false);
   const [fireCount, setFireCount] = useState(post.fireCount);
   const [commentCount, setCommentCount] = useState(post.commentCount);
-  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(openCommentsOnMount);
   const [comments, setComments] = useState<TribeComment[]>([]);
   const [commentText, setCommentText] = useState("");
   const [guestName, setGuestName] = useState("");
@@ -157,9 +159,10 @@ export function TribePostCard({
     <article
       id={`tribe-post-${post.id}`}
       className={cn(
-        "overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50",
+        "scroll-mt-header overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50 shadow-sm",
         compact && "max-w-sm",
-        highlighted && "ring-2 ring-sky-500/60",
+        highlighted &&
+          "ring-2 ring-sky-500/50 shadow-lg shadow-sky-500/10",
       )}
     >
       <header className="flex items-center gap-3 px-4 py-3">
@@ -221,39 +224,51 @@ export function TribePostCard({
       </div>
 
       <div className="px-4 py-3">
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
           <button
             type="button"
             onClick={() => void handleFire()}
             disabled={acting}
             className={cn(
-              "flex min-h-11 min-w-11 touch-manipulation items-center justify-center gap-1.5 rounded-xl text-sm transition sm:min-h-0 sm:min-w-0",
-              fired ? "text-orange-400" : "text-zinc-300 hover:text-orange-300",
+              "flex min-h-11 touch-manipulation items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition",
+              fired
+                ? "bg-orange-500/15 text-orange-300"
+                : "text-zinc-300 hover:bg-zinc-800/80 hover:text-orange-200",
             )}
             aria-pressed={fired}
-            title="Me gusta"
+            aria-label={fired ? "Quitar me gusta" : "Me gusta"}
           >
-            <span className="text-lg" aria-hidden>
+            <span className="text-base" aria-hidden>
               {fired ? "♥" : "♡"}
             </span>
-            <span>{fireCount}</span>
+            <span>{fireCount > 0 ? fireCount : "Me gusta"}</span>
           </button>
           <button
             type="button"
             onClick={() => setCommentsOpen((o) => !o)}
-            className="flex min-h-11 min-w-11 touch-manipulation items-center justify-center gap-1.5 rounded-xl text-sm text-zinc-300 active:text-sky-300 sm:min-h-0 sm:min-w-0"
+            aria-expanded={commentsOpen}
+            className={cn(
+              "flex min-h-11 touch-manipulation items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition",
+              commentsOpen
+                ? "bg-sky-500/15 text-sky-300"
+                : "text-zinc-300 hover:bg-zinc-800/80 hover:text-sky-200",
+            )}
           >
-            <span className="text-lg" aria-hidden>
+            <span className="text-base" aria-hidden>
               💬
             </span>
-            <span>{commentCount}</span>
+            <span>
+              {commentCount > 0
+                ? `${commentCount} comentario${commentCount === 1 ? "" : "s"}`
+                : "Comentar"}
+            </span>
           </button>
           <button
             type="button"
             onClick={() => void handleShare()}
-            className="ml-auto flex min-h-11 items-center rounded-xl px-3 text-sm text-zinc-300 active:text-sky-300"
+            className="ml-auto flex min-h-11 touch-manipulation items-center rounded-xl px-3 py-2 text-sm font-medium text-zinc-400 transition hover:bg-zinc-800/80 hover:text-sky-200"
           >
-            Compartir ↗
+            Compartir
           </button>
         </div>
         {shareHint && (
@@ -274,48 +289,54 @@ export function TribePostCard({
         )}
 
         {commentsOpen && (
-          <div className="mt-4 border-t border-zinc-800 pt-3">
+          <div className="mt-4 rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3 sm:p-4">
             {loadingComments ? (
               <p className="text-xs text-zinc-500">Cargando comentarios…</p>
             ) : (
-              <ul className="max-h-40 space-y-2 overflow-y-auto">
+              <ul className="max-h-48 space-y-3 overflow-y-auto">
                 {comments.length === 0 && (
-                  <li className="text-xs text-zinc-500">
+                  <li className="text-sm text-zinc-500">
                     Sé el primero en comentar
                   </li>
                 )}
                 {comments.map((c) => (
-                  <li key={c.id} className="text-sm">
-                    <span className="font-medium text-zinc-200">
+                  <li
+                    key={c.id}
+                    className="text-sm leading-relaxed"
+                  >
+                    <span className="font-semibold text-zinc-100">
                       {c.authorDisplayName}
-                    </span>{" "}
-                    <span className="text-zinc-400">{c.text}</span>
+                    </span>
+                    <span className="mt-0.5 block text-zinc-400">{c.text}</span>
                   </li>
                 ))}
               </ul>
             )}
-            <form onSubmit={(e) => void handleComment(e)} className="mt-3 space-y-2">
+            <form
+              onSubmit={(e) => void handleComment(e)}
+              className="mt-4 space-y-2 border-t border-zinc-800/80 pt-3"
+            >
               {needsGuestName && (
                 <input
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
                   placeholder="Tu nombre (visible en el comentario)"
                   maxLength={40}
-                  className="w-full rounded-full border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                  className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-100"
                 />
               )}
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Añade un comentario…"
+                  placeholder="Escribe un comentario…"
                   maxLength={500}
-                  className="min-w-0 flex-1 rounded-full border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                  className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-100"
                 />
                 <button
                   type="submit"
                   disabled={acting || !commentText.trim()}
-                  className="shrink-0 rounded-full bg-sky-500/20 px-4 py-2 text-sm font-medium text-sky-300 hover:bg-sky-500/30 disabled:opacity-40"
+                  className="shrink-0 rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-sky-400 disabled:opacity-40 sm:min-w-[6.5rem]"
                 >
                   Enviar
                 </button>
