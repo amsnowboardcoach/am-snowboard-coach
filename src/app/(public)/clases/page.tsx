@@ -37,7 +37,7 @@ const LESSON_HIGHLIGHTS: Record<LessonTypeId, string[]> = {
   ],
   carving: [
     "Uso de cantos y giros cerrados",
-    "Velocidad con control en azul y rojo",
+    "Velocidad y control en pistas azules y rojas",
     "Técnica progresiva según tu nivel",
   ],
   "freestyle-sulayr": [
