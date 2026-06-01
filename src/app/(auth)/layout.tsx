@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import { CookieBanner } from "@/components/legal/CookieBanner";
 import { SiteChrome } from "@/components/layout/SiteChrome";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -53,26 +52,6 @@ export default async function AuthLayout({
         </div>
         <main className="flex flex-1 items-center justify-center px-4 py-12">
           <div className="w-full max-w-md">
-            <div className="mb-8 flex flex-wrap gap-4 text-sm lg:hidden">
-              <Link
-                href="/"
-                className="text-zinc-500 transition hover:text-zinc-300"
-              >
-                ← Inicio
-              </Link>
-              <Link
-                href="/reservar"
-                className="text-sky-400 transition hover:text-sky-300"
-              >
-                Reservar clase
-              </Link>
-              <Link
-                href="/clases"
-                className="text-zinc-500 transition hover:text-zinc-300"
-              >
-                Clases
-              </Link>
-            </div>
             {children}
           </div>
         </main>
