@@ -23,6 +23,8 @@ export interface CreateBookingCheckoutInput {
   /** Título línea Stripe (ej. Video corrección) */
   productTitle?: string;
   productDescription?: string;
+  successUrl?: string;
+  cancelUrl?: string;
 }
 
 export async function createBookingCheckoutSession(
@@ -67,8 +69,11 @@ export async function createBookingCheckoutSession(
         },
       },
     ],
-    success_url: `${base}/reservar?paid=1&booking=${input.bookingId}`,
-    cancel_url: `${base}/reservar?cancelled=1&booking=${input.bookingId}`,
+    success_url:
+      input.successUrl ?? `${base}/reservar?paid=1&booking=${input.bookingId}`,
+    cancel_url:
+      input.cancelUrl ??
+      `${base}/reservar?cancelled=1&booking=${input.bookingId}`,
   });
 
   if (!session.url) {

@@ -7,7 +7,7 @@ import {
   getAllSlugs,
   getPostBySlug,
 } from "@/content/blog/posts";
-import { blogPostingJsonLd, JsonLd } from "@/lib/seo/json-ld";
+import { blogPostingJsonLd, breadcrumbJsonLd, JsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -51,6 +51,12 @@ export default async function BlogPostPage({ params }: PageProps) {
           publishedAt: post.publishedAt,
           modifiedAt: post.updatedAt,
         })}
+      />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Blog", path: "/blog" },
+          { name: post.title, path: `/blog/${post.slug}` },
+        ])}
       />
 
       <header>

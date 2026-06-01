@@ -565,18 +565,17 @@ export async function notifyAfterBookingPaid(booking: {
     isVideoCorrectionProduct(booking.lessonTypeId);
 
   if (isVideo) {
-    const videoCount = booking.videoCount ?? 1;
     if (booking.userId) {
-      await notifyStudentVideoCorrectionPaid({
+      await notifyStudentPaymentReceived({
         userId: booking.userId,
         amountEuros,
-        videoCount,
+        productLabel: "Video corrección",
       });
     }
-    await notifyCoachVideoCorrectionPaid({
+    await notifyCoachPaymentReceived({
       studentName,
       amountEuros,
-      videoCount,
+      productLabel: "Video corrección",
       bookingId: booking.id,
     });
     return;

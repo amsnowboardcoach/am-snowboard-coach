@@ -9,13 +9,9 @@ import { setBookingPendingSubmit } from "@/lib/booking/booking-draft";
 import { cn } from "@/lib/utils/cn";
 interface BookingAuthGateProps {
   totalEuros: number;
-  /** Importe que se cobra ahora (por defecto = total) */
-  chargeEuros?: number;
   summary: string;
   onError?: (message: string | null) => void;
   onGoogleSuccess?: () => void;
-  onConfirm?: () => void | Promise<void>;
-  confirming?: boolean;
   className?: string;
   /** Título del bloque sin sesión (por defecto: clase en pista) */
   headline?: string;
@@ -23,16 +19,12 @@ interface BookingAuthGateProps {
 
 export function BookingAuthGate({
   totalEuros,
-  chargeEuros: chargeEurosProp,
   summary,
   onError,
   onGoogleSuccess,
-  onConfirm,
-  confirming = false,
   className,
   headline = "Tu clase está lista",
 }: BookingAuthGateProps) {
-  const chargeEuros = chargeEurosProp ?? totalEuros;
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user, profile, loading } = useAuth();
@@ -52,47 +44,7 @@ export function BookingAuthGate({
   }
 
   if (user?.email && profile) {
-    const name =
-      profile?.displayName?.trim() ||
-      user.displayName?.trim() ||
-      user.email.split("@")[0];
-    return (
-      <div
-        className={cn(
-          "scroll-mt-header alert-success px-4 py-5",
-          className,
-        )}
-        id="booking-auth-gate"
-      >
-        <p className="font-medium text-emerald-200">
-          Hola {name}, ya puedes confirmar
-        </p>
-        <p className="mt-1 text-zinc-400">{summary}</p>
-        <p className="mt-2 text-lg font-semibold text-sky-300">
-          {totalEuros} € total
-          {chargeEuros < totalEuros && (
-            <span className="mt-0.5 block text-sm font-normal text-zinc-400">
-              Pago ahora: {chargeEuros} €
-            </span>
-          )}
-        </p>
-        {onConfirm && (
-          <button
-            type="button"
-            disabled={confirming}
-            onClick={() => void onConfirm()}
-            className="mt-4 btn-primary-md w-full disabled:cursor-not-allowed"
-          >
-            {confirming
-              ? "Preparando pago…"
-              : `Confirmar y pagar ${chargeEuros} €`}
-          </button>
-        )}
-        <p className="mt-3 text-center text-xs text-zinc-500">
-          Te llevamos a Stripe para pagar con tarjeta de forma segura.
-        </p>
-      </div>
-    );
+    return null;
   }
 
   return (

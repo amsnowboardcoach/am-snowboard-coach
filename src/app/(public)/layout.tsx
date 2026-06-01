@@ -4,7 +4,7 @@ import { SiteChrome } from "@/components/layout/SiteChrome";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SkipToContent } from "@/components/layout/SkipToContent";
-import { JsonLd, localBusinessJsonLd } from "@/lib/seo/json-ld";
+import { JsonLd, publicSiteJsonLdGraph } from "@/lib/seo/json-ld";
 
 export default function PublicLayout({
   children,
@@ -13,7 +13,7 @@ export default function PublicLayout({
 }) {
   return (
     <div className="site-mesh flex min-h-dvh flex-col">
-      <JsonLd data={localBusinessJsonLd()} />
+      <JsonLd data={publicSiteJsonLdGraph()} />
       <SkipToContent />
       <SiteHeader />
       <main

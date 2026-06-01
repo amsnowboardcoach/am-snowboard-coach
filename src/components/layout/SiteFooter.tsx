@@ -50,11 +50,11 @@ export function SiteFooter() {
             href="/"
             className="inline-block text-lg font-bold transition-colors duration-200 hover:text-zinc-200"
           >
-            AM <span className="brand-text">Snowboard</span> Coach
+            <span className="brand-text">Snowboard</span> Coach
           </Link>
           <p className="mt-3 max-w-sm text-sm text-zinc-400">
             Clases de snowboard en Sierra Nevada (Granada). Técnica, seguridad
-            y seguimiento con Alejandro Martín, Head Coach AM.
+            y seguimiento con Alejandro Martín, Head Coach.
           </p>
           <Link
             href="/reservar"
@@ -126,7 +126,7 @@ export function SiteFooter() {
           className="mt-4 text-center text-xs text-zinc-500"
           suppressHydrationWarning
         >
-          © {new Date().getFullYear()} AM Snowboard Coach · Sierra Nevada
+          © {new Date().getFullYear()} Snowboard Coach · Sierra Nevada
         </p>
       </div>
     </footer>

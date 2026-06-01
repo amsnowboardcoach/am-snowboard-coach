@@ -21,7 +21,6 @@ import { es } from "date-fns/locale";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BookingAuthGate } from "@/components/booking/BookingAuthGate";
 import { BookingAvailabilityCalendar } from "@/components/booking/BookingAvailabilityCalendar";
-import { BookingCancellationPolicy } from "@/components/booking/BookingCancellationPolicy";
 import type { DurationAvailabilityStatus } from "@/lib/booking/duration-availability";
 import { CoachWhatsAppCard } from "@/components/contact/CoachWhatsAppCard";
 import {
@@ -284,6 +283,7 @@ export function BookingForm() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [showAuthGate, setShowAuthGate] = useState(false);
+  const autoSubmitStarted = useRef(false);
 
   const [success, setSuccess] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
@@ -819,6 +819,7 @@ export function BookingForm() {
       setDepositPaidSuccess(false);
       scrollToTop();
     } catch (err) {
+      autoSubmitStarted.current = false;
       setSubmitError(
         err instanceof Error ? err.message : "No se pudo enviar la solicitud",
       );
@@ -872,12 +873,27 @@ export function BookingForm() {
   }
 
   useEffect(() => {
-    if (!showAuthGate || !formReady) return;
+    if (!showAuthGate || !formReady || canBook) return;
     const timer = window.setTimeout(() => {
       scrollToId("booking-auth-gate", { block: "start" });
     }, 80);
     return () => window.clearTimeout(timer);
-  }, [showAuthGate, formReady]);
+  }, [showAuthGate, formReady, canBook]);
+
+  useEffect(() => {
+    if (
+      authLoading ||
+      !showAuthGate ||
+      !canBook ||
+      !formReady ||
+      autoSubmitStarted.current
+    ) {
+      return;
+    }
+    autoSubmitStarted.current = true;
+    void confirmBookingAfterAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-pago tras login
+  }, [authLoading, showAuthGate, canBook, formReady]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -1147,8 +1163,6 @@ export function BookingForm() {
         </div>
       </FieldBlock>
 
-      <BookingCancellationPolicy compact />
-
       <div
         id="booking-summary"
         className={cn(
@@ -1190,14 +1204,14 @@ export function BookingForm() {
                   : !contactReady
                     ? "Indica tu teléfono móvil"
                     : "Completa día, turno y estilo"
-              : showAuthGate && canBook
-                ? `Confirmar y pagar ${chargeEuros} €`
-                : `Reservar y pagar ${chargeEuros} €`}
+              : `Reservar y pagar ${chargeEuros} €`}
         </button>
         <p className="mt-2 text-center text-xs text-zinc-500">
-          {formReady && !showAuthGate
-            ? "Al pulsar reservar verás el último paso (entrar o registrarte). "
-            : null}
+          {formReady && !canBook
+            ? "Entra con tu cuenta de alumno y te llevamos al pago con tarjeta. "
+            : formReady
+              ? "Pago seguro con Stripe. "
+              : null}
           {BOOKING_PAYMENT_OPTIONS_NOTE}
         </p>
       </div>
@@ -1214,14 +1228,11 @@ export function BookingForm() {
         </p>
       )}
 
-      {showAuthGate && formReady && (
+      {showAuthGate && formReady && !canBook && (
         <BookingAuthGate
           className="scroll-mt-header"
           totalEuros={totalEuros}
-          chargeEuros={chargeEuros}
           summary={bookingSummary}
-          confirming={submitting}
-          onConfirm={confirmBookingAfterAuth}
           onError={setAuthError}
           onGoogleSuccess={async () => {
             setShowAuthGate(true);

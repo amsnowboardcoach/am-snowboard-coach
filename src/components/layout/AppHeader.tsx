@@ -22,7 +22,7 @@ export function AppHeader() {
         { href: "/tribu", label: "La Tribu" },
         { href: "/mercadillo", label: "Mercadillo" },
         { href: "/", label: "Web pública" },
-        { href: "#", label: "Cerrar sesión", onClick: signOut },
+        { href: "#", label: "Cerrar sesión", onClick: signOut, variant: "danger" },
       ]
     : [
         { href: "/perfil", label: "Perfil" },
@@ -34,7 +34,7 @@ export function AppHeader() {
         { href: "/mercadillo", label: "Mercadillo" },
         { href: "/reservar", label: "Reservar clase", primary: true },
         { href: "/", label: "Web pública" },
-        { href: "#", label: "Cerrar sesión", onClick: signOut },
+        { href: "#", label: "Cerrar sesión", onClick: signOut, variant: "danger" },
       ];
 
   return (

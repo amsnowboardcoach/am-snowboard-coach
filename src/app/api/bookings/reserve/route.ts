@@ -344,23 +344,26 @@ export async function POST(request: NextRequest) {
       console.error("[reserve] Email:", mailErr);
     }
 
-    try {
-      await coachNotifyNewSessionBooking({
-        studentName,
-        studentEmail,
-        lessonTypeName: lesson ? lessonPublicName(lesson) : session.name,
-        sessionLabel: session.name,
-        slotLabel: first.slotLabel,
-        startAt: first.startAt,
-        endAt: first.endAt,
-        totalEuros,
-        paymentPending: isOnlinePaymentOption(paymentOption),
-        bookingId: bookingIds[0]!,
-        bookingNotes: contactNotes,
-        participantCount,
-      });
-    } catch (notifyErr) {
-      console.error("[reserve] Aviso coach:", notifyErr);
+    // Pago con tarjeta: el coach solo recibe push/email/WhatsApp tras Stripe (webhook).
+    if (!isOnlinePaymentOption(paymentOption)) {
+      try {
+        await coachNotifyNewSessionBooking({
+          studentName,
+          studentEmail,
+          lessonTypeName: lesson ? lessonPublicName(lesson) : session.name,
+          sessionLabel: session.name,
+          slotLabel: first.slotLabel,
+          startAt: first.startAt,
+          endAt: first.endAt,
+          totalEuros,
+          paymentPending: false,
+          bookingId: bookingIds[0]!,
+          bookingNotes: contactNotes,
+          participantCount,
+        });
+      } catch (notifyErr) {
+        console.error("[reserve] Aviso coach:", notifyErr);
+      }
     }
 
     const chargeEuros = Math.round(paymentBreakdown.chargeAmountCents / 100);

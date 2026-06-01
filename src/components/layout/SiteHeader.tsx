@@ -39,7 +39,7 @@ export function SiteHeader({ className }: SiteHeaderProps) {
       base.push(
         { href: privateHref, label: privateLabel },
         { href: SITE_HEADER_CTA.href, label: SITE_HEADER_CTA.label, primary: true },
-        { href: "#", label: "Cerrar sesión", onClick: signOut },
+        { href: "#", label: "Cerrar sesión", onClick: signOut, variant: "danger" },
       );
       return base;
     }

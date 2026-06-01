@@ -66,8 +66,11 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
       booking.payment.paymentOption === "after_confirm" ||
       booking.source === "web");
 
+  const awaitsVideoPayment =
+    needsApproval && isVideo && !paymentReady && booking.source === "web";
+
   const canAcceptSession = needsApproval && !isVideo && paymentReady;
-  const canAcceptVideo = needsApproval && isVideo;
+  const canAcceptVideo = needsApproval && isVideo && paymentReady;
 
   const studentName =
     booking.studentDisplayName ||
@@ -218,7 +221,11 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
         <div className="mt-4 space-y-3">
           <p className="text-sm text-amber-200">
             {isVideo
-              ? "Solicitud de video corrección — confirma para enviar enlace de pago al alumno."
+              ? awaitsVideoPayment
+                ? "Video corrección — el alumno aún no ha pagado con tarjeta. Cuando conste el pago, podrás aceptar la solicitud."
+                : canAcceptVideo
+                  ? "Pago con tarjeta recibido. Acepta para que el alumno pueda subir el material."
+                  : "Solicitud de video corrección pendiente."
               : awaitsOnlinePayment
                 ? "Solicitud desde la web — el alumno aún no ha pagado (debe pulsar «Confirmar y pagar» y terminar en Stripe). Cuando el pago aparezca aquí, podrás aceptar la reserva."
                 : canAcceptSession
@@ -238,7 +245,7 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
                 {confirming
                   ? "Aceptando…"
                   : isVideo
-                    ? "Confirmar y enviar pago"
+                    ? "Aceptar corrección"
                     : "Aceptar reserva"}
               </button>
             )}

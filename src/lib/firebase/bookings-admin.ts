@@ -15,15 +15,17 @@ import { createCalendarEvent } from "@/lib/google/calendar";
 import {
   sendBookingConfirmedEmails,
   sendBookingRejectedEmail,
-  sendCoachBookingPaidAwaitingApprovalEmail,
   type BookingEmailDetails,
 } from "@/lib/email/send-booking";
+import {
+  coachNotifySessionBookingPaidAwaitingApproval,
+  coachNotifyVideoBookingPaidAwaitingApproval,
+} from "@/lib/notify/coach";
 import {
   notifyAfterBookingPaid,
   notifyStudentBookingConfirmed,
   notifyStudentBookingRejected,
 } from "@/lib/push/send-push";
-import { sendCoachBookingPaidWhatsApp } from "@/lib/whatsapp/coach-notify";
 import { getAppBaseUrl } from "@/constants/project";
 import {
   VIDEO_CORRECTION_PRODUCT,
@@ -34,13 +36,11 @@ import {
 import { formatBookingInTimeZone } from "@/lib/booking/format-datetime";
 import {
   sendVideoCorrectionConfirmedEmails,
-  sendVideoCorrectionPaidEmail,
   sendVideoCorrectionRejectedEmail,
 } from "@/lib/email/send-booking";
 import type { BookingPaymentOption } from "@/constants/booking-payment";
 import { isOnlinePaymentOption } from "@/constants/booking-payment";
 import { computeBookingPaymentBreakdown } from "@/lib/booking/payment-amounts";
-import { isStripeConfigured } from "@/lib/stripe/config";
 import { refundBookingStripePayment } from "@/lib/stripe/refund-booking";
 import type { ParsedCalBooking } from "@/lib/cal/parse-payload";
 import type { CalTriggerEvent } from "@/lib/cal/types";
@@ -382,13 +382,29 @@ export async function markBookingsPaidFromStripe(input: {
       );
 
       try {
-        await sendCoachBookingPaidAwaitingApprovalEmail({
-          ...bookingToEmailDetails(sessionBooking, session),
+        await coachNotifySessionBookingPaidAwaitingApproval({
+          bookingId: sessionBooking.id,
+          userId: sessionBooking.userId,
+          studentName:
+            sessionBooking.studentDisplayName ||
+            sessionBooking.studentEmail ||
+            "Alumno",
+          studentEmail: sessionBooking.studentEmail || "",
+          lessonTypeId: sessionBooking.lessonTypeId,
+          lessonTypeName: sessionBooking.lessonTypeName,
+          session,
+          slotLabel: sessionBooking.sessionSlotLabel || session.name,
+          startAt: sessionBooking.startAt,
+          endAt: sessionBooking.endAt,
+          participantCount: sessionBooking.participantCount,
+          bookingNotes: sessionBooking.bookingNotes,
+          paymentOption: sessionBooking.payment.paymentOption,
           totalEuros: Math.round(totalCents / 100),
           chargeEuros: Math.round(chargeCents / 100),
           balanceEuros: Math.round(
             (sessionBooking.payment.balanceAmountCents ?? 0) / 100,
           ),
+          chargeAmountCents: chargeCents,
           sessions:
             groupSessions && groupSessions.length > 1
               ? groupSessions
@@ -398,58 +414,9 @@ export async function markBookingsPaidFromStripe(input: {
               ? `${groupSessions.length} clases`
               : undefined,
         });
-      } catch (mailErr) {
-        console.error("[markBookingPaid] Email coach:", mailErr);
+      } catch (notifyErr) {
+        console.error("[markBookingPaid] Aviso coach:", notifyErr);
       }
-
-      try {
-        await sendCoachBookingPaidWhatsApp({
-          bookingId: sessionBooking.id,
-          studentName:
-            sessionBooking.studentDisplayName ||
-            sessionBooking.studentEmail ||
-            "Alumno",
-          studentEmail: sessionBooking.studentEmail || "",
-          lessonTypeName: sessionBooking.lessonTypeName,
-          sessionLabel: session.name,
-          startAt: sessionBooking.startAt,
-          endAt: sessionBooking.endAt,
-          participantCount: sessionBooking.participantCount,
-          chargeEuros: Math.round(chargeCents / 100),
-          totalEuros: Math.round(totalCents / 100),
-          balanceEuros: Math.round(
-            (sessionBooking.payment.balanceAmountCents ?? 0) / 100,
-          ),
-          paymentOption: sessionBooking.payment.paymentOption,
-          bookingNotes: sessionBooking.bookingNotes,
-          sessions:
-            groupSessions && groupSessions.length > 1
-              ? groupSessions
-              : undefined,
-        });
-      } catch (waErr) {
-        console.error("[markBookingPaid] WhatsApp coach:", waErr);
-      }
-    }
-
-    try {
-      await notifyAfterBookingPaid({
-        id: sessionBooking.id,
-        userId: sessionBooking.userId,
-        studentDisplayName: sessionBooking.studentDisplayName,
-        studentEmail: sessionBooking.studentEmail,
-        lessonTypeId: sessionBooking.lessonTypeId,
-        lessonTypeName: sessionBooking.lessonTypeName,
-        productKind: sessionBooking.productKind,
-        videoCount: sessionBooking.videoCount,
-        sessionDurationId: sessionBooking.sessionDurationId,
-        sessionSlotLabel: sessionBooking.sessionSlotLabel,
-        startAt: sessionBooking.startAt,
-        endAt: sessionBooking.endAt,
-        amountCents: chargeCents,
-      });
-    } catch (pushErr) {
-      console.error("[markBookingPaid] Push:", pushErr);
     }
   }
 
@@ -461,35 +428,19 @@ export async function markBookingsPaidFromStripe(input: {
 
   for (const videoBooking of videoBookings) {
     const details = videoEmailDetails(videoBooking);
-    if (details.studentEmail) {
-      try {
-        await sendVideoCorrectionPaidEmail({
-          ...details,
-          paidWithCard: true,
-        });
-      } catch (mailErr) {
-        console.error("[markBookingPaid] Email video:", mailErr);
-      }
-    }
-
     try {
-      await notifyAfterBookingPaid({
-        id: videoBooking.id,
+      await coachNotifyVideoBookingPaidAwaitingApproval({
+        bookingId: videoBooking.id,
         userId: videoBooking.userId,
-        studentDisplayName: videoBooking.studentDisplayName,
-        studentEmail: videoBooking.studentEmail,
-        lessonTypeId: videoBooking.lessonTypeId,
-        lessonTypeName: videoBooking.lessonTypeName,
-        productKind: videoBooking.productKind,
-        videoCount: videoBooking.videoCount,
-        sessionDurationId: videoBooking.sessionDurationId,
-        sessionSlotLabel: videoBooking.sessionSlotLabel,
-        startAt: videoBooking.startAt,
-        endAt: videoBooking.endAt,
+        studentName: details.studentName,
+        studentEmail: details.studentEmail,
+        videoCount: details.videoCount,
+        totalEuros: details.totalEuros,
+        notes: details.notes,
         amountCents: videoBooking.payment.amountCents,
       });
-    } catch (pushErr) {
-      console.error("[markBookingPaid] Push video:", pushErr);
+    } catch (notifyErr) {
+      console.error("[markBookingPaid] Aviso coach video:", notifyErr);
     }
   }
 }
@@ -687,7 +638,11 @@ export async function createVideoCorrectionBookingFromWeb(
     status: "pending" satisfies BookingStatus,
     payment: {
       status: "pending" as const,
+      paymentOption: "full_stripe" as const,
+      totalAmountCents: videoCorrectionTotalCents(count),
       amountCents: videoCorrectionTotalCents(count),
+      balanceAmountCents: 0,
+      depositAmountCents: 0,
       currency: "EUR" as const,
     },
     invoice: { status: "not_required" as const },
@@ -855,21 +810,27 @@ export async function confirmBookingByCoach(
     booking.productKind === "video_correction" ||
     isVideoCorrectionProduct(booking.lessonTypeId)
   ) {
+    if (
+      booking.source === "web" &&
+      !isSessionPaymentReady(booking.payment)
+    ) {
+      throw new Error(
+        "Debes esperar a que el alumno complete el pago con tarjeta antes de aceptar la solicitud.",
+      );
+    }
+
     await adminDb().collection(BOOKINGS).doc(bookingId).update({
       status: "confirmed" satisfies BookingStatus,
       updatedAt: FieldValue.serverTimestamp(),
     });
 
-    const paymentUrl =
-      isStripeConfigured() && booking.payment.status !== "paid"
-        ? `${getAppBaseUrl()}/pagar/${bookingId}`
-        : undefined;
-
     const details = videoEmailDetails(booking);
     if (details.studentEmail) {
       await sendVideoCorrectionConfirmedEmails({
         ...details,
-        paymentUrl,
+        paidWithCard:
+          booking.payment.status === "paid" ||
+          booking.payment.status === "deposit_paid",
       });
     }
 
@@ -877,7 +838,6 @@ export async function confirmBookingByCoach(
       userId: booking.userId,
       dateLabel: "Video corrección",
       slotLabel: `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`,
-      paymentUrl,
       isVideoCorrection: true,
       videoCount: details.videoCount,
     });

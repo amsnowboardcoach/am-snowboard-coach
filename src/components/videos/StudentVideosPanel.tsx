@@ -104,17 +104,17 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
     <div className="space-y-8">
       {allowance?.pendingRequest && (
         <p className="alert-warning px-4 py-3">
-          Tienes una solicitud de video corrección pendiente de confirmación.
-          Cuando Alejandro la acepte, recibirás el enlace de pago.
+          Tienes una solicitud de video corrección sin completar el pago.{" "}
+          <Link href="/reservar?tipo=video" className="link-accent underline">
+            Vuelve a reservar
+          </Link>{" "}
+          para pagar con tarjeta.
         </p>
       )}
-      {allowance?.awaitingPayment && (
+      {allowance?.awaitingCoachApproval && (
         <p className="rounded-xl border border-sky-500/40 bg-sky-500/10 px-4 py-3 text-sm text-sky-100">
-          Tu corrección está confirmada: revisa el email o{" "}
-          <Link href="/perfil" className="underline">
-            tu perfil
-          </Link>{" "}
-          para completar el pago y activar la subida.
+          Hemos recibido tu pago. Alejandro revisará tu solicitud y te avisará
+          cuando puedas subir el material aquí.
         </p>
       )}
       {allowance && allowance.paidSlots > 0 && (
@@ -125,13 +125,16 @@ export function StudentVideosPanel({ studentId }: StudentVideosPanelProps) {
             : " · Sin cupos libres"}
         </p>
       )}
-      {uploadDisabled && !allowance?.pendingRequest && !allowance?.awaitingPayment && (
+      {uploadDisabled &&
+        !allowance?.pendingRequest &&
+        !allowance?.awaitingCoachApproval && (
         <p className="rounded-xl border border-zinc-700 bg-zinc-900/50 px-4 py-3 text-sm text-zinc-300">
           Para subir un vídeo a corregir,{" "}
           <Link href="/reservar?tipo=video" className="text-sky-300 underline">
-            solicita video corrección
+            reserva video corrección
           </Link>{" "}
-          (20 €/vídeo). Tras confirmación y pago podrás subir aquí.
+          (20 €/vídeo). Pagas con tarjeta y, cuando Alejandro acepte, podrás
+          subir aquí.
         </p>
       )}
 

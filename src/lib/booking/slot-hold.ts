@@ -1,5 +1,6 @@
 import type { BookingPaymentOption } from "@/constants/booking-payment";
 import { isOnlinePaymentOption } from "@/constants/booking-payment";
+import { isVideoCorrectionProduct } from "@/constants/video-correction";
 import type { BookingStatus } from "@/types/firestore";
 
 export type BookingPaymentStatus =
@@ -14,17 +15,23 @@ export function isSessionPaymentSettled(
   return status === "deposit_paid" || status === "paid";
 }
 
-/** Reserva web con pago online (señal o total en Stripe). */
+/** Reserva web con pago online (señal o total en Stripe, o video corrección). */
 export function webBookingRequiresOnlinePayment(data: {
   source?: string;
+  productKind?: string;
+  lessonTypeId?: string;
   payment?: { paymentOption?: BookingPaymentOption };
 }): boolean {
-  return (
-    data.source === "web" &&
-    Boolean(
-      data.payment?.paymentOption &&
-        isOnlinePaymentOption(data.payment.paymentOption),
-    )
+  if (data.source !== "web") return false;
+  if (
+    data.productKind === "video_correction" ||
+    isVideoCorrectionProduct(data.lessonTypeId)
+  ) {
+    return true;
+  }
+  return Boolean(
+    data.payment?.paymentOption &&
+      isOnlinePaymentOption(data.payment.paymentOption),
   );
 }
 
@@ -35,6 +42,8 @@ export function webBookingRequiresOnlinePayment(data: {
 export function bookingHoldsCalendarSlot(data: {
   status: BookingStatus;
   source?: string;
+  productKind?: string;
+  lessonTypeId?: string;
   payment?: {
     status?: BookingPaymentStatus;
     paymentOption?: BookingPaymentOption;
@@ -65,6 +74,8 @@ export function bookingHoldsCalendarSlot(data: {
 export function bookingAwaitingCoachApproval(data: {
   status: BookingStatus;
   source?: string;
+  productKind?: string;
+  lessonTypeId?: string;
   payment: {
     status: BookingPaymentStatus;
     paymentOption?: BookingPaymentOption;

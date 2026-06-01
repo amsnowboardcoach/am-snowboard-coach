@@ -187,6 +187,32 @@ export function buildCoachNewSessionBookingWhatsApp(details: {
   return lines.join("\n");
 }
 
+export function buildCoachVideoBookingPaidWhatsApp(details: {
+  studentName: string;
+  studentEmail: string;
+  videoCount: number;
+  totalEuros: number;
+  bookingId: string;
+  notes?: string;
+}): string {
+  const panelUrl = `${getAppBaseUrl()}/coach?tab=reservas`;
+  const label = `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`;
+  const lines = [
+    "AM Snowboard Coach",
+    "Video corrección — pago recibido",
+    "Acepta o rechaza en el panel",
+    "",
+    `Alumno: ${details.studentName}`,
+    `Email: ${details.studentEmail}`,
+    `${label} · ${details.totalEuros} € (tarjeta)`,
+  ];
+  if (details.notes?.trim()) {
+    lines.push(`Notas: ${details.notes.trim().slice(0, 180)}`);
+  }
+  lines.push("", `Panel: ${panelUrl}`, `Ref: ${details.bookingId.slice(0, 8)}`);
+  return lines.join("\n");
+}
+
 export function buildCoachVideoCorrectionRequestWhatsApp(details: {
   studentName: string;
   studentEmail: string;

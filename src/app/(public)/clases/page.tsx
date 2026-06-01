@@ -18,6 +18,7 @@ import { PageHero } from "@/components/layout/PageHero";
 import { TribeVideoStrip } from "@/components/tribe/TribeVideoStrip";
 import { SectionHeading } from "@/components/layout/SectionHeading";
 import { getSiteMedia } from "@/lib/pexels/site-media";
+import { resolveLessonCardImage } from "@/lib/media/lesson-card-image";
 import { reservarHref } from "@/lib/booking/reservar-url";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { cn } from "@/lib/utils/cn";
@@ -91,17 +92,33 @@ export default async function ClasesPage() {
             subtitle="Elige el enfoque del día; la duración y el turno los marcas al reservar."
           />
           <div className="mt-10 grid gap-grid md:grid-cols-3 sm:mt-12">
-            {LESSON_TYPES.map((lesson, i) => (
+            {LESSON_TYPES.map((lesson, i) => {
+              const cardImage = resolveLessonCardImage(
+                lesson.id,
+                i,
+                {
+                  lessonCards: media.lessonCards,
+                  claseImageSrc: media.clase.image.src,
+                },
+                lessonPublicName(lesson),
+              );
+
+              return (
               <article
                 key={lesson.id}
                 className="glass-panel group flex flex-col overflow-hidden rounded-2xl transition duration-300 hover:border-sky-500/35"
               >
                 <div className="relative h-44 overflow-hidden sm:h-48">
                   <Image
-                    src={media.lessonCards[i]?.src ?? media.clase.image.src}
-                    alt={lessonPublicName(lesson)}
+                    src={cardImage.src}
+                    alt={cardImage.alt}
                     fill
                     className="object-cover transition duration-500 group-hover:scale-105"
+                    style={
+                      cardImage.objectPosition
+                        ? { objectPosition: cardImage.objectPosition }
+                        : undefined
+                    }
                     sizes="(max-width: 768px) 100vw, 33vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
@@ -133,7 +150,8 @@ export default async function ClasesPage() {
                   </Link>
                 </div>
               </article>
-            ))}
+            );
+            })}
           </div>
         </div>
       </section>

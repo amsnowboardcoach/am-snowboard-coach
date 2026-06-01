@@ -9,6 +9,7 @@ import {
   VIDEO_CORRECTION_PRODUCT,
   isVideoCorrectionProduct,
 } from "@/constants/video-correction";
+import { getAppBaseUrl } from "@/constants/project";
 import { getBookingById } from "@/lib/firebase/bookings-admin";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { createBookingCheckoutSession } from "@/lib/stripe/checkout";
@@ -51,23 +52,17 @@ export async function POST(
     );
   }
 
-  if (booking.status === "pending") {
-    return NextResponse.json(
-      {
-        error:
-          "La reserva aún no está confirmada por el coach. Recibirás el enlace de pago por email cuando la acepte.",
-      },
-      { status: 409 },
-    );
-  }
-
-  if (booking.status !== "confirmed") {
-    return NextResponse.json({ error: "Reserva cancelada o no disponible" }, { status: 409 });
-  }
-
   const isVideo =
     booking.productKind === "video_correction" ||
     isVideoCorrectionProduct(booking.lessonTypeId);
+
+  if (booking.status === "cancelled") {
+    return NextResponse.json({ error: "Reserva cancelada o no disponible" }, { status: 409 });
+  }
+
+  if (booking.status !== "confirmed" && booking.status !== "pending") {
+    return NextResponse.json({ error: "Reserva no disponible" }, { status: 409 });
+  }
 
   const session = !isVideo
     ? getSessionDuration((booking.sessionDurationId || "2h") as SessionDurationId)
@@ -78,6 +73,8 @@ export async function POST(
   }
 
   const videoCount = booking.videoCount ?? 1;
+  const base = getAppBaseUrl();
+  const videoLabel = `${videoCount} vídeo${videoCount > 1 ? "s" : ""}`;
 
   try {
     const checkoutUrl = await createBookingCheckoutSession({
@@ -85,7 +82,7 @@ export async function POST(
       session,
       slotLabel:
         booking.sessionSlotLabel ||
-        (isVideo ? `${videoCount} vídeo${videoCount > 1 ? "s" : ""}` : session!.name),
+        (isVideo ? videoLabel : session!.name),
       lessonTypeName: booking.lessonTypeName,
       studentName:
         booking.studentDisplayName || booking.studentEmail || "Alumno",
@@ -101,7 +98,9 @@ export async function POST(
       ...(isVideo
         ? {
             productTitle: VIDEO_CORRECTION_PRODUCT.name,
-            productDescription: `${videoCount} vídeo${videoCount > 1 ? "s" : ""} a corregir · ${VIDEO_CORRECTION_PRODUCT.priceEuros} €/vídeo`,
+            productDescription: `${videoLabel} a corregir · ${VIDEO_CORRECTION_PRODUCT.priceEuros} €/vídeo`,
+            successUrl: `${base}/reservar?tipo=video&paid=1&booking=${booking.id}`,
+            cancelUrl: `${base}/reservar?tipo=video&cancelled=1&booking=${booking.id}`,
           }
         : {}),
     });

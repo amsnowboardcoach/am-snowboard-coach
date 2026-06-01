@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   VIDEO_CORRECTION_PRODUCT,
+  videoCorrectionTotalCents,
   videoCorrectionTotalEuros,
 } from "@/constants/video-correction";
 import { createVideoCorrectionBookingFromWeb } from "@/lib/firebase/bookings-admin";
 import { sendVideoCorrectionRequestEmails } from "@/lib/email/send-booking";
-import { coachNotifyVideoCorrectionBooking } from "@/lib/notify/coach";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { isStripeConfigured } from "@/lib/stripe/config";
+import { createBookingCheckoutSession } from "@/lib/stripe/checkout";
+import { getAppBaseUrl } from "@/constants/project";
 import { z } from "zod";
 import { requireBookingStudent } from "@/lib/auth/resolve-booking-student";
 
@@ -50,6 +51,8 @@ export async function POST(request: NextRequest) {
   }
   const { studentName, studentEmail, authUserId } = studentResult;
   const totalEuros = videoCorrectionTotalEuros(videoCount);
+  const amountCents = videoCorrectionTotalCents(videoCount);
+  const label = `${videoCount} vídeo${videoCount > 1 ? "s" : ""}`;
 
   try {
     const bookingId = await createVideoCorrectionBookingFromWeb({
@@ -59,6 +62,46 @@ export async function POST(request: NextRequest) {
       notes,
       authUserId,
     });
+
+    let checkoutUrl: string | undefined;
+    if (isStripeConfigured()) {
+      const base = getAppBaseUrl();
+      const now = new Date();
+      try {
+        checkoutUrl = await createBookingCheckoutSession({
+          bookingId,
+          slotLabel: label,
+          lessonTypeName: VIDEO_CORRECTION_PRODUCT.name,
+          studentName,
+          studentEmail,
+          startAt: now,
+          amountCents,
+          productTitle: VIDEO_CORRECTION_PRODUCT.name,
+          productDescription: `${label} · ${VIDEO_CORRECTION_PRODUCT.priceEuros} €/vídeo · ${totalEuros} € total`,
+          successUrl: `${base}/reservar?tipo=video&paid=1&booking=${bookingId}`,
+          cancelUrl: `${base}/reservar?tipo=video&cancelled=1&booking=${bookingId}`,
+        });
+      } catch (stripeErr) {
+        console.error("[reserve-video] Stripe:", stripeErr);
+        return NextResponse.json(
+          {
+            error:
+              stripeErr instanceof Error
+                ? stripeErr.message
+                : "No se pudo iniciar el pago con tarjeta",
+          },
+          { status: 502 },
+        );
+      }
+    } else {
+      return NextResponse.json(
+        {
+          error:
+            "Los pagos con tarjeta no están disponibles. Contacta por WhatsApp.",
+        },
+        { status: 503 },
+      );
+    }
 
     try {
       await sendVideoCorrectionRequestEmails({
@@ -72,26 +115,13 @@ export async function POST(request: NextRequest) {
       console.error("[reserve-video] Email:", mailErr);
     }
 
-    try {
-      await coachNotifyVideoCorrectionBooking({
-        studentName,
-        studentEmail,
-        videoCount,
-        totalEuros,
-        bookingId,
-        notes,
-      });
-    } catch (notifyErr) {
-      console.error("[reserve-video] Aviso coach:", notifyErr);
-    }
-
     return NextResponse.json({
       success: true,
       bookingId,
+      checkoutUrl,
       totalEuros,
       videoCount,
-      message:
-        "Solicitud de video corrección enviada. Te avisaremos por email cuando se confirme.",
+      message: `Completa el pago de ${totalEuros} € con tarjeta. Alejandro aceptará tu solicitud después del pago.`,
     });
   } catch (err) {
     console.error("[reserve-video]", err);

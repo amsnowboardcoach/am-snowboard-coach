@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { BookingAuthGate } from "@/components/booking/BookingAuthGate";
 import { getBookingAuthHeaders } from "@/lib/auth/booking-auth-headers";
 import { useAuth } from "@/contexts/AuthProvider";
@@ -10,10 +11,11 @@ import {
   formatVideoCorrectionPrice,
   videoCorrectionTotalEuros,
 } from "@/constants/video-correction";
-import { scrollToId } from "@/lib/navigation/scroll";
+import { scrollToId, scrollToTop } from "@/lib/navigation/scroll";
 import { cn } from "@/lib/utils/cn";
 
 export function VideoCorrectionBookingHub() {
+  const searchParams = useSearchParams();
   const { user, profile, loading: authLoading } = useAuth();
   const canBook = Boolean(user?.email) && !authLoading;
 
@@ -25,10 +27,21 @@ export function VideoCorrectionBookingHub() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [showAuthGate, setShowAuthGate] = useState(false);
-  const [done, setDone] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
   const autoSubmitStarted = useRef(false);
 
   const totalEuros = videoCorrectionTotalEuros(videoCount);
+
+  useEffect(() => {
+    if (searchParams.get("paid") === "1") {
+      setPaymentSuccess(true);
+      scrollToTop();
+    } else if (searchParams.get("cancelled") === "1") {
+      setSubmitError(
+        "El pago se canceló. Vuelve a intentarlo o escríbenos por WhatsApp si necesitas ayuda.",
+      );
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (authLoading || !user?.email) return;
@@ -61,9 +74,13 @@ export function VideoCorrectionBookingHub() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error al enviar la solicitud");
-      setDone(true);
-      setShowAuthGate(false);
+      if (typeof data.checkoutUrl === "string" && data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+      throw new Error("No se recibió el enlace de pago");
     } catch (err) {
+      autoSubmitStarted.current = false;
       setSubmitError(
         err instanceof Error ? err.message : "No se pudo enviar la solicitud",
       );
@@ -73,7 +90,12 @@ export function VideoCorrectionBookingHub() {
   }, [canBook, name, email, videoCount, notes]);
 
   useEffect(() => {
-    if (authLoading || !canBook || !showAuthGate || autoSubmitStarted.current) {
+    if (
+      authLoading ||
+      !canBook ||
+      !showAuthGate ||
+      autoSubmitStarted.current
+    ) {
       return;
     }
     autoSubmitStarted.current = true;
@@ -93,43 +115,30 @@ export function VideoCorrectionBookingHub() {
     await submitRequest();
   }
 
-  if (done) {
+  if (paymentSuccess) {
     return (
-      <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-10 text-center">
+      <div className="alert-success p-8 text-center sm:p-10">
         <p className="text-2xl font-semibold text-emerald-300">
-          ¡Solicitud recibida!
+          ¡Pago recibido!
         </p>
         <p className="mt-4 text-zinc-300">
-          Revisaré tu petición de {videoCount}{" "}
-          {videoCount === 1 ? "vídeo" : "vídeos"}. Si la confirmo, te enviaré el
-          enlace para pagar {totalEuros} € y podrás subir el material desde{" "}
-          <Link href="/perfil/videos" className="link-accent underline-offset-2 hover:underline">
+          Hemos registrado tu pago por video corrección.{" "}
+          <strong>Alejandro revisará tu solicitud</strong> y te avisará por email
+          y notificación cuando puedas subir el material desde{" "}
+          <Link
+            href="/perfil/videos"
+            className="link-accent underline-offset-2 hover:underline"
+          >
             Mis vídeos
           </Link>
           .
         </p>
-        <p className="mt-2 text-sm text-zinc-500">
-          Te avisaremos por email y notificación cuando haya novedades.
-        </p>
         <Link
           href="/perfil/videos"
-          className="mt-6 inline-block rounded-full border border-sky-500/40 px-6 py-3 text-sm font-medium text-sky-200 hover:bg-sky-500/10"
+          className="btn-primary-md mt-8"
         >
           Ir a Mis vídeos
         </Link>
-        <button
-          type="button"
-          onClick={() => {
-            setDone(false);
-            setVideoCount(1);
-            setNotes("");
-            setShowAuthGate(false);
-            autoSubmitStarted.current = false;
-          }}
-          className="btn-primary-md mt-8"
-        >
-          Otra solicitud
-        </button>
       </div>
     );
   }
@@ -202,7 +211,8 @@ export function VideoCorrectionBookingHub() {
             <strong className="text-sky-300">{totalEuros} €</strong>
           </p>
           <p className="mt-2 text-xs text-zinc-500">
-            Pagas con tarjeta cuando confirme tu solicitud.
+            Pagas con tarjeta ahora (Stripe). Tras el pago, Alejandro aceptará tu
+            solicitud y podrás subir el material.
           </p>
         </div>
 
@@ -212,32 +222,32 @@ export function VideoCorrectionBookingHub() {
           </p>
         )}
 
-        {!showAuthGate && (
+        {(!showAuthGate || canBook) && (
           <>
             <button
               type="submit"
               disabled={submitting}
-              className="btn-primary-md disabled:opacity-50 sm:px-10"
+              className="btn-primary-md w-full disabled:opacity-50 sm:w-auto"
             >
               {submitting
-                ? "Enviando…"
-                : `Solicitar corrección · ${totalEuros} €`}
+                ? "Preparando pago…"
+                : `Reservar y pagar ${totalEuros} €`}
             </button>
             <p className="text-center text-xs text-zinc-500">
-              Al enviar verás el último paso (entrar o registrarte).
+              {!canBook
+                ? "Entra con tu cuenta de alumno y te llevamos al pago con tarjeta. "
+                : "Pago seguro con Stripe. "}
             </p>
           </>
         )}
 
-        {showAuthGate && (
+        {showAuthGate && !canBook && (
           <>
             <BookingAuthGate
               className="scroll-mt-header"
               headline="Tu solicitud está lista"
               totalEuros={totalEuros}
               summary={`${videoCount} ${videoCount === 1 ? "vídeo" : "vídeos"} a corregir`}
-              confirming={submitting}
-              onConfirm={() => void submitRequest()}
               onError={setAuthError}
               onGoogleSuccess={() => setShowAuthGate(true)}
             />
@@ -252,7 +262,10 @@ export function VideoCorrectionBookingHub() {
 
       <p className="text-center text-sm text-zinc-500">
         ¿Buscas clase en pista?{" "}
-        <Link href="/reservar" className="link-accent underline-offset-2 hover:underline">
+        <Link
+          href="/reservar"
+          className="link-accent underline-offset-2 hover:underline"
+        >
           Reservar clase en Sierra Nevada
         </Link>
       </p>

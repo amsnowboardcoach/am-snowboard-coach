@@ -359,7 +359,7 @@ export async function sendVideoCorrectionRequestEmails(
       <li>Precio: <strong>${details.totalEuros} €</strong> (${details.videoCount} × 20 €/vídeo)</li>
     </ul>
     ${details.notes ? `<p>Notas: ${details.notes}</p>` : ""}
-    <p>Cuando Alejandro confirme, recibirás el enlace de pago por email. Después podrás subir el material en <a href="${getAppBaseUrl()}/perfil/videos">Mis vídeos</a>.</p>
+    <p><strong>Completa el pago con tarjeta</strong> en la web (te llevamos a Stripe). Tras el pago, <strong>Alejandro aceptará tu solicitud</strong> y te avisará para subir el material en <a href="${getAppBaseUrl()}/perfil/videos">Mis vídeos</a>.</p>
   `;
 
   await transport.sendMail({
@@ -408,8 +408,8 @@ export async function sendVideoCorrectionConfirmedEmails(
   });
 }
 
-/** Tras pagar video corrección (Stripe) */
-export async function sendVideoCorrectionPaidEmail(
+/** Tras pagar video corrección (Stripe), antes de que el coach acepte */
+export async function sendVideoCorrectionPaymentReceivedEmail(
   details: VideoCorrectionEmailDetails,
 ): Promise<void> {
   if (!isEmailConfigured()) return;
@@ -417,19 +417,47 @@ export async function sendVideoCorrectionPaidEmail(
   const transport = getTransport();
   const from = fromAddress();
   const label = `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`;
-  const videosUrl = `${getAppBaseUrl()}/perfil/videos`;
 
   await transport.sendMail({
     from: `"AM Snowboard Coach" <${from}>`,
     to: details.studentEmail,
     replyTo: COACH_EMAIL,
-    subject: `Pago recibido — sube tu material (${label})`,
+    subject: `Pago recibido — ${label}`,
     html: `
       <h2>Pago confirmado</h2>
       <p>Hola ${details.studentName},</p>
       <p>Hemos recibido <strong>${details.totalEuros} €</strong> por la corrección de <strong>${label}</strong>.</p>
-      <p style="margin:24px 0"><a href="${videosUrl}" style="display:inline-block;background:#6eb0c8;color:#1a2332;padding:14px 28px;border-radius:9999px;font-weight:600;text-decoration:none">Subir vídeos</a></p>
-      <p>Cuando Alejandro publique la corrección, la verás en la misma página.</p>
+      <p><strong>Alejandro revisará tu solicitud</strong> y te avisará por email y notificación cuando puedas subir el material en <a href="${getAppBaseUrl()}/perfil/videos">Mis vídeos</a>.</p>
+    `,
+  });
+}
+
+/** Coach: alumno pagó video corrección — puede aceptar o rechazar */
+export async function sendCoachVideoBookingPaidAwaitingApprovalEmail(
+  details: VideoCorrectionEmailDetails,
+): Promise<void> {
+  if (!isEmailConfigured()) return;
+
+  const transport = getTransport();
+  const from = fromAddress();
+  const coachPanelUrl = `${getAppBaseUrl()}/coach?tab=reservas`;
+  const label = `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`;
+
+  await transport.sendMail({
+    from: `"AM Snowboard Coach" <${from}>`,
+    to: process.env.BOOKING_NOTIFY_EMAIL?.trim() || COACH_EMAIL,
+    subject: `Pago recibido — video corrección: ${details.studentName} — ${label}`,
+    html: `
+      <h2>Pago recibido — acepta o rechaza la solicitud</h2>
+      <p>El alumno ha pagado con tarjeta. Revisa en el panel del coach:</p>
+      <p><a href="${coachPanelUrl}">${coachPanelUrl}</a></p>
+      <ul>
+        <li>Alumno: ${details.studentName} &lt;${details.studentEmail}&gt;</li>
+        <li><strong>Video corrección</strong> — ${label}</li>
+        <li>Pago recibido: <strong>${details.totalEuros} €</strong> (tarjeta)</li>
+      </ul>
+      ${details.notes ? `<p>Notas: ${details.notes}</p>` : ""}
+      <p>Al aceptar, el alumno podrá subir el material desde su área de vídeos.</p>
     `,
   });
 }

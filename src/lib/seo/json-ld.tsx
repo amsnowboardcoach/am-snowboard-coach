@@ -21,16 +21,48 @@ export function JsonLd({ data }: JsonLdProps) {
   );
 }
 
+export function organizationJsonLd() {
+  const url = getSiteUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${url}/#organization`,
+    name: SITE_NAME,
+    url,
+    logo: {
+      "@type": "ImageObject",
+      url: `${url}${BRAND_ICON_512}`,
+    },
+    email: COACH_EMAIL,
+    sameAs: [url],
+  };
+}
+
+export function websiteJsonLd() {
+  const url = getSiteUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${url}/#website`,
+    name: SITE_NAME,
+    url,
+    inLanguage: "es-ES",
+    publisher: { "@id": `${url}/#organization` },
+  };
+}
+
 export function localBusinessJsonLd() {
   const url = getSiteUrl();
   return {
     "@context": "https://schema.org",
     "@type": "SportsActivityLocation",
+    "@id": `${url}/#localbusiness`,
     name: SITE_NAME,
     description:
       "Clases de snowboard en Sierra Nevada con monitor certificado. Iniciación, carving y freestyle.",
     url,
-    image: `${url}/icon.svg`,
+    image: [`${url}/opengraph-image`, `${url}${BRAND_ICON_512}`],
+    parentOrganization: { "@id": `${url}/#organization` },
     email: COACH_EMAIL,
     address: {
       "@type": "PostalAddress",
@@ -95,6 +127,41 @@ export function blogPostingJsonLd(post: {
     url: postUrl,
     inLanguage: "es-ES",
     about: ["Snowboard", "Sierra Nevada", LOCALITY, REGION],
+  };
+}
+
+function withoutJsonLdContext(
+  node: Record<string, unknown>,
+): Record<string, unknown> {
+  const { ["@context"]: _ctx, ...rest } = node;
+  return rest;
+}
+
+/** Grafo JSON-LD para el layout público (Organization + WebSite + negocio local). */
+export function publicSiteJsonLdGraph() {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      withoutJsonLdContext(organizationJsonLd()),
+      withoutJsonLdContext(websiteJsonLd()),
+      withoutJsonLdContext(localBusinessJsonLd()),
+    ],
+  };
+}
+
+export function breadcrumbJsonLd(
+  items: { name: string; path: string }[],
+) {
+  const url = getSiteUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: `${url}${item.path}`,
+    })),
   };
 }
 

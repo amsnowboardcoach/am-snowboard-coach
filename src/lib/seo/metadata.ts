@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { BRAND_ICON_OG } from "@/constants/brand-icons";
 import {
+  COACH_NAME,
   DEFAULT_DESCRIPTION,
   SITE_KEYWORDS,
   SITE_NAME,
@@ -8,6 +8,8 @@ import {
 } from "@/lib/seo/site";
 
 const siteUrl = getSiteUrl();
+const defaultOgImage = `${siteUrl}/opengraph-image`;
+const defaultTwitterImage = `${siteUrl}/twitter-image`;
 
 export type PageSeoInput = {
   title: string;
@@ -21,20 +23,39 @@ export type PageSeoInput = {
   modifiedTime?: string;
 };
 
+function googleSiteVerification(): Metadata["verification"] | undefined {
+  const token = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
+  return token ? { google: token } : undefined;
+}
+
 export function buildPageMetadata(input: PageSeoInput): Metadata {
   const description = input.description ?? DEFAULT_DESCRIPTION;
   const url = input.path ? `${siteUrl}${input.path}` : siteUrl;
-  const ogImage = input.ogImage ?? `${siteUrl}/icon.svg`;
+  const ogImage = input.ogImage ?? defaultOgImage;
+  const twitterImage = input.ogImage ?? defaultTwitterImage;
+  const verification = googleSiteVerification();
 
   return {
     title: input.title,
     description,
     keywords: [...SITE_KEYWORDS, ...(input.keywords ?? [])],
+    authors: [{ name: COACH_NAME, url: siteUrl }],
+    creator: COACH_NAME,
+    publisher: SITE_NAME,
+    category: "sports",
+    formatDetection: {
+      telephone: false,
+      email: false,
+      address: false,
+    },
     alternates: {
       canonical: url,
+      languages: {
+        "es-ES": url,
+      },
     },
     robots: input.noIndex
-      ? { index: false, follow: false }
+      ? { index: false, follow: false, nocache: true }
       : {
           index: true,
           follow: true,
@@ -43,8 +64,10 @@ export function buildPageMetadata(input: PageSeoInput): Metadata {
             follow: true,
             "max-image-preview": "large",
             "max-snippet": -1,
+            "max-video-preview": -1,
           },
         },
+    ...(verification ? { verification } : {}),
     openGraph: {
       type: input.type ?? "website",
       locale: "es_ES",
@@ -55,8 +78,8 @@ export function buildPageMetadata(input: PageSeoInput): Metadata {
       images: [
         {
           url: ogImage,
-          width: 512,
-          height: 512,
+          width: 1200,
+          height: 630,
           alt: SITE_NAME,
         },
       ],
@@ -68,7 +91,7 @@ export function buildPageMetadata(input: PageSeoInput): Metadata {
       card: "summary_large_image",
       title: `${input.title} | ${SITE_NAME}`,
       description,
-      images: [ogImage],
+      images: [twitterImage],
     },
   };
 }

@@ -18,9 +18,9 @@ export interface VideoCorrectionAllowance {
   /** Cupos disponibles para subir */
   remainingSlots: number;
   canUpload: boolean;
-  /** Reserva confirmada esperando pago */
-  awaitingPayment: boolean;
-  /** Solicitud pendiente de confirmación del coach */
+  /** Pago recibido; esperando que el coach acepte */
+  awaitingCoachApproval: boolean;
+  /** Solicitud pendiente sin pago (checkout no completado) */
   pendingRequest: boolean;
 }
 
@@ -37,7 +37,7 @@ export async function fetchStudentVideoCorrectionAllowance(
   );
 
   let paidSlots = 0;
-  let awaitingPayment = false;
+  let awaitingCoachApproval = false;
   let pendingRequest = false;
 
   for (const docSnap of bookingsSnap.docs) {
@@ -51,24 +51,21 @@ export async function fetchStudentVideoCorrectionAllowance(
 
     const status = data.status as string;
     const paymentStatus = (data.payment as { status?: string })?.status;
-
-    if (status === "pending") {
-      pendingRequest = true;
-      continue;
-    }
+    const paymentSettled =
+      paymentStatus === "paid" || paymentStatus === "deposit_paid";
 
     if (status === "cancelled") continue;
 
-    if (
-      status === "confirmed" &&
-      paymentStatus !== "paid" &&
-      paymentStatus !== "deposit_paid"
-    ) {
-      awaitingPayment = true;
+    if (status === "pending") {
+      if (paymentSettled) {
+        awaitingCoachApproval = true;
+      } else {
+        pendingRequest = true;
+      }
       continue;
     }
 
-    if (paymentStatus === "paid" || paymentStatus === "deposit_paid") {
+    if (status === "confirmed" && paymentSettled) {
       paidSlots += (data.videoCount as number | undefined) ?? 1;
     }
   }
@@ -82,7 +79,7 @@ export async function fetchStudentVideoCorrectionAllowance(
     uploadedCount,
     remainingSlots,
     canUpload: remainingSlots > 0,
-    awaitingPayment,
+    awaitingCoachApproval,
     pendingRequest,
   };
 }

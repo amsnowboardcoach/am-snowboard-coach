@@ -1,3 +1,24 @@
+/** Fotos propias para tarjetas de tipos de clase (home, /clases) */
+export const LOCAL_LESSON_CARD_IMAGES = {
+  iniciacion: {
+    src: "/images/lesson-iniciacion-sierra-nevada.png",
+    alt: "Monitor y alumna en clase de iniciación de snowboard, Sierra Nevada",
+    /** Encuadre en h-40: mantiene visibles coach y alumna */
+    objectPosition: "center 42%",
+  },
+  carving: {
+    src: "/images/lesson-carving-sierra-nevada.png",
+    alt: "Snowboarder en carve en pista de Sierra Nevada",
+    objectPosition: "center 48%",
+  },
+  "freestyle-sulayr": {
+    src: "/images/lesson-freestyle-sulayr-sierra-nevada.png",
+    alt: "Snowboarder en salto en Snowpark Sulayr, Sierra Nevada",
+    /** Rider y tabla en la parte alta del encuadre */
+    objectPosition: "center 32%",
+  },
+} as const;
+
 /** Respaldo si Pexels no está disponible */
 export const FALLBACK_SITE_MEDIA = {
   hero: {
