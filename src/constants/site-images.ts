@@ -1,23 +1,33 @@
-/** Fotos propias para tarjetas de tipos de clase (home, /clases) */
-export const LOCAL_LESSON_CARD_IMAGES = {
+import type { StaticImageData } from "next/image";
+import type { LessonTypeId } from "@/constants/lesson-types";
+import iniciacionImg from "@/assets/lesson-cards/iniciacion.jpg";
+import carvingImg from "@/assets/lesson-cards/carving.jpg";
+import freestyleImg from "@/assets/lesson-cards/freestyle-sulayr.jpg";
+
+export type LessonCardImage = {
+  src: StaticImageData;
+  alt: string;
+  objectPosition: string;
+};
+
+/** Fotos propias para tarjetas de tipos de clase (home, /clases) — import estático para el build */
+export const LOCAL_LESSON_CARD_IMAGES: Record<LessonTypeId, LessonCardImage> = {
   iniciacion: {
-    src: "/images/lesson-iniciacion-sierra-nevada.png",
+    src: iniciacionImg,
     alt: "Monitor y alumna en clase de iniciación de snowboard, Sierra Nevada",
-    /** Encuadre en h-40: mantiene visibles coach y alumna */
     objectPosition: "center 42%",
   },
   carving: {
-    src: "/images/lesson-carving-sierra-nevada.png",
+    src: carvingImg,
     alt: "Snowboarder en carve en pista de Sierra Nevada",
     objectPosition: "center 48%",
   },
   "freestyle-sulayr": {
-    src: "/images/lesson-freestyle-sulayr-sierra-nevada.png",
+    src: freestyleImg,
     alt: "Snowboarder en salto en Snowpark Sulayr, Sierra Nevada",
-    /** Rider y tabla en la parte alta del encuadre */
     objectPosition: "center 32%",
   },
-} as const;
+};
 
 /** Respaldo si Pexels no está disponible */
 export const FALLBACK_SITE_MEDIA = {
