@@ -32,7 +32,7 @@ export function GoogleAuthButton({
   className,
 }: GoogleAuthButtonProps) {
   const router = useRouter();
-  const { refreshProfile } = useAuth();
+  const { refreshProfile, syncSessionAfterLogin } = useAuth();
   const [loading, setLoading] = useState(false);
 
   async function handleGoogle() {
@@ -61,6 +61,7 @@ export function GoogleAuthButton({
       }
 
       const result = outcome;
+      await syncSessionAfterLogin();
       await refreshProfile();
 
       if (onSuccess) {

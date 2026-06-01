@@ -13,6 +13,7 @@ import {
   BOOKING_BALANCE_PAYMENT_LABEL,
   BOOKING_DEPOSIT_PERCENT,
 } from "@/constants/booking-payment";
+import { bookingAwaitingCoachApproval } from "@/lib/booking/slot-hold";
 import { isVideoCorrectionProduct } from "@/constants/video-correction";
 import type { Booking } from "@/types/firestore";
 import { BookingInvoiceForm } from "./BookingInvoiceForm";
@@ -50,9 +51,7 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
   const balanceCents = booking.payment.balanceAmountCents ?? 0;
   const isDepositPaid = booking.payment.status === "deposit_paid";
 
-  const needsApproval =
-    booking.status === "pending" &&
-    (booking.source === "web" || booking.source === "hub");
+  const needsApproval = bookingAwaitingCoachApproval(booking);
 
   const paymentReady =
     booking.payment.status === "deposit_paid" ||
@@ -92,7 +91,7 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
   async function rejectRequest() {
     if (
       !window.confirm(
-        "¿Rechazar esta solicitud? Se liberará el turno y se avisará al alumno.",
+        "¿Rechazar esta solicitud? Se avisará al alumno y, si había pago, gestionarás la devolución según tu política.",
       )
     ) {
       return;
@@ -200,7 +199,7 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
             {isVideo
               ? "Solicitud de video corrección — confirma para enviar enlace de pago al alumno."
               : awaitsOnlinePayment
-                ? "Solicitud desde la web — esperando pago con tarjeta (señal o total). La clase solo se bloquea en tu calendario cuando aceptes la reserva y el pago esté hecho."
+                ? "Solicitud desde la web — el alumno aún no ha pagado (debe pulsar «Confirmar y pagar» y terminar en Stripe). Cuando el pago aparezca aquí, podrás aceptar la reserva."
                 : canAcceptSession
                   ? booking.payment.status === "deposit_paid"
                     ? `Pago con tarjeta recibido (señal ${BOOKING_DEPOSIT_PERCENT}%). Acepta la reserva para bloquear el calendario; el resto en ${BOOKING_BALANCE_ON_SLOPE}.`

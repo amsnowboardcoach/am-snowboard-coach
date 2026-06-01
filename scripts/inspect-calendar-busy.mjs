@@ -34,22 +34,40 @@ const oauth2 = new google.auth.OAuth2(
 );
 oauth2.setCredentials({ refresh_token: env.GOOGLE_REFRESH_TOKEN });
 const calendar = google.calendar({ version: "v3", auth: oauth2 });
-const calendarId = env.GOOGLE_CALENDAR_ID?.trim() || "primary";
+const writeId = env.GOOGLE_CALENDAR_ID?.trim() || "primary";
+const calendarIds = [
+  ...new Set(
+    [
+      writeId,
+      env.GOOGLE_EXPLORA_CALENDAR_ID?.trim(),
+      ...(env.GOOGLE_BUSY_CALENDAR_IDS?.split(",") ?? []),
+    ].filter(Boolean),
+  ),
+];
 
 const fb = await calendar.freebusy.query({
   requestBody: {
     timeMin: timeMin.toISOString(),
     timeMax: timeMax.toISOString(),
-    items: [{ id: calendarId }],
+    items: calendarIds.map((id) => ({ id })),
   },
 });
-console.log(`Freebusy ${monthArg} (${calendarId}):`);
-for (const b of fb.data.calendars?.[calendarId]?.busy ?? []) {
-  console.log(`  ${b.start} → ${b.end}`);
+console.log(`Freebusy ${monthArg} (calendarios: ${calendarIds.join(", ")}):`);
+for (const id of calendarIds) {
+  const busy = fb.data.calendars?.[id]?.busy ?? [];
+  const errors = fb.data.calendars?.[id]?.errors;
+  if (errors?.length) {
+    console.log(`  [${id}] ERROR:`, errors);
+    continue;
+  }
+  console.log(`  [${id}] ${busy.length} bloqueos`);
+  for (const b of busy) {
+    console.log(`    ${b.start} → ${b.end}`);
+  }
 }
 
 const evRes = await calendar.events.list({
-  calendarId,
+  calendarId: writeId,
   timeMin: timeMin.toISOString(),
   timeMax: timeMax.toISOString(),
   singleEvents: true,

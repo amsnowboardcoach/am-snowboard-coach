@@ -18,9 +18,10 @@ import {
   startOfMonth,
 } from "date-fns";
 import { es } from "date-fns/locale";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BookingAuthGate } from "@/components/booking/BookingAuthGate";
 import { BookingAvailabilityCalendar } from "@/components/booking/BookingAvailabilityCalendar";
+import { BookingCancellationPolicy } from "@/components/booking/BookingCancellationPolicy";
 import type { DurationAvailabilityStatus } from "@/lib/booking/duration-availability";
 import { CoachWhatsAppCard } from "@/components/contact/CoachWhatsAppCard";
 import {
@@ -44,9 +45,11 @@ import {
   formatExtraParticipantsNote,
   getMaxParticipants,
   sessionTotalEuros,
+  sessionTotalCents,
   type SessionDurationId,
 } from "@/constants/session-schedules";
 import { getBookingAuthHeaders } from "@/lib/auth/booking-auth-headers";
+import { getFirebaseAuth } from "@/lib/firebase/client";
 import type { AvailableSlotOption } from "@/lib/booking/availability";
 import { isDaySelectionComplete } from "@/lib/booking/multi-day";
 import {
@@ -241,9 +244,11 @@ function PriceSummary({
 }
 
 export function BookingForm() {
+  const router = useRouter();
+  const pathname = usePathname() ?? "/reservar";
   const searchParams = useSearchParams();
-  const { user, profile, loading: authLoading } = useAuth();
-  const canBook = Boolean(user?.email) && !authLoading;
+  const { user, profile, loading: authLoading, refreshProfile, syncSessionAfterLogin } =
+    useAuth();
 
   const [participantCount, setParticipantCount] = useState(1);
   const [durationId, setDurationId] = useState<SessionDurationId>(
@@ -259,6 +264,11 @@ export function BookingForm() {
   const [lessonTypeId, setLessonTypeId] = useState<string>(LESSON_TYPES[0].id);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const canBook =
+    Boolean(user?.email) &&
+    !authLoading &&
+    name.trim().length >= 2 &&
+    Boolean(email.trim());
   const [notes, setNotes] = useState("");
   const [paymentOption, setPaymentOption] =
     useState<BookingPaymentOption>("deposit_30");
@@ -266,7 +276,6 @@ export function BookingForm() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [showAuthGate, setShowAuthGate] = useState(false);
-  const autoSubmitStarted = useRef(false);
 
   const [success, setSuccess] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
@@ -293,8 +302,9 @@ export function BookingForm() {
     selectedDays.length,
     1,
   );
+  const perDayCents = sessionTotalCents(session, participantCount);
+  const totalAmountCents = perDayCents * billableDayCount;
   const totalEuros = perDayEuros * billableDayCount;
-  const totalAmountCents = totalEuros * 100;
   const paymentBreakdown = useMemo(
     () => computeBookingPaymentBreakdown(totalAmountCents, paymentOption),
     [totalAmountCents, paymentOption],
@@ -348,6 +358,7 @@ export function BookingForm() {
       id: SessionDurationId,
       range?: { start: string; end: string },
       merge = false,
+      force = false,
     ) => {
       const requested = range ?? defaultAvailabilityFetchRange();
       const clamped = clampRangeToSeason(requested.start, requested.end);
@@ -369,7 +380,7 @@ export function BookingForm() {
       }
       const { start, end } = clamped;
       const fetchKey = `${id}:${start}:${end}:${merge}`;
-      if (availabilityFetchRef.current === fetchKey) return;
+      if (!force && availabilityFetchRef.current === fetchKey) return;
       availabilityFetchRef.current = fetchKey;
       const gen = ++availabilityGenRef.current;
 
@@ -464,6 +475,16 @@ export function BookingForm() {
 
   const navigationRangeEnd = useMemo(() => bookingNavigationRangeEnd(), []);
 
+  const refreshCalendar = useCallback(() => {
+    const entry = availByDuration[durationId];
+    const range =
+      entry?.rangeStart && entry?.rangeEnd
+        ? { start: entry.rangeStart, end: entry.rangeEnd }
+        : defaultAvailabilityFetchRange();
+    availabilityFetchRef.current = null;
+    void fetchDurationAvailability(durationId, range, false, true);
+  }, [availByDuration, durationId, fetchDurationAvailability]);
+
   const handleVisibleMonth = useCallback(
     (month: Date) => {
       const id = durationIdRef.current;
@@ -517,10 +538,14 @@ export function BookingForm() {
       setLessonTypeId(draft.lessonTypeId);
       setNotes(draft.notes);
       if (draft.paymentOption) setPaymentOption(draft.paymentOption);
-      if (isBookingPendingSubmit()) {
+      if (isBookingPendingSubmit() || searchParams.get("book") === "1") {
         setShowAuthGate(true);
       }
       return;
+    }
+
+    if (searchParams.get("book") === "1") {
+      setShowAuthGate(true);
     }
 
     const duracion = parseReservarDuracion(searchParams.get("duracion"));
@@ -535,6 +560,9 @@ export function BookingForm() {
 
   useEffect(() => {
     if (authLoading || !user?.email) return;
+    if (!profile) {
+      void refreshProfile();
+    }
     const displayName =
       profile?.displayName?.trim() ||
       user.displayName?.trim() ||
@@ -542,17 +570,24 @@ export function BookingForm() {
       "Alumno";
     setName(displayName);
     setEmail(user.email);
-  }, [authLoading, user, profile]);
+  }, [authLoading, user, profile, refreshProfile]);
 
   function pickDuration(id: SessionDurationId) {
+    const entry = availByDuration[id];
+    if (
+      entry &&
+      (entry.status === "ready" || entry.status === "empty") &&
+      entry.dayCount === 0
+    ) {
+      return;
+    }
     setDurationId(id);
     setSlotId(null);
     setPickedDateKeys([]);
     setSelectedDays([]);
     setPackError(null);
     setParticipantCount((c) => Math.min(c, getMaxParticipants(id)));
-    const cached = availByDuration[id];
-    if (cached?.status === "ready" || cached?.status === "empty") {
+    if (entry?.status === "ready" || entry?.status === "empty") {
       return;
     }
     void fetchDurationAvailability(id);
@@ -653,8 +688,20 @@ export function BookingForm() {
   const datesPickedReady = pickedDateKeys.length >= 1;
 
   useEffect(() => {
+    const range = defaultAvailabilityFetchRange();
+    for (const s of SESSION_DURATIONS) {
+      const entry = availByDuration[s.id];
+      if (entry?.status === "ready" || entry?.status === "empty") continue;
+      void fetchDurationAvailability(s.id, range);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- precarga una vez al montar
+  }, []);
+
+  useEffect(() => {
+    const entry = availByDuration[durationId];
+    if (entry?.status === "ready" || entry?.status === "empty") return;
     void fetchDurationAvailability(durationId);
-  }, [durationId, fetchDurationAvailability]);
+  }, [durationId, availByDuration, fetchDurationAvailability]);
 
   useEffect(() => {
     if (!datesPickedReady || pickedDateKeys.length !== 1 || slotId) {
@@ -692,8 +739,13 @@ export function BookingForm() {
     });
   }
 
-  const submitBooking = useCallback(async () => {
-    if (!formReady || selectedDays.length === 0 || !canBook) return;
+  const submitBooking = useCallback(async (identity?: { name: string; email: string }) => {
+    const studentName = identity?.name ?? name.trim();
+    const studentEmail = identity?.email ?? email.trim();
+    if (!formReady || selectedDays.length === 0) return;
+    if (!user?.email) return;
+    if (studentName.length < 2 || !studentEmail) return;
+
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -710,8 +762,8 @@ export function BookingForm() {
             startUtc: d.startUtc,
           })),
           daysPlan,
-          name: name.trim(),
-          email,
+          name: studentName,
+          email: studentEmail,
           lessonTypeId,
           participantCount,
           notes: notes.trim() || undefined,
@@ -769,36 +821,32 @@ export function BookingForm() {
     balanceEuros,
   ]);
 
-  useEffect(() => {
-    if (
-      authLoading ||
-      !formReady ||
-      !canBook ||
-      !showAuthGate ||
-      autoSubmitStarted.current
-    ) {
+  async function confirmBookingAfterAuth() {
+    if (!user?.email) {
+      openAuthGate();
       return;
     }
-    if (!isBookingPendingSubmit() && searchParams.get("book") !== "1") {
-      return;
-    }
-    autoSubmitStarted.current = true;
+    const loadedProfile = await syncSessionAfterLogin();
+    const studentName =
+      loadedProfile?.displayName?.trim() ||
+      user.displayName?.trim() ||
+      user.email.split("@")[0] ||
+      "Alumno";
+    const studentEmail = user.email;
+    setName(studentName);
+    setEmail(studentEmail);
     setBookingPendingSubmit(false);
-    void submitBooking();
-  }, [
-    authLoading,
-    formReady,
-    canBook,
-    showAuthGate,
-    searchParams,
-    submitBooking,
-  ]);
+    await submitBooking({ name: studentName, email: studentEmail });
+  }
 
   function openAuthGate() {
     persistDraft();
     setBookingPendingSubmit(true);
     setShowAuthGate(true);
     setSubmitError(null);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("book", "1");
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     requestAnimationFrame(() => {
       scrollToId("booking-auth-gate", { block: "start" });
     });
@@ -813,7 +861,7 @@ export function BookingForm() {
       return;
     }
 
-    await submitBooking();
+    await confirmBookingAfterAuth();
   }
 
   if (success) {
@@ -909,8 +957,43 @@ export function BookingForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <FieldBlock
-        title="1. Día y turno"
-        hint={`Temporada ${BOOKING_SEASON_LABEL}. Elige fechas y turno; puedes cambiar la duración en el siguiente paso.`}
+        title="1. Duración en pista"
+        hint="Solo modalidades con huecos libres en tu calendario (AM + Explora)."
+      >
+        <div className="grid gap-2 sm:grid-cols-3">
+          {SESSION_DURATIONS.map((d) => {
+            const entry = availByDuration[d.id];
+            const loading =
+              !entry || entry.status === "loading" || entry.status === "error";
+            const noSlots =
+              entry &&
+              (entry.status === "ready" || entry.status === "empty") &&
+              entry.dayCount === 0;
+            const disabled = !loading && noSlots;
+            return (
+              <ChoiceButton
+                key={d.id}
+                selected={durationId === d.id}
+                disabled={disabled}
+                onClick={() => pickDuration(d.id)}
+              >
+                <span className="block font-semibold">{d.shortLabel}</span>
+                <span className="mt-1 block text-xs text-zinc-500">
+                  {loading
+                    ? `desde ${sessionTotalEuros(d, 1)} €`
+                    : noSlots
+                      ? "Sin huecos en temporada"
+                      : `desde ${sessionTotalEuros(d, 1)} €`}
+                </span>
+              </ChoiceButton>
+            );
+          })}
+        </div>
+      </FieldBlock>
+
+      <FieldBlock
+        title="2. Día y turno"
+        hint={`Temporada ${BOOKING_SEASON_LABEL}. Huecos para ${session.shortLabel} (AM + Explora). Usa «Actualizar calendario» si acabas de reservar en otro sitio.`}
       >
         {packError && (
           <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
@@ -932,7 +1015,8 @@ export function BookingForm() {
           onSelectSlotForAllDates={applySlotToAllDates}
           loadStatus={availStatus}
           loadError={availError}
-          onRetry={() => void fetchDurationAvailability(durationId)}
+          onRetry={refreshCalendar}
+          onRefresh={refreshCalendar}
           onVisibleMonthChange={handleVisibleMonth}
         />
         {pickedDateKeys.length > 0 && (
@@ -945,23 +1029,6 @@ export function BookingForm() {
               .join(" · ")}
           </p>
         )}
-      </FieldBlock>
-
-      <FieldBlock title="2. Duración en pista">
-        <div className="grid gap-2 sm:grid-cols-3">
-          {SESSION_DURATIONS.map((d) => (
-            <ChoiceButton
-              key={d.id}
-              selected={durationId === d.id}
-              onClick={() => pickDuration(d.id)}
-            >
-              <span className="block font-semibold">{d.shortLabel}</span>
-              <span className="mt-1 block text-xs text-zinc-500">
-                desde {sessionTotalEuros(d, 1)} €
-              </span>
-            </ChoiceButton>
-          ))}
-        </div>
       </FieldBlock>
 
       <FieldBlock title="3. Estilo de clase">
@@ -1030,14 +1097,30 @@ export function BookingForm() {
         </div>
       </FieldBlock>
 
+      <BookingCancellationPolicy compact />
+
       {showAuthGate && formReady && (
         <BookingAuthGate
           totalEuros={totalEuros}
+          chargeEuros={chargeEuros}
           summary={bookingSummary}
+          confirming={submitting}
+          onConfirm={confirmBookingAfterAuth}
           onError={setAuthError}
-          onGoogleSuccess={() => {
+          onGoogleSuccess={async () => {
             setShowAuthGate(true);
             setBookingPendingSubmit(true);
+            const loadedProfile = await syncSessionAfterLogin();
+            const authUser = getFirebaseAuth().currentUser;
+            if (authUser?.email) {
+              const displayName =
+                loadedProfile?.displayName?.trim() ||
+                authUser.displayName?.trim() ||
+                authUser.email.split("@")[0] ||
+                "Alumno";
+              setName(displayName);
+              setEmail(authUser.email);
+            }
           }}
         />
       )}
@@ -1089,13 +1172,15 @@ export function BookingForm() {
                   ? `Elige turno (${selectedDays.length}/${pickedDateKeys.length} días)`
                   : "Completa día, turno y estilo"
               : showAuthGate && canBook
-                ? `Reservar y pagar ${chargeEuros} €`
+                ? `Confirmar y pagar ${chargeEuros} €`
                 : `Reservar y pagar ${chargeEuros} €`}
         </button>
         <p className="mt-2 text-center text-xs text-zinc-500">
-          {formReady && !showAuthGate
-            ? "Al pulsar reservar entrarás con tu cuenta (o la crearás en un paso). "
-            : null}
+          {formReady && showAuthGate && canBook
+            ? "También puedes confirmar con el botón verde de arriba. "
+            : formReady && !showAuthGate
+              ? "Al pulsar reservar entrarás con tu cuenta (o la crearás en un paso). "
+              : null}
           {BOOKING_PAYMENT_OPTIONS_NOTE}
         </p>
       </div>

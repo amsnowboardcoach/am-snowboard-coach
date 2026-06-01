@@ -118,7 +118,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           applyProfile(authUser, googleResult.profile);
         }
         setLoading(false);
-        router.replace(googleResult.redirectPath);
+        const target = googleResult.redirectPath;
+        const current =
+          typeof window !== "undefined"
+            ? `${window.location.pathname}${window.location.search}`
+            : "";
+        if (target !== current) {
+          router.replace(target);
+        }
       } else {
         const googleError = consumeGoogleAuthError();
         if (googleError) {

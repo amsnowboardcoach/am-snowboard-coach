@@ -9,19 +9,27 @@ import { setBookingPendingSubmit } from "@/lib/booking/booking-draft";
 import { cn } from "@/lib/utils/cn";
 interface BookingAuthGateProps {
   totalEuros: number;
+  /** Importe que se cobra ahora (por defecto = total) */
+  chargeEuros?: number;
   summary: string;
   onError?: (message: string | null) => void;
   onGoogleSuccess?: () => void;
+  onConfirm?: () => void | Promise<void>;
+  confirming?: boolean;
   className?: string;
 }
 
 export function BookingAuthGate({
   totalEuros,
+  chargeEuros: chargeEurosProp,
   summary,
   onError,
   onGoogleSuccess,
+  onConfirm,
+  confirming = false,
   className,
 }: BookingAuthGateProps) {
+  const chargeEuros = chargeEurosProp ?? totalEuros;
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user, profile, loading } = useAuth();
@@ -30,15 +38,17 @@ export function BookingAuthGate({
   returnParams.set("book", "1");
   const returnPath = `${pathname}?${returnParams.toString()}`;
 
-  if (loading) {
+  if (loading || (user?.email && !profile)) {
     return (
       <p className={cn("text-sm text-zinc-500", className)}>
-        Comprobando sesión…
+        {user?.email
+          ? "Preparando tu cuenta de alumno…"
+          : "Comprobando sesión…"}
       </p>
     );
   }
 
-  if (user?.email) {
+  if (user?.email && profile) {
     const name =
       profile?.displayName?.trim() ||
       user.displayName?.trim() ||
@@ -46,15 +56,38 @@ export function BookingAuthGate({
     return (
       <div
         className={cn(
-          "rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-4 text-sm",
+          "rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-5 text-sm",
           className,
         )}
+        id="booking-auth-gate"
       >
         <p className="font-medium text-emerald-200">
-          Hola {name}, confirma tu solicitud
+          Hola {name}, ya puedes confirmar
         </p>
         <p className="mt-1 text-zinc-400">{summary}</p>
-        <p className="mt-2 text-lg font-semibold text-sky-300">{totalEuros} €</p>
+        <p className="mt-2 text-lg font-semibold text-sky-300">
+          {totalEuros} € total
+          {chargeEuros < totalEuros && (
+            <span className="mt-0.5 block text-sm font-normal text-zinc-400">
+              Pago ahora: {chargeEuros} €
+            </span>
+          )}
+        </p>
+        {onConfirm && (
+          <button
+            type="button"
+            disabled={confirming}
+            onClick={() => void onConfirm()}
+            className="mt-4 w-full rounded-full bg-sky-500 py-3.5 text-sm font-semibold text-zinc-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {confirming
+              ? "Preparando pago…"
+              : `Confirmar y pagar ${chargeEuros} €`}
+          </button>
+        )}
+        <p className="mt-3 text-center text-xs text-zinc-500">
+          Te llevamos a Stripe para pagar con tarjeta de forma segura.
+        </p>
       </div>
     );
   }
@@ -96,6 +129,7 @@ export function BookingAuthGate({
       <p className="mt-4 text-center text-sm text-zinc-500">
         <Link
           href={studentAreaHref({ next: returnPath })}
+          onClick={() => setBookingPendingSubmit(true)}
           className="font-medium text-sky-400 hover:underline"
         >
           Área de alumno

@@ -1,7 +1,7 @@
 import type { LessonTypeId } from "@/constants/lesson-types";
 import { LESSON_TYPES } from "@/constants/lesson-types";
 import {
-  SESSION_DURATIONS,
+  getSessionDuration,
   type SessionDurationId,
 } from "@/constants/session-schedules";
 
@@ -15,7 +15,7 @@ export function parseReservarDuracion(
   value: string | null | undefined,
 ): SessionDurationId | null {
   if (!value) return null;
-  return SESSION_DURATIONS.some((s) => s.id === value)
+  return getSessionDuration(value as SessionDurationId)
     ? (value as SessionDurationId)
     : null;
 }

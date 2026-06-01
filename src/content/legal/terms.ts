@@ -116,13 +116,38 @@ export const termsOfUseDocument: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "Las facturas simplificadas o completas, cuando proceda, se emiten conforme a la normativa fiscal española con los datos que facilites. Las condiciones de cancelación, cambio de fecha, no presentación o reembolso (total o parcial de señal o pago con tarjeta) se comunican en el proceso de reserva, por email o por los canales de contacto habituales, sin perjuicio de tus derechos como consumidor.",
+          text: "Las facturas simplificadas o completas, cuando proceda, se emiten conforme a la normativa fiscal española con los datos que facilites.",
+        },
+      ],
+    },
+    {
+      id: "cancelaciones-pista",
+      title:
+        "6. Cancelaciones, cierre de estación, retrasos y no presentación",
+      blocks: [
+        {
+          type: "p",
+          text: "Para las clases de snowboard en pista reservadas a través del Sitio (o gestionadas con el mismo criterio por el coach), aplican las siguientes condiciones, además de tus derechos como consumidor cuando la ley lo exija:",
+        },
+        {
+          type: "ul",
+          items: [
+            "Cierre de estación: si la estación cierra y la clase no puede impartirse por ese motivo, se devuelve el importe íntegro abonado (señal o pago total con tarjeta).",
+            "Retraso en la apertura de la estación: si la estación abre con retraso, el coach procurará reubicar la clase en otra franja horaria disponible ese mismo día o en una fecha que acordéis.",
+            "Retrasos del alumno o no presentación: si llegas tarde a la clase confirmada o no te presentas, no procede devolución del importe pagado ni compensación por el tiempo no disfrutado.",
+            "Rechazo de solicitud por el coach antes de confirmar: si tu solicitud de reserva no es aceptada, se aplicará la devolución del pago con tarjeta realizado según el procedimiento de Stripe o el acordado por email.",
+            "Cancelación voluntaria del alumno una vez confirmada la clase: se gestiona de forma individual con el coach; no existe derecho automático a reembolso salvo los supuestos anteriores o lo que disponga la normativa de consumo.",
+          ],
+        },
+        {
+          type: "p",
+          text: "Estas condiciones se muestran también en el proceso de reserva. Ante dudas o incidencias meteorológicas, contacta con el coach por los canales indicados en el Sitio.",
         },
       ],
     },
     {
       id: "contenidos-usuario",
-      title: "6. Contenidos aportados por usuarios",
+      title: "7. Contenidos aportados por usuarios",
       blocks: [
         {
           type: "p",
@@ -140,7 +165,7 @@ export const termsOfUseDocument: LegalDocumentContent = {
     },
     {
       id: "propiedad",
-      title: "7. Propiedad intelectual e industrial",
+      title: "8. Propiedad intelectual e industrial",
       blocks: [
         {
           type: "p",
@@ -154,7 +179,7 @@ export const termsOfUseDocument: LegalDocumentContent = {
     },
     {
       id: "responsabilidad",
-      title: "8. Responsabilidad",
+      title: "9. Responsabilidad",
       blocks: [
         {
           type: "p",
@@ -172,7 +197,7 @@ export const termsOfUseDocument: LegalDocumentContent = {
     },
     {
       id: "enlaces",
-      title: "9. Enlaces y servicios de terceros",
+      title: "10. Enlaces y servicios de terceros",
       blocks: [
         {
           type: "p",
@@ -182,7 +207,7 @@ export const termsOfUseDocument: LegalDocumentContent = {
     },
     {
       id: "modificaciones",
-      title: "10. Modificaciones",
+      title: "11. Modificaciones",
       blocks: [
         {
           type: "p",
@@ -192,7 +217,7 @@ export const termsOfUseDocument: LegalDocumentContent = {
     },
     {
       id: "ley",
-      title: "11. Ley aplicable y jurisdicción",
+      title: "12. Ley aplicable y jurisdicción",
       blocks: [
         {
           type: "p",
@@ -202,7 +227,7 @@ export const termsOfUseDocument: LegalDocumentContent = {
     },
     {
       id: "contacto",
-      title: "12. Contacto",
+      title: "13. Contacto",
       blocks: [
         {
           type: "p",

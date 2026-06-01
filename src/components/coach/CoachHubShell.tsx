@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useMemo } from "react";
 import {
   COACH_HUB_DEFAULT_TAB,
   COACH_HUB_TABS,
@@ -14,7 +14,6 @@ import { CoachPushActivator } from "@/components/coach/CoachPushActivator";
 import { CoachBookingsPanel } from "@/components/coach/CoachBookingsPanel";
 import { CoachHubInvoicingPanel } from "@/components/coach/CoachHubInvoicingPanel";
 import { CoachHubMarketplacePanel } from "@/components/coach/CoachHubMarketplacePanel";
-import { CoachHubOverview } from "@/components/coach/CoachHubOverview";
 import { CoachHubStudentsPanel } from "@/components/coach/CoachHubStudentsPanel";
 import { TribeModerationPanel } from "@/components/coach/TribeModerationPanel";
 import { cn } from "@/lib/utils/cn";
@@ -25,19 +24,12 @@ interface CoachHubShellProps {
 }
 
 function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const activeTab: CoachHubTab = isCoachHubTab(tabParam)
-    ? tabParam
-    : COACH_HUB_DEFAULT_TAB;
-
-  const setTab = useCallback(
-    (tab: CoachHubTab) => {
-      router.push(coachHubHref(tab), { scroll: false });
-    },
-    [router],
-  );
+  const activeTab: CoachHubTab =
+    tabParam === "inicio" || !isCoachHubTab(tabParam)
+      ? COACH_HUB_DEFAULT_TAB
+      : tabParam;
 
   const activeMeta = useMemo(
     () => COACH_HUB_TABS.find((t) => t.id === activeTab) ?? COACH_HUB_TABS[0],
@@ -94,10 +86,6 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
           <p className="mt-1 text-sm text-zinc-500">{displayName}</p>
           <p className="mt-2 text-sm text-zinc-400">{activeMeta.description}</p>
         </header>
-
-        {activeTab === "inicio" && (
-          <CoachHubOverview coachId={coachId} onNavigate={setTab} />
-        )}
 
         {activeTab === "reservas" && (
           <CoachBookingsPanel coachId={coachId} initialFilter="pending_requests" />

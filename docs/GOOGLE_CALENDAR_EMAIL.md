@@ -39,6 +39,28 @@ Abre la URL que imprima el script (con `npm run dev` en marcha). Al terminar, el
 GOOGLE_CALENDAR_ID=primary
 ```
 
+### Varios calendarios (Explora + AM Snowboard Coach)
+
+Para que `/reservar` no ofrezca huecos ya ocupados en **Explora** ni en **AM**:
+
+1. En Google Calendar, el calendario de Explora (`explora.sclub@gmail.com` o el de Alex) debe estar **compartido** con `amsnowboardcoach@gmail.com` con permiso al menos de **ver todos los detalles de los eventos** (ideal: hacer cambios en eventos si quieres reflejar reservas AM en Explora).
+2. En `.env.local` y Vercel:
+
+```env
+GOOGLE_CALENDAR_ID=primary
+GOOGLE_EXPLORA_CALENDAR_ID=explora.sclub@gmail.com
+```
+
+`GOOGLE_EXPLORA_CALENDAR_ID` es el **id del calendario** (suele ser el email). Si no funciona, en [calendar.google.com](https://calendar.google.com) → Configuración del calendario → **Integrar calendario** → copia el **ID del calendario**.
+
+Al **aceptar** una reserva en AM, el evento se crea en `GOOGLE_CALENDAR_ID` y se **duplica** en Explora (misma franja), para que ambos sistemas vean el bloqueo.
+
+Calendarios extra solo para consultar ocupación (sin duplicar evento):
+
+```env
+GOOGLE_BUSY_CALENDAR_IDS=otro@ejemplo.com,otro-id@group.calendar.google.com
+```
+
 ## 3. Gmail SMTP (contraseña de aplicación)
 
 1. Cuenta Google → Seguridad → Verificación en 2 pasos (activada)

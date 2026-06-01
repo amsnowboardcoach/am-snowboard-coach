@@ -1,7 +1,14 @@
-import { FieldPath, FieldValue } from "firebase-admin/firestore";
+import { FieldValue } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { COACH_ROLES, ROLES } from "@/constants/roles";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
+
+function getStorageBucket() {
+  const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET?.trim();
+  return bucketName
+    ? getStorage().bucket(bucketName)
+    : getStorage().bucket();
+}
 
 async function deleteQueryBatch(
   query: FirebaseFirestore.Query,
@@ -25,7 +32,7 @@ async function deleteQueryBatch(
 async function deleteStorageFile(path: string | undefined): Promise<void> {
   if (!path?.trim()) return;
   try {
-    await getStorage().bucket().file(path).delete();
+    await getStorageBucket().file(path).delete();
   } catch {
     /* ya borrado */
   }
@@ -33,7 +40,7 @@ async function deleteStorageFile(path: string | undefined): Promise<void> {
 
 async function deleteStoragePrefix(prefix: string): Promise<void> {
   try {
-    const [files] = await getStorage().bucket().getFiles({ prefix });
+    const [files] = await getStorageBucket().getFiles({ prefix });
     await Promise.all(files.map((f) => f.delete().catch(() => undefined)));
   } catch {
     /* ignore */
@@ -65,6 +72,47 @@ async function deleteUserSubcollections(userId: string): Promise<void> {
   await deleteQueryBatch(userRef.collection("fcm_tokens"));
 }
 
+/** Comentarios del alumno en publicaciones de otros (sin collectionGroup). */
+async function deleteTribeCommentsByAuthor(userId: string): Promise<void> {
+  const db = getAdminDb();
+  const postsSnap = await db.collection("tribe_posts").select().get();
+
+  for (const post of postsSnap.docs) {
+    const commentsSnap = await post.ref
+      .collection("comments")
+      .where("authorId", "==", userId)
+      .get();
+
+    for (const commentDoc of commentsSnap.docs) {
+      await commentDoc.ref.delete();
+      try {
+        await post.ref.update({ commentCount: FieldValue.increment(-1) });
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+}
+
+/** Likes (fires) del alumno en publicaciones de otros. */
+async function deleteTribeFiresByAuthor(userId: string): Promise<void> {
+  const db = getAdminDb();
+  const postsSnap = await db.collection("tribe_posts").select().get();
+
+  for (const post of postsSnap.docs) {
+    const fireRef = post.ref.collection("fires").doc(userId);
+    const fireSnap = await fireRef.get();
+    if (!fireSnap.exists) continue;
+
+    await fireRef.delete();
+    try {
+      await post.ref.update({ fireCount: FieldValue.increment(-1) });
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
 async function deleteTribeContentByAuthor(userId: string): Promise<void> {
   const db = getAdminDb();
   const postsSnap = await db
@@ -79,35 +127,8 @@ async function deleteTribeContentByAuthor(userId: string): Promise<void> {
     );
   }
 
-  const commentsSnap = await db
-    .collectionGroup("comments")
-    .where("authorId", "==", userId)
-    .get();
-  for (const commentDoc of commentsSnap.docs) {
-    const postRef = commentDoc.ref.parent.parent;
-    if (!postRef) continue;
-    await commentDoc.ref.delete();
-    try {
-      await postRef.update({ commentCount: FieldValue.increment(-1) });
-    } catch {
-      /* ignore */
-    }
-  }
-
-  const firesSnap = await db
-    .collectionGroup("fires")
-    .where(FieldPath.documentId(), "==", userId)
-    .get();
-  for (const fireDoc of firesSnap.docs) {
-    const postRef = fireDoc.ref.parent.parent;
-    if (!postRef) continue;
-    await fireDoc.ref.delete();
-    try {
-      await postRef.update({ fireCount: FieldValue.increment(-1) });
-    } catch {
-      /* ignore */
-    }
-  }
+  await deleteTribeCommentsByAuthor(userId);
+  await deleteTribeFiresByAuthor(userId);
 }
 
 async function deleteMarketplaceBySeller(userId: string): Promise<void> {
@@ -172,8 +193,9 @@ async function deleteBookingsForUser(
 async function deleteSnowReportContributions(userId: string): Promise<void> {
   const db = getAdminDb();
   const reportsSnap = await db.collection("snow_reports").get();
-  const batch = db.batch();
+  let batch = db.batch();
   let count = 0;
+
   for (const report of reportsSnap.docs) {
     const contribRef = report.ref.collection("contributions").doc(userId);
     const contribSnap = await contribRef.get();
@@ -183,6 +205,7 @@ async function deleteSnowReportContributions(userId: string): Promise<void> {
     }
     if (count >= 400) {
       await batch.commit();
+      batch = db.batch();
       count = 0;
     }
   }
@@ -271,7 +294,19 @@ export async function assertCoachCanDeleteStudent(
     throw new Error("No autorizado");
   }
 
-  if (student.assignedCoachId !== coachUid && coachRole !== ROLES.ADMIN) {
+  const defaultCoachId = process.env.NEXT_PUBLIC_DEFAULT_COACH_ID?.trim();
+  const assignedCoachId = student.assignedCoachId as string | undefined;
+  const assignedToRequester = assignedCoachId === coachUid;
+  const assignedToDefaultCoach =
+    Boolean(defaultCoachId) &&
+    assignedCoachId === defaultCoachId &&
+    (coachRole === ROLES.COACH || coachRole === ROLES.ADMIN);
+
+  if (
+    !assignedToRequester &&
+    coachRole !== ROLES.ADMIN &&
+    !assignedToDefaultCoach
+  ) {
     throw new Error("Este alumno no está asignado a tu panel");
   }
 }

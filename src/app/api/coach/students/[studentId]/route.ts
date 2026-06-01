@@ -29,13 +29,30 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       deleted: result,
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Error al eliminar alumno";
+    const msg = formatDeleteStudentError(err);
     const status = msg.includes("no encontrado")
       ? 404
       : msg.includes("autorizado") || msg.includes("asignado")
         ? 403
         : 500;
-    console.error("[coach/students/delete]", err);
+    console.error("[coach/students/delete]", studentId, err);
     return NextResponse.json({ error: msg }, { status });
   }
+}
+
+function formatDeleteStudentError(err: unknown): string {
+  if (err instanceof Error) {
+    if (err.message.includes("FAILED_PRECONDITION")) {
+      return "Error de base de datos al eliminar. Contacta soporte si persiste.";
+    }
+    return err.message;
+  }
+  const code =
+    err && typeof err === "object" && "code" in err
+      ? String((err as { code: unknown }).code)
+      : "";
+  if (code === "9" || code === "failed-precondition") {
+    return "Error de base de datos al eliminar. Contacta soporte si persiste.";
+  }
+  return "Error al eliminar alumno";
 }

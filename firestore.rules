@@ -69,8 +69,8 @@ service cloud.firestore {
       return request.auth.token.email == 'amsnowboardcoach@gmail.com';
     }
 
-    function userCreateValid() {
-      return request.resource.data.uid == userId
+    function userCreateValid(uid) {
+      return request.resource.data.uid == uid
         && request.resource.data.email is string
         && request.resource.data.displayName is string
         && (
@@ -108,7 +108,7 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isOwner(userId) || isCoach();
-      allow create: if isOwner(userId) && userCreateValid();
+      allow create: if isOwner(userId) && userCreateValid(userId);
       allow update: if isCoach()
         || (isOwner(userId) && userSelfUpdateValid())
         || (isOwner(userId) && coachEmailRoleFix());

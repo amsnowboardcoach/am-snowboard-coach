@@ -3,7 +3,7 @@ import { getAppBaseUrl } from "@/constants/project";
 import { SITE_NAME } from "@/lib/seo/site";
 
 /** Fecha de última revisión de textos legales (ISO). Actualizar al modificar políticas. */
-export const LEGAL_LAST_UPDATED = "2026-05-27";
+export const LEGAL_LAST_UPDATED = "2026-06-01";
 
 export const LEGAL_CONTROLLER = {
   tradeName: SITE_NAME,

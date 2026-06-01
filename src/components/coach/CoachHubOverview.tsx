@@ -151,7 +151,7 @@ export function CoachHubOverview({ coachId, onNavigate }: CoachHubOverviewProps)
       <section>
         <h2 className="text-lg font-semibold text-zinc-100">Secciones</h2>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-          {COACH_HUB_TABS.filter((t) => t.id !== "inicio").map((tab) => (
+          {COACH_HUB_TABS.map((tab) => (
             <li key={tab.id}>
               <button
                 type="button"

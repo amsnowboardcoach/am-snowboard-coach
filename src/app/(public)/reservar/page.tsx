@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { BookingCancellationPolicy } from "@/components/booking/BookingCancellationPolicy";
 import { ReservarTabs } from "@/components/booking/ReservarTabs";
 import Link from "next/link";
 import { PageHero } from "@/components/layout/PageHero";
@@ -38,11 +39,14 @@ export default async function ReservarPage() {
             <ReservarTabs />
           </Suspense>
         </div>
-        <p className="mt-8 text-center text-sm text-zinc-500">
-          También puedes reservar por WhatsApp (botón verde abajo a la izquierda).
-          En la web ves disponibilidad y precio sin cuenta; al enviar la solicitud
-          identifícate en un paso.
-        </p>
+        <div className="mt-8 space-y-6">
+          <BookingCancellationPolicy />
+          <p className="text-center text-sm text-zinc-500">
+            También puedes reservar por WhatsApp (botón verde abajo a la izquierda).
+            En la web ves disponibilidad y precio sin cuenta; al enviar la solicitud
+            identifícate en un paso.
+          </p>
+        </div>
       </section>
     </div>
   );

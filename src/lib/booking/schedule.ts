@@ -8,22 +8,35 @@ import type {
 } from "@/lib/booking/calendar-availability";
 import { buildSlotCandidates } from "@/lib/booking/slot-instances";
 import {
+  intervalsOverlap,
+  isIntervalFreeOfBusy,
+} from "@/lib/booking/interval-overlap";
+import {
   fetchBusyIntervals,
   isGoogleCalendarConfigured,
-  isIntervalFree,
 } from "@/lib/google/calendar";
 import { findOverlappingBookings } from "@/lib/firebase/bookings-admin";
+
 function isSlotFree(
   option: AvailableSlotOption,
   busy: { start: Date; end: Date }[],
   firestoreBusy: Awaited<ReturnType<typeof findOverlappingBookings>>,
+  calendarCheckFailed: boolean,
 ): boolean {
   const start = new Date(option.startUtc);
   const end = new Date(option.endUtc);
-  const freeCal =
-    !isGoogleCalendarConfigured() || isIntervalFree(start, end, busy);
+
+  let freeCal = true;
+  if (isGoogleCalendarConfigured()) {
+    if (calendarCheckFailed) {
+      freeCal = false;
+    } else {
+      freeCal = isIntervalFreeOfBusy(start, end, busy);
+    }
+  }
+
   const freeDb = !firestoreBusy.some((b) =>
-    overlaps(start, end, b.startAt.toDate(), b.endAt.toDate()),
+    intervalsOverlap(start, end, b.startAt.toDate(), b.endAt.toDate()),
   );
   return freeCal && freeDb;
 }
@@ -46,14 +59,14 @@ export async function getBookingCalendarAvailability(
   const rangeEndExclusive = addDays(rangeEndInclusive, 1);
 
   let busy: { start: Date; end: Date }[] = [];
-  let calendarUnavailable = false;
+  let calendarCheckFailed = false;
   if (isGoogleCalendarConfigured() && candidates.length > 0) {
     try {
       busy = await fetchBusyIntervals(rangeStart, rangeEndExclusive);
     } catch (err) {
-      calendarUnavailable = true;
+      calendarCheckFailed = true;
       console.error(
-        "[schedule] Google Calendar no disponible; usando solo reservas en Firestore:",
+        "[schedule] Google Calendar no disponible; bloqueando huecos hasta recuperar sync:",
         err,
       );
     }
@@ -81,7 +94,12 @@ export async function getBookingCalendarAvailability(
   const available: AvailableSlotOption[] = [];
 
   for (const option of candidates) {
-    const availableSlot = isSlotFree(option, busy, firestoreBusy);
+    const availableSlot = isSlotFree(
+      option,
+      busy,
+      firestoreBusy,
+      calendarCheckFailed,
+    );
     const list = slotsByDate.get(option.date) ?? [];
     list.push({ option, available: availableSlot });
     slotsByDate.set(option.date, list);
@@ -151,8 +169,4 @@ export async function getAvailableSlots(
     slotId,
   );
   return slots;
-}
-
-function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date): boolean {
-  return aStart < bEnd && aEnd > bStart;
 }

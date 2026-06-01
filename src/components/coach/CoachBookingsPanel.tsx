@@ -5,6 +5,7 @@ import {
   countPaidWithoutInvoice,
   fetchCoachBookings,
 } from "@/lib/firebase/bookings";
+import { bookingAwaitingCoachApproval } from "@/lib/booking/slot-hold";
 import type { Booking } from "@/types/firestore";
 import { BookingCard } from "./BookingCard";
 import { CreateBookingForm } from "./CreateBookingForm";
@@ -71,22 +72,14 @@ export function CoachBookingsPanel({
   );
 
   const pendingRequestCount = useMemo(
-    () =>
-      bookings.filter(
-        (b) =>
-          b.status === "pending" &&
-          (b.source === "web" || b.source === "hub"),
-      ).length,
+    () => bookings.filter((b) => bookingAwaitingCoachApproval(b)).length,
     [bookings],
   );
 
   const filtered = useMemo(() => {
     return bookings.filter((b) => {
       if (filter === "pending_requests") {
-        return (
-          b.status === "pending" &&
-          (b.source === "web" || b.source === "hub")
-        );
+        return bookingAwaitingCoachApproval(b);
       }
       if (filter === "pending_invoice") {
         return (

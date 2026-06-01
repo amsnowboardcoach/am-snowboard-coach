@@ -79,10 +79,11 @@ export interface BookingEmailDetails {
   balanceEuros?: number;
 }
 
-/** Alumno: solicitud recibida; coach: nueva solicitud por confirmar */
+/** Alumno: solicitud recibida; coach opcional (solo si no hay pago online pendiente). */
 export async function sendBookingRequestEmails(
-  details: BookingEmailDetails,
+  details: BookingEmailDetails & { notifyCoach?: boolean },
 ): Promise<void> {
+  const notifyCoach = details.notifyCoach !== false;
   if (!isEmailConfigured()) {
     console.warn("[email] SMTP no configurado; omitiendo envío");
     return;
@@ -173,11 +174,77 @@ export async function sendBookingRequestEmails(
     html: studentHtml,
   });
 
+  if (notifyCoach) {
+    await transport.sendMail({
+      from: `"AM Snowboard Coach" <${from}>`,
+      to: process.env.BOOKING_NOTIFY_EMAIL?.trim() || COACH_EMAIL,
+      subject: `Confirmar reserva: ${details.studentName} — ${subjectSuffix}`,
+      html: coachHtml,
+    });
+  }
+}
+
+/** Coach: alumno pagó señal o total; puede aceptar o rechazar en el panel */
+export async function sendCoachBookingPaidAwaitingApprovalEmail(
+  details: BookingEmailDetails & { chargeEuros: number },
+): Promise<void> {
+  if (!isEmailConfigured()) {
+    console.warn("[email] SMTP no configurado; omitiendo envío coach");
+    return;
+  }
+
+  const transport = getTransport();
+  const from = fromAddress();
+  const coachPanelUrl = `${getAppBaseUrl()}/coach?tab=reservas`;
+  const multi = details.sessions && details.sessions.length > 1;
+  const when = multi
+    ? details.sessions!
+        .map(
+          (s) =>
+            `<li>${formatBookingWhen(s.startAt, s.endAt)} · ${s.slotLabel}</li>`,
+        )
+        .join("")
+    : `<li>${formatBookingWhen(details.startAt, details.endAt)} · ${details.slotLabel}</li>`;
+  const planLine = details.daysPlanLabel
+    ? `<li>Plan: <strong>${details.daysPlanLabel}</strong></li>`
+    : "";
+  const peopleLine =
+    details.participantCount && details.participantCount > 1
+      ? `<li>Personas en pista: <strong>${details.participantCount}</strong></li>`
+      : "";
+  const paidLine =
+    details.paymentOption === "deposit_30"
+      ? `<li>Pago recibido: señal ${BOOKING_DEPOSIT_PERCENT}% — <strong>${details.chargeEuros} €</strong> (tarjeta). Resto previsto: <strong>${details.balanceEuros ?? 0} €</strong> en ${BOOKING_BALANCE_PAYMENT_LABEL}.</li>`
+      : `<li>Pago recibido: <strong>${details.chargeEuros} €</strong> (total con tarjeta).</li>`;
+
+  const html = `
+    <h2>Pago recibido — acepta o rechaza la reserva${multi ? ` (${details.sessions!.length} días)` : ""}</h2>
+    <p>El alumno ha completado el pago con tarjeta. Revisa la solicitud en el panel del coach:</p>
+    <p><a href="${coachPanelUrl}">${coachPanelUrl}</a></p>
+    <ul>
+      <li>Alumno: ${details.studentName} &lt;${details.studentEmail}&gt;</li>
+      <li><strong>${details.session.name}</strong>${multi ? ` · ${details.sessions!.length} clases` : ` (${details.slotLabel})`}</li>
+      ${planLine}
+      ${when}
+      <li>Estilo: ${details.lessonTypeName}</li>
+      ${peopleLine}
+      <li>Importe clase(s): <strong>${details.totalEuros} €</strong></li>
+      ${paidLine}
+    </ul>
+    ${details.notes ? `<p>Notas: ${details.notes}</p>` : ""}
+    <p>Al aceptar se bloqueará el turno en Google Calendar y se avisará al alumno.</p>
+  `;
+
+  const subjectDate = formatBookingInTimeZone(details.startAt, "d/M/yyyy");
+  const subjectSuffix = multi
+    ? `${details.sessions!.length} días desde ${subjectDate}`
+    : `${details.slotLabel} · ${subjectDate}`;
+
   await transport.sendMail({
     from: `"AM Snowboard Coach" <${from}>`,
     to: process.env.BOOKING_NOTIFY_EMAIL?.trim() || COACH_EMAIL,
-    subject: `Confirmar reserva: ${details.studentName} — ${subjectSuffix}`,
-    html: coachHtml,
+    subject: `Pago recibido — confirmar: ${details.studentName} — ${subjectSuffix}`,
+    html,
   });
 }
 

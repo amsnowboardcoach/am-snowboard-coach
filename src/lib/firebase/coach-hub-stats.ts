@@ -5,6 +5,7 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import { bookingAwaitingCoachApproval } from "@/lib/booking/slot-hold";
 import {
   countPaidWithoutInvoice,
   fetchCoachBookings,
@@ -42,9 +43,8 @@ export async function fetchCoachHubStats(
     fetchActiveMarketplaceListings(100),
   ]);
 
-  const pendingBookings = bookings.filter(
-    (b) =>
-      b.status === "pending" && (b.source === "web" || b.source === "hub"),
+  const pendingBookings = bookings.filter((b) =>
+    bookingAwaitingCoachApproval(b),
   ).length;
 
   const upcomingBookings = bookings.filter(

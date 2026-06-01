@@ -25,7 +25,6 @@ import { createGroupBookingCheckoutSession } from "@/lib/stripe/checkout";
 import { createBookingFromWeb } from "@/lib/firebase/bookings-admin";
 import { isGoogleCalendarConfigured } from "@/lib/google/calendar";
 import { sendBookingRequestEmails } from "@/lib/email/send-booking";
-import { notifyCoachNewBookingRequest } from "@/lib/push/send-push";
 import { requireBookingStudent } from "@/lib/auth/resolve-booking-student";
 import { addDays } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
@@ -72,8 +71,17 @@ export async function POST(request: NextRequest) {
 
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
+    const fieldErrors = parsed.error.flatten().fieldErrors;
+    const first =
+      fieldErrors.name?.[0] ??
+      fieldErrors.email?.[0] ??
+      fieldErrors.sessions?.[0] ??
+      fieldErrors.durationId?.[0];
     return NextResponse.json(
-      { error: "Datos inválidos", details: parsed.error.flatten() },
+      {
+        error: first ?? "Datos inválidos. Revisa fecha, duración y tu nombre.",
+        details: parsed.error.flatten(),
+      },
       { status: 400 },
     );
   }
@@ -308,29 +316,10 @@ export async function POST(request: NextRequest) {
         paymentOption,
         chargeEuros: Math.round(paymentBreakdown.chargeAmountCents / 100),
         balanceEuros: Math.round(paymentBreakdown.balanceAmountCents / 100),
+        notifyCoach: !isOnlinePaymentOption(paymentOption),
       });
     } catch (mailErr) {
       console.error("[reserve] Email:", mailErr);
-    }
-
-    try {
-      await notifyCoachNewBookingRequest({
-        studentName,
-        slotLabel:
-          sessionsInput.length > 1
-            ? `${sessionsInput.length} clases`
-            : first.slotLabel,
-        dateLabel:
-          sessionsInput.length > 1
-            ? formatDaysPlanLabel(daysPlan, sessionsInput.length)
-            : formatBookingInTimeZone(first.startAt, "EEE d MMM"),
-        bookingId: bookingIds[0]!,
-        kind: "session",
-        startAt: first.startAt,
-        endAt: first.endAt,
-      });
-    } catch (pushErr) {
-      console.error("[reserve] Push:", pushErr);
     }
 
     const chargeEuros = Math.round(paymentBreakdown.chargeAmountCents / 100);

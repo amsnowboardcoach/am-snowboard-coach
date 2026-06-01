@@ -14,6 +14,7 @@ import { createCalendarEvent } from "@/lib/google/calendar";
 import {
   sendBookingConfirmedEmails,
   sendBookingRejectedEmail,
+  sendCoachBookingPaidAwaitingApprovalEmail,
   type BookingEmailDetails,
 } from "@/lib/email/send-booking";
 import {
@@ -21,6 +22,7 @@ import {
   notifyStudentBookingConfirmed,
   notifyStudentBookingRejected,
 } from "@/lib/push/send-push";
+import { sendCoachBookingPaidWhatsApp } from "@/lib/whatsapp/coach-notify";
 import { getAppBaseUrl } from "@/constants/project";
 import {
   VIDEO_CORRECTION_PRODUCT,
@@ -40,6 +42,7 @@ import { isStripeConfigured } from "@/lib/stripe/config";
 import type { ParsedCalBooking } from "@/lib/cal/parse-payload";
 import type { CalTriggerEvent } from "@/lib/cal/types";
 import { getAdminDb } from "@/lib/firebase/admin";
+import { bookingHoldsCalendarSlot } from "@/lib/booking/slot-hold";
 import type { BookingStatus } from "@/types/firestore";
 
 const BOOKINGS = "bookings";
@@ -335,22 +338,107 @@ export async function markBookingsPaidFromStripe(input: {
     await applyStripePaymentToBooking(bookingId, input);
   }
 
-  const booking = await getBookingById(uniqueIds[0]!);
-  if (booking) {
+  const paidBookings = (
+    await Promise.all(uniqueIds.map((id) => getBookingById(id)))
+  ).filter((b): b is AdminBookingRecord => Boolean(b));
+
+  const sessionBooking = paidBookings.find(
+    (b) =>
+      b.productKind !== "video_correction" &&
+      !isVideoCorrectionProduct(b.lessonTypeId),
+  );
+
+  if (sessionBooking) {
+    const chargeCents = paidBookings.reduce(
+      (sum, b) => sum + b.payment.amountCents,
+      0,
+    );
+    const session = getSessionDuration(
+      (sessionBooking.sessionDurationId || "2h") as SessionDurationId,
+    );
+    if (session) {
+      const groupSessions =
+        paidBookings.length > 1
+          ? paidBookings
+              .filter((b) => b.sessionDurationId)
+              .sort((a, b) => a.startAt.getTime() - b.startAt.getTime())
+              .map((b) => ({
+                slotLabel: b.sessionSlotLabel || session.name,
+                startAt: b.startAt,
+                endAt: b.endAt,
+              }))
+          : undefined;
+
+      const totalCents = paidBookings.reduce(
+        (sum, b) => sum + (b.payment.totalAmountCents ?? b.payment.amountCents),
+        0,
+      );
+
+      try {
+        await sendCoachBookingPaidAwaitingApprovalEmail({
+          ...bookingToEmailDetails(sessionBooking, session),
+          totalEuros: Math.round(totalCents / 100),
+          chargeEuros: Math.round(chargeCents / 100),
+          balanceEuros: Math.round(
+            (sessionBooking.payment.balanceAmountCents ?? 0) / 100,
+          ),
+          sessions:
+            groupSessions && groupSessions.length > 1
+              ? groupSessions
+              : undefined,
+          daysPlanLabel:
+            groupSessions && groupSessions.length > 1
+              ? `${groupSessions.length} clases`
+              : undefined,
+        });
+      } catch (mailErr) {
+        console.error("[markBookingPaid] Email coach:", mailErr);
+      }
+
+      try {
+        await sendCoachBookingPaidWhatsApp({
+          bookingId: sessionBooking.id,
+          studentName:
+            sessionBooking.studentDisplayName ||
+            sessionBooking.studentEmail ||
+            "Alumno",
+          studentEmail: sessionBooking.studentEmail || "",
+          lessonTypeName: sessionBooking.lessonTypeName,
+          sessionLabel: session.name,
+          startAt: sessionBooking.startAt,
+          endAt: sessionBooking.endAt,
+          participantCount: sessionBooking.participantCount,
+          chargeEuros: Math.round(chargeCents / 100),
+          totalEuros: Math.round(totalCents / 100),
+          balanceEuros: Math.round(
+            (sessionBooking.payment.balanceAmountCents ?? 0) / 100,
+          ),
+          paymentOption: sessionBooking.payment.paymentOption,
+          bookingNotes: sessionBooking.bookingNotes,
+          sessions:
+            groupSessions && groupSessions.length > 1
+              ? groupSessions
+              : undefined,
+        });
+      } catch (waErr) {
+        console.error("[markBookingPaid] WhatsApp coach:", waErr);
+      }
+    }
+
     try {
       await notifyAfterBookingPaid({
-        id: booking.id,
-        userId: booking.userId,
-        studentDisplayName: booking.studentDisplayName,
-        studentEmail: booking.studentEmail,
-        lessonTypeId: booking.lessonTypeId,
-        lessonTypeName: booking.lessonTypeName,
-        productKind: booking.productKind,
-        sessionDurationId: booking.sessionDurationId,
-        sessionSlotLabel: booking.sessionSlotLabel,
-        startAt: booking.startAt,
-        endAt: booking.endAt,
-        amountCents: booking.payment.amountCents,
+        id: sessionBooking.id,
+        userId: sessionBooking.userId,
+        studentDisplayName: sessionBooking.studentDisplayName,
+        studentEmail: sessionBooking.studentEmail,
+        lessonTypeId: sessionBooking.lessonTypeId,
+        lessonTypeName: sessionBooking.lessonTypeName,
+        productKind: sessionBooking.productKind,
+        sessionDurationId: sessionBooking.sessionDurationId,
+        sessionSlotLabel: sessionBooking.sessionSlotLabel,
+        startAt: sessionBooking.startAt,
+        endAt: sessionBooking.endAt,
+        amountCents: chargeCents,
       });
     } catch (pushErr) {
       console.error("[markBookingPaid] Push:", pushErr);
@@ -443,8 +531,9 @@ export async function findOverlappingBookings(
     .filter((d) => {
       if (excludeBookingId && d.id === excludeBookingId) return false;
       const data = d.data();
-      const status = data.status as string;
-      if (status === "cancelled") return false;
+      if (!bookingHoldsCalendarSlot(data as Parameters<typeof bookingHoldsCalendarSlot>[0])) {
+        return false;
+      }
       const startAt = (data.startAt as FirebaseFirestore.Timestamp).toDate();
       return startAt >= queryFrom && startAt <= rangeEnd;
     })

@@ -7,6 +7,7 @@ import type { BookingPaymentOption } from "@/constants/booking-payment";
 import { BOOKING_MEETING_POINT } from "@/constants/booking-info";
 import { getAppBaseUrl } from "@/constants/project";
 import type { SessionDuration } from "@/constants/session-schedules";
+import { BOOKING_CHECKOUT_PAYMENT_OPTIONS } from "@/lib/stripe/checkout-session-options";
 import { getStripe } from "@/lib/stripe/server";
 
 export interface CreateBookingCheckoutInput {
@@ -45,6 +46,7 @@ export async function createBookingCheckoutSession(
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
+    ...BOOKING_CHECKOUT_PAYMENT_OPTIONS,
     customer_email: input.studentEmail,
     client_reference_id: input.bookingId,
     metadata: {
@@ -125,6 +127,7 @@ export async function createGroupBookingCheckoutSession(
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
+    ...BOOKING_CHECKOUT_PAYMENT_OPTIONS,
     customer_email: input.studentEmail,
     client_reference_id: input.bookingIds[0],
     metadata: {
