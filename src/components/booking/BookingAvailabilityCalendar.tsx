@@ -20,10 +20,7 @@ import { es } from "date-fns/locale";
 import { MAX_BOOKING_DAYS } from "@/constants/booking-plan";
 import type { SessionTimeSlot } from "@/constants/session-schedules";
 import type { CalendarDayInfo } from "@/lib/booking/calendar-availability";
-import {
-  slotsFreeOnAllPickedDates,
-  type CalendarDayStatus,
-} from "@/lib/booking/calendar-availability";
+import type { CalendarDayStatus } from "@/lib/booking/calendar-availability";
 import type { AvailableSlotOption } from "@/lib/booking/availability";
 import { freeSlotIdsForDate, nearestFreeSlotId } from "@/lib/booking/slot-suggestions";
 import { BOOKING_SEASON_LABEL } from "@/constants/booking-availability";
@@ -206,7 +203,6 @@ function BookingSlotSeatMap({
   availableSlots,
   selectedSlotByDate,
   onSelectSlotForDate,
-  onSelectSlotForAllDates,
 }: {
   sessionSlots: SessionTimeSlot[];
   pickedDates: string[];
@@ -214,24 +210,11 @@ function BookingSlotSeatMap({
   availableSlots: AvailableSlotOption[];
   selectedSlotByDate: Map<string, string>;
   onSelectSlotForDate: (date: string, slotId: string) => void;
-  onSelectSlotForAllDates: (slotId: string) => void;
 }) {
   const dayMap = useMemo(
     () => new Map(calendarDays.map((d) => [d.date, d])),
     [calendarDays],
   );
-
-  const commonSlots = useMemo(
-    () => slotsFreeOnAllPickedDates(sessionSlots, pickedDates, availableSlots),
-    [sessionSlots, pickedDates, availableSlots],
-  );
-
-  const allSameSlot =
-    pickedDates.length > 0 &&
-    pickedDates.every(
-      (d) => selectedSlotByDate.get(d) === selectedSlotByDate.get(pickedDates[0]!),
-    ) &&
-    selectedSlotByDate.has(pickedDates[0]!);
 
   if (pickedDates.length === 0) {
     return (
@@ -249,42 +232,6 @@ function BookingSlotSeatMap({
         </p>
         <p className="text-[11px] text-zinc-600">Verde libre · gris ocupado</p>
       </div>
-
-      {pickedDates.length > 1 && commonSlots.length > 0 && (
-        <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-3">
-          <p className="text-xs font-medium text-zinc-400">
-            Mismo turno en todos los días
-          </p>
-          <ul className="mt-2 grid gap-2 sm:grid-cols-2">
-            {commonSlots.map((slot) => {
-              const selected = allSameSlot && selectedSlotByDate.get(pickedDates[0]!) === slot.id;
-              return (
-                <li key={slot.id}>
-                  <button
-                    type="button"
-                    onClick={() => onSelectSlotForAllDates(slot.id)}
-                    className={cn(
-                      "flex w-full items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-left text-sm transition",
-                      selected
-                        ? "border-sky-500 bg-sky-500/20 text-sky-100 ring-1 ring-sky-500/50"
-                        : "border-emerald-500/40 bg-emerald-500/10 text-emerald-100 hover:border-emerald-500/60",
-                    )}
-                  >
-                    <span className="font-medium">{slot.label}</span>
-                    <span className="text-[11px] text-emerald-300/90">Libre</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-
-      {pickedDates.length > 1 && (
-        <p className="text-xs text-zinc-500">
-          Si no coincide un mismo horario, elige el turno libre de cada día.
-        </p>
-      )}
 
       {pickedDates.map((dateKey) => {
         const dayInfo = dayMap.get(dateKey);
@@ -545,7 +492,7 @@ export function BookingAvailabilityCalendar({
         </div>
 
         <p className="mt-2 text-center text-[11px] text-zinc-600">
-          Temporada {BOOKING_SEASON_LABEL} · varios días con el mismo turno
+          Temporada {BOOKING_SEASON_LABEL} · elige turno en cada día marcado
         </p>
 
         <div className="mt-2 grid grid-cols-7 gap-1 text-center">
@@ -627,7 +574,6 @@ export function BookingAvailabilityCalendar({
             availableSlots={availableSlots}
             selectedSlotByDate={selectedSlotByDate}
             onSelectSlotForDate={onSelectSlotForDate}
-            onSelectSlotForAllDates={onSelectSlotForAllDates}
           />
         </div>
       ) : (

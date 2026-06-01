@@ -34,7 +34,7 @@ interface BookingInvoiceFormProps {
 }
 
 const inputClass =
-  "mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm";
+  "mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm";
 
 export function BookingInvoiceForm({
   booking,
@@ -227,11 +227,11 @@ export function BookingInvoiceForm({
   const statusColor: Record<InvoiceStatus, string> = {
     pending: "bg-amber-500/20 text-amber-300",
     issued: "bg-emerald-500/20 text-emerald-300",
-    not_required: "bg-zinc-700 text-zinc-400",
+    not_required: "bg-zinc-700 text-zinc-600",
   };
 
   return (
-    <div className="mt-4 border-t border-zinc-800 pt-4">
+    <div className="mt-4 border-t border-zinc-200 pt-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span
           className={`rounded-full px-3 py-1 text-xs font-medium ${statusColor[booking.invoice.status]}`}
@@ -265,11 +265,11 @@ export function BookingInvoiceForm({
           {issuer && <InvoiceIssuerBlock issuer={issuer} />}
 
           <fieldset className="space-y-3">
-            <legend className="text-sm font-medium text-zinc-200">
+            <legend className="text-sm font-medium text-zinc-800">
               Identificación de la factura
             </legend>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm text-zinc-300">
+              <label className="block text-sm text-zinc-700">
                 Nº factura (serie correlativa) *
                 <input
                   required
@@ -279,7 +279,7 @@ export function BookingInvoiceForm({
                   className={inputClass}
                 />
               </label>
-              <label className="block text-sm text-zinc-300">
+              <label className="block text-sm text-zinc-700">
                 Fecha de expedición *
                 <input
                   type="date"
@@ -290,7 +290,7 @@ export function BookingInvoiceForm({
                 />
               </label>
             </div>
-            <label className="block text-sm text-zinc-300">
+            <label className="block text-sm text-zinc-700">
               Concepto / descripción del servicio *
               <input
                 required
@@ -302,7 +302,7 @@ export function BookingInvoiceForm({
           </fieldset>
 
           <fieldset className="space-y-3">
-            <legend className="text-sm font-medium text-zinc-200">
+            <legend className="text-sm font-medium text-zinc-800">
               Cliente (receptor)
             </legend>
             <div className="flex flex-wrap gap-2">
@@ -317,7 +317,7 @@ export function BookingInvoiceForm({
                   className={`rounded-full px-4 py-2 text-sm ${
                     recipientType === t.id
                       ? "bg-sky-500 text-zinc-950"
-                      : "border border-zinc-700 text-zinc-400"
+                      : "border border-zinc-300 text-zinc-600"
                   }`}
                 >
                   {t.label}
@@ -325,7 +325,7 @@ export function BookingInvoiceForm({
               ))}
             </div>
 
-            <label className="block text-sm text-zinc-300">
+            <label className="block text-sm text-zinc-700">
               Tipo de factura *
               <select
                 value={documentType}
@@ -352,7 +352,7 @@ export function BookingInvoiceForm({
               </span>
             </label>
 
-            <label className="block text-sm text-zinc-300">
+            <label className="block text-sm text-zinc-700">
               Nombre o razón social *
               <input
                 required
@@ -362,7 +362,7 @@ export function BookingInvoiceForm({
               />
             </label>
 
-            <label className="block text-sm text-zinc-300">
+            <label className="block text-sm text-zinc-700">
               NIF / CIF / NIE {requiresFullInvoice ? "*" : "(opcional en simplificada)"}
               <input
                 required={requiresFullInvoice}
@@ -375,7 +375,7 @@ export function BookingInvoiceForm({
 
             {requiresFullInvoice && (
               <>
-                <label className="block text-sm text-zinc-300">
+                <label className="block text-sm text-zinc-700">
                   Dirección fiscal *
                   <input
                     required
@@ -386,7 +386,7 @@ export function BookingInvoiceForm({
                   />
                 </label>
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <label className="block text-sm text-zinc-300">
+                  <label className="block text-sm text-zinc-700">
                     C.P. *
                     <input
                       required
@@ -395,7 +395,7 @@ export function BookingInvoiceForm({
                       className={inputClass}
                     />
                   </label>
-                  <label className="block text-sm text-zinc-300">
+                  <label className="block text-sm text-zinc-700">
                     Ciudad *
                     <input
                       required
@@ -404,7 +404,7 @@ export function BookingInvoiceForm({
                       className={inputClass}
                     />
                   </label>
-                  <label className="block text-sm text-zinc-300">
+                  <label className="block text-sm text-zinc-700">
                     Provincia
                     <input
                       value={province}
@@ -417,7 +417,7 @@ export function BookingInvoiceForm({
             )}
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm text-zinc-300">
+              <label className="block text-sm text-zinc-700">
                 País
                 <input
                   value={country}
@@ -425,7 +425,7 @@ export function BookingInvoiceForm({
                   className={inputClass}
                 />
               </label>
-              <label className="block text-sm text-zinc-300">
+              <label className="block text-sm text-zinc-700">
                 Email cliente
                 <input
                   type="email"
@@ -438,10 +438,10 @@ export function BookingInvoiceForm({
           </fieldset>
 
           <fieldset className="space-y-3">
-            <legend className="text-sm font-medium text-zinc-200">
+            <legend className="text-sm font-medium text-zinc-800">
               IVA (LIVA — España)
             </legend>
-            <label className="block text-sm text-zinc-300">
+            <label className="block text-sm text-zinc-700">
               Tipo de IVA aplicado *
               <select
                 value={vatRate}
@@ -457,7 +457,7 @@ export function BookingInvoiceForm({
             </label>
 
             {vatRate === 0 && (
-              <label className="block text-sm text-zinc-300">
+              <label className="block text-sm text-zinc-700">
                 Motivo de exención *
                 <input
                   required
@@ -476,7 +476,7 @@ export function BookingInvoiceForm({
                 className={`rounded-full px-4 py-2 text-sm ${
                   priceIncludesVat
                     ? "bg-zinc-700 text-white"
-                    : "border border-zinc-700 text-zinc-500"
+                    : "border border-zinc-300 text-zinc-500"
                 }`}
               >
                 Importe con IVA incluido
@@ -487,14 +487,14 @@ export function BookingInvoiceForm({
                 className={`rounded-full px-4 py-2 text-sm ${
                   !priceIncludesVat
                     ? "bg-zinc-700 text-white"
-                    : "border border-zinc-700 text-zinc-500"
+                    : "border border-zinc-300 text-zinc-500"
                 }`}
               >
                 Base imponible (sin IVA)
               </button>
             </div>
 
-            <label className="block text-sm text-zinc-300">
+            <label className="block text-sm text-zinc-700">
               {priceIncludesVat ? "Total con IVA (€) *" : "Base imponible (€) *"}
               <input
                 required
@@ -505,12 +505,12 @@ export function BookingInvoiceForm({
               />
             </label>
 
-            <div className="rounded-lg border border-zinc-700 bg-zinc-950/80 p-4 text-sm">
+            <div className="rounded-lg border border-zinc-300 bg-white/90 p-4 text-sm">
               <p className="text-zinc-500">Desglose calculado</p>
               <dl className="mt-2 grid gap-1 sm:grid-cols-3">
                 <div>
                   <dt className="text-xs text-zinc-500">Base imponible</dt>
-                  <dd className="font-medium text-zinc-200">
+                  <dd className="font-medium text-zinc-800">
                     {centsToEuros(amounts.baseAmountCents)}
                   </dd>
                 </div>
@@ -518,7 +518,7 @@ export function BookingInvoiceForm({
                   <dt className="text-xs text-zinc-500">
                     Cuota IVA ({amounts.vatRatePercent}%)
                   </dt>
-                  <dd className="font-medium text-zinc-200">
+                  <dd className="font-medium text-zinc-800">
                     {centsToEuros(amounts.vatAmountCents)}
                   </dd>
                 </div>
@@ -533,19 +533,19 @@ export function BookingInvoiceForm({
           </fieldset>
 
           <fieldset className="space-y-3">
-            <legend className="text-sm font-medium text-zinc-200">
+            <legend className="text-sm font-medium text-zinc-800">
               Archivo y notas
             </legend>
-            <label className="block text-sm text-zinc-300">
+            <label className="block text-sm text-zinc-700">
               PDF de la factura emitida (opcional)
               <input
                 type="file"
                 accept="application/pdf"
                 onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)}
-                className="mt-1 w-full text-sm text-zinc-400"
+                className="mt-1 w-full text-sm text-zinc-600"
               />
             </label>
-            <label className="block text-sm text-zinc-300">
+            <label className="block text-sm text-zinc-700">
               Notas internas
               <input
                 value={notes}
@@ -570,7 +570,7 @@ export function BookingInvoiceForm({
               type="button"
               disabled={loading}
               onClick={markNotRequired}
-              className="rounded-full border border-zinc-700 px-4 py-2 text-sm text-zinc-400"
+              className="rounded-full border border-zinc-300 px-4 py-2 text-sm text-zinc-600"
             >
               No requiere factura
             </button>

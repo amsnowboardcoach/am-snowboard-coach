@@ -37,14 +37,14 @@ export function CookieBanner() {
       role="dialog"
       aria-labelledby="cookie-banner-title"
       aria-describedby="cookie-banner-desc"
-      className="fixed inset-x-0 bottom-0 z-[90] border-t border-zinc-700 bg-zinc-950/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-md sm:p-5"
+      className="fixed inset-x-0 bottom-0 z-[90] border-t border-zinc-300 bg-white/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-md sm:p-5"
     >
       <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0 max-w-2xl">
-          <p id="cookie-banner-title" className="font-semibold text-zinc-100">
+          <p id="cookie-banner-title" className="font-semibold text-zinc-900">
             Cookies y privacidad
           </p>
-          <p id="cookie-banner-desc" className="mt-1 text-sm leading-relaxed text-zinc-400">
+          <p id="cookie-banner-desc" className="mt-1 text-sm leading-relaxed text-zinc-600">
             Usamos cookies y almacenamiento local necesarios para el inicio de
             sesión, reservas y seguridad. Puedes leer más en nuestra{" "}
             <Link href={LEGAL_PATHS.cookies} className="text-sky-400 hover:underline">
@@ -61,7 +61,7 @@ export function CookieBanner() {
           <button
             type="button"
             onClick={() => save("necessary")}
-            className="rounded-full border border-zinc-600 px-4 py-2.5 text-sm font-medium text-zinc-300 hover:border-zinc-500"
+            className="rounded-full border border-zinc-400 px-4 py-2.5 text-sm font-medium text-zinc-700 hover:border-zinc-500"
           >
             Solo necesarias
           </button>

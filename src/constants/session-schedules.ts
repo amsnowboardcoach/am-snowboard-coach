@@ -87,6 +87,9 @@ export function getSessionByCalSlug(slug: string): SessionDuration | undefined {
 
 export const DEFAULT_SESSION_DURATION_ID: SessionDurationId = "2h";
 
+/** Duración destacada en tarifas y página de clases. */
+export const RECOMMENDED_SESSION_DURATION_ID: SessionDurationId = "3h";
+
 /** Suplemento por cada persona adicional (la primera va incluida en el precio base) */
 export const EXTRA_PERSON_SUPPLEMENT_EUROS: Record<SessionDurationId, number> = {
   "2h": 10,

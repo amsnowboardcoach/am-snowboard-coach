@@ -41,11 +41,11 @@ export default async function AuthLayout({
             />
           )}
           <div className="absolute inset-0 bg-zinc-950/50" />
-          <div className="absolute bottom-10 left-10 right-10">
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
             <p className="text-sm uppercase tracking-widest text-sky-400">
               Área de alumno
             </p>
-            <p className="mt-2 max-w-md text-2xl font-bold leading-snug">
+            <p className="mt-2 max-w-md text-2xl font-bold leading-snug text-zinc-50">
               Entra o regístrate: pasaporte, vídeos y reservas en un solo sitio.
             </p>
           </div>

@@ -21,6 +21,10 @@ import {
   mapStorageUploadError,
   uploadUserFile,
 } from "@/lib/firebase/storage-upload";
+import {
+  shouldFallbackToClientTribeUpload,
+  uploadTribePostThroughApi,
+} from "@/lib/firebase/tribe-upload-api";
 import { isImageFile, isVideoFile } from "@/lib/utils/media-file";
 import type { UserRole } from "@/constants/roles";
 import type {
@@ -85,6 +89,36 @@ export async function uploadTribePost(input: {
   const err = validateTribeMediaFile(input.file, input.mediaType);
   if (err) throw new Error(err);
 
+  try {
+    return await uploadTribePostThroughApi({
+      file: input.file,
+      mediaType: input.mediaType,
+      caption: input.caption,
+      legalConsent: input.legalConsent,
+      onUploadProgress: input.onUploadProgress,
+    });
+  } catch (apiErr) {
+    if (!shouldFallbackToClientTribeUpload(apiErr)) {
+      throw apiErr instanceof Error
+        ? apiErr
+        : new Error("No se pudo subir la publicación.");
+    }
+  }
+
+  return uploadTribePostViaClientStorage(input);
+}
+
+async function uploadTribePostViaClientStorage(input: {
+  authorId: string;
+  authorDisplayName: string;
+  authorPhotoURL?: string;
+  authorRole: UserRole;
+  file: File;
+  mediaType: TribeMediaType;
+  caption?: string;
+  legalConsent: boolean;
+  onUploadProgress?: (percent: number) => void;
+}): Promise<string> {
   const postRef = doc(postsCol());
   const safeName = input.file.name.replace(/[^\w.\-() ]/g, "_").slice(0, 120);
   const storagePath = `tribe/${postRef.id}/${safeName}`;

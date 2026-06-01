@@ -26,13 +26,13 @@ export function ClasesBookingSteps({ className }: { className?: string }) {
         {STEPS.map((step) => (
           <li
             key={step.n}
-            className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5"
+            className="rounded-xl border border-zinc-200 bg-zinc-100/90 p-5"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-500/15 text-sm font-bold text-sky-400">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-100 text-sm font-bold text-sky-400">
               {step.n}
             </span>
-            <h3 className="mt-3 font-semibold text-zinc-100">{step.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+            <h3 className="mt-3 font-semibold text-zinc-900">{step.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-600">
               {step.body}
             </p>
           </li>

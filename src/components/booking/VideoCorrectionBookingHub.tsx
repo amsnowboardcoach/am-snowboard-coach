@@ -192,24 +192,18 @@ export function VideoCorrectionBookingHub() {
           />
         </label>
 
-        {showAuthGate && (
-          <BookingAuthGate
-            totalEuros={totalEuros}
-            summary={`${videoCount} ${videoCount === 1 ? "vídeo" : "vídeos"} a corregir`}
-            onError={setAuthError}
-            onGoogleSuccess={() => setShowAuthGate(true)}
-          />
-        )}
-
-        {authError && (
-          <p className="text-sm text-red-400" role="alert">
-            {authError}
+        <div
+          id="video-booking-summary"
+          className="rounded-lg border border-zinc-800 bg-zinc-950/50 px-4 py-3 text-sm text-zinc-400"
+        >
+          <p className="font-medium text-zinc-200">Resumen</p>
+          <p className="mt-1">
+            {videoCount} {videoCount === 1 ? "vídeo" : "vídeos"} a corregir ·{" "}
+            <strong className="text-sky-300">{totalEuros} €</strong>
           </p>
-        )}
-
-        <div className="rounded-lg border border-zinc-800 bg-zinc-950/50 px-4 py-3 text-sm text-zinc-400">
-          Total: <strong className="text-sky-300">{totalEuros} €</strong>. Pagas
-          con tarjeta cuando confirme tu solicitud.
+          <p className="mt-2 text-xs text-zinc-500">
+            Pagas con tarjeta cuando confirme tu solicitud.
+          </p>
         </div>
 
         {submitError && (
@@ -218,21 +212,41 @@ export function VideoCorrectionBookingHub() {
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-full bg-sky-500 py-3 font-semibold text-zinc-950 hover:bg-sky-400 disabled:opacity-50 sm:w-auto sm:px-10"
-        >
-          {submitting
-            ? "Enviando…"
-            : showAuthGate && canBook
-              ? `Confirmar solicitud · ${totalEuros} €`
-              : `Solicitar corrección · ${totalEuros} €`}
-        </button>
         {!showAuthGate && (
-          <p className="text-center text-xs text-zinc-500">
-            Al enviar entrarás con tu cuenta o la crearás en un paso.
-          </p>
+          <>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full rounded-full bg-sky-500 py-3 font-semibold text-zinc-950 hover:bg-sky-400 disabled:opacity-50 sm:w-auto sm:px-10"
+            >
+              {submitting
+                ? "Enviando…"
+                : `Solicitar corrección · ${totalEuros} €`}
+            </button>
+            <p className="text-center text-xs text-zinc-500">
+              Al enviar verás el último paso (entrar o registrarte).
+            </p>
+          </>
+        )}
+
+        {showAuthGate && (
+          <>
+            <BookingAuthGate
+              className="scroll-mt-header"
+              headline="Tu solicitud está lista"
+              totalEuros={totalEuros}
+              summary={`${videoCount} ${videoCount === 1 ? "vídeo" : "vídeos"} a corregir`}
+              confirming={submitting}
+              onConfirm={() => void submitRequest()}
+              onError={setAuthError}
+              onGoogleSuccess={() => setShowAuthGate(true)}
+            />
+            {authError && (
+              <p className="text-sm text-red-400" role="alert">
+                {authError}
+              </p>
+            )}
+          </>
         )}
       </form>
 

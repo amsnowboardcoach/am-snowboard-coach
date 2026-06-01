@@ -108,7 +108,9 @@ export function MarketplaceCreateForm({ onCreated }: MarketplaceCreateFormProps)
       setContactEmail(profile.email || user.email || "");
       if (fileRef.current) fileRef.current.value = "";
       setPreviewCount(0);
-      setSuccess("Anuncio publicado. Cuando lo vendas, márcalo como vendido.");
+      setSuccess(
+        "Anuncio enviado. Alejandro lo revisará antes de publicarlo en el mercadillo. Cuando lo vendas, márcalo como vendido.",
+      );
       onCreated?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al publicar");

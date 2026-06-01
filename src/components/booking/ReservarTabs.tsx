@@ -15,7 +15,7 @@ export function ReservarTabs() {
   return (
     <div>
       <nav
-        className="mb-8 grid grid-cols-2 gap-2 rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-2"
+        className="mb-8 grid grid-cols-2 gap-2 rounded-xl border border-zinc-200/80 bg-zinc-100/80 p-2"
         aria-label="Tipo de reserva"
       >
         <Link
@@ -24,7 +24,7 @@ export function ReservarTabs() {
             "flex min-h-12 items-center justify-center rounded-full px-3 text-center text-sm font-medium transition",
             tab === "pista"
               ? "bg-sky-500 text-zinc-950"
-              : "text-zinc-400 hover:text-white",
+              : "text-zinc-600 hover:text-zinc-900",
           )}
         >
           Clase en pista
@@ -35,7 +35,7 @@ export function ReservarTabs() {
             "flex min-h-12 items-center justify-center rounded-full px-3 text-center text-sm font-medium transition",
             tab === "video"
               ? "bg-violet-500 text-zinc-950"
-              : "text-zinc-400 hover:text-white",
+              : "text-zinc-600 hover:text-zinc-900",
           )}
         >
           Video corrección

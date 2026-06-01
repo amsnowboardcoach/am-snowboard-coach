@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyUserBearer } from "@/lib/auth/verify-user-token";
-import { COACH_ROLES, ROLES } from "@/constants/roles";
+import { COACH_ROLES, isAlumnoRole } from "@/constants/roles";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { deleteUserAccountCompletely } from "@/lib/firebase/delete-user-account";
 
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (role !== ROLES.STUDENT) {
+  if (!isAlumnoRole(role)) {
     return NextResponse.json(
       { error: "Solo los alumnos pueden eliminar su cuenta desde el área privada" },
       { status: 403 },

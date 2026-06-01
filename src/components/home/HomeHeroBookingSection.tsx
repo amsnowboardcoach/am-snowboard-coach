@@ -11,7 +11,11 @@ import { es } from "date-fns/locale";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BookingAvailabilityCalendar } from "@/components/booking/BookingAvailabilityCalendar";
 import { BOOKING_PAYMENT_OPTIONS } from "@/constants/booking-payment";
-import { inferDaysPlanFromDates } from "@/constants/booking-plan";
+import {
+  formatDaysPlanLabel,
+  inferDaysPlanFromDates,
+  MAX_BOOKING_DAYS,
+} from "@/constants/booking-plan";
 import { LESSON_TYPES } from "@/constants/lesson-types";
 import { BOOKING_AVAILABILITY_FETCH_DAYS } from "@/constants/booking-availability";
 import {
@@ -27,8 +31,11 @@ import {
   countDaysWithFreeSlots,
   mergeAvailableSlots,
   mergeCalendarDays,
+  slotsFreeOnAllPickedDates,
   type CalendarDayInfo,
 } from "@/lib/booking/calendar-availability";
+import { isDaySelectionComplete } from "@/lib/booking/multi-day";
+import { formatSlotConflictMessage } from "@/lib/booking/slot-suggestions";
 import type { DurationAvailabilityStatus } from "@/lib/booking/duration-availability";
 import { reservarHref } from "@/lib/booking/reservar-url";
 import {
@@ -66,6 +73,7 @@ export function HomeHeroBookingSection() {
 
   const [pickedDateKeys, setPickedDateKeys] = useState<string[]>([]);
   const [selectedDays, setSelectedDays] = useState<BookingDraftSlot[]>([]);
+  const [slotError, setSlotError] = useState<string | null>(null);
 
   const fetchRef = useRef<string | null>(null);
   const genRef = useRef(0);
@@ -191,40 +199,102 @@ export function HomeHeroBookingSection() {
   }, [selectedDays]);
 
   function pickDateKey(date: string) {
+    setSlotError(null);
     setPickedDateKeys((prev) => {
       const exists = prev.includes(date);
-      const next = exists ? [] : [date];
+      const next = exists
+        ? prev.filter((d) => d !== date)
+        : prev.length >= MAX_BOOKING_DAYS
+          ? prev
+          : [...prev, date].sort();
       setSelectedDays((days) => days.filter((d) => next.includes(d.date)));
       return next;
     });
   }
 
   function pickSlotForDate(date: string, slotId: string) {
+    setSlotError(null);
     const option = availableSlots.find(
       (o) => o.date === date && o.slotId === slotId,
     );
     if (!option) return;
-    setSelectedDays([option]);
-    setPickedDateKeys([date]);
+    setSelectedDays((prev) =>
+      [
+        ...prev.filter((d) => d.date !== date),
+        {
+          slotId: option.slotId,
+          startUtc: option.startUtc,
+          date: option.date,
+          label: option.label,
+        },
+      ].sort((a, b) => a.date.localeCompare(b.date)),
+    );
   }
 
   function pickSlotForAllDates(slotId: string) {
-    const date = pickedDateKeys[0];
-    if (!date) return;
-    pickSlotForDate(date, slotId);
+    setSlotError(null);
+    if (pickedDateKeys.length === 0) {
+      setSelectedDays([]);
+      return;
+    }
+    const days = pickedDateKeys
+      .map((date) =>
+        availableSlots.find((o) => o.date === date && o.slotId === slotId),
+      )
+      .filter((o): o is AvailableSlotOption => Boolean(o));
+    if (days.length !== pickedDateKeys.length) {
+      setSlotError(
+        formatSlotConflictMessage(
+          session.slots,
+          slotId,
+          pickedDateKeys,
+          availableSlots,
+          (d) => format(parseISO(d), "d MMM", { locale: es }),
+        ),
+      );
+      return;
+    }
+    setSelectedDays(
+      days.map((o) => ({
+        slotId: o.slotId,
+        startUtc: o.startUtc,
+        date: o.date,
+        label: o.label,
+      })),
+    );
   }
 
-  const selectionReady =
-    pickedDateKeys.length === 1 && selectedDays.length === 1;
+  const datesPickedReady = pickedDateKeys.length >= 1;
+  const selectionReady = isDaySelectionComplete(pickedDateKeys, selectedDays);
+  const daysPlan = useMemo(
+    () => inferDaysPlanFromDates(pickedDateKeys),
+    [pickedDateKeys],
+  );
+
+  useEffect(() => {
+    if (!datesPickedReady || pickedDateKeys.length !== 1 || selectionReady) {
+      return;
+    }
+    const common = slotsFreeOnAllPickedDates(
+      session.slots,
+      pickedDateKeys,
+      availableSlots,
+    );
+    if (common.length === 1) {
+      pickSlotForAllDates(common[0]!.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-único turno (1 día)
+  }, [datesPickedReady, pickedDateKeys.length, availableSlots, selectionReady]);
 
   function goToReservar(withDraft: boolean) {
     if (withDraft && selectionReady) {
+      const slotIds = new Set(selectedDays.map((d) => d.slotId));
       saveBookingDraft({
         participantCount: 1,
-        daysPlan: inferDaysPlanFromDates(pickedDateKeys),
-        consecutiveCount: 1,
+        daysPlan,
+        consecutiveCount: pickedDateKeys.length,
         durationId,
-        slotId: selectedDays[0]?.slotId ?? null,
+        slotId: slotIds.size === 1 ? selectedDays[0]!.slotId : null,
         pickedDateKeys,
         selectedDays,
         lessonTypeId: LESSON_TYPES[0]!.id,
@@ -261,12 +331,35 @@ export function HomeHeroBookingSection() {
           onVisibleMonthChange={handleVisibleMonth}
           navigationRangeEnd={navigationRangeEnd}
           slotSection="when-picked"
-          emptySlotHint="Toca un día verde o ámbar para elegir turno (mañana o tarde)."
+          emptySlotHint="Toca uno o varios días verdes o ámbar y elige turno en cada uno."
         />
-        {selectionReady && pickedDateKeys[0] && (
+        {pickedDateKeys.length > 0 && !selectionReady && (
+          <p className="mt-3 text-center text-xs text-zinc-500">
+            {pickedDateKeys.length === 1
+              ? "Elige turno de mañana o tarde."
+              : `Elige turno (${selectedDays.length}/${pickedDateKeys.length} días)`}
+          </p>
+        )}
+        {slotError && (
+          <p className="mt-2 text-center text-xs text-amber-300/95">{slotError}</p>
+        )}
+        {selectionReady && (
           <p className="mt-3 text-center text-xs text-emerald-300/90">
-            {selectedDays[0]?.label} ·{" "}
-            {format(parseISO(pickedDateKeys[0]), "EEEE d MMMM", { locale: es })}
+            {pickedDateKeys.length === 1 && pickedDateKeys[0] ? (
+              <>
+                {selectedDays[0]?.label} ·{" "}
+                {format(parseISO(pickedDateKeys[0]), "EEEE d MMMM", {
+                  locale: es,
+                })}
+              </>
+            ) : (
+              <>
+                {formatDaysPlanLabel(daysPlan, pickedDateKeys.length)} ·{" "}
+                {pickedDateKeys
+                  .map((d) => format(parseISO(d), "d MMM", { locale: es }))
+                  .join(", ")}
+              </>
+            )}
           </p>
         )}
       </div>
@@ -279,7 +372,11 @@ export function HomeHeroBookingSection() {
             "flex min-h-12 w-full touch-manipulation items-center justify-center rounded-full bg-sky-500 px-8 py-3.5 text-center font-semibold text-zinc-950 shadow-xl shadow-sky-500/25 transition hover:bg-sky-400 active:scale-[0.98] sm:w-auto",
           )}
         >
-          {selectionReady ? "Continuar con este turno" : "Reservar mi clase"}
+          {selectionReady
+            ? pickedDateKeys.length === 1
+              ? "Continuar con este turno"
+              : `Continuar con ${pickedDateKeys.length} días`
+            : "Reservar mi clase"}
         </button>
       </div>
     </>

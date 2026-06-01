@@ -1,6 +1,6 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
-import { COACH_ROLES, ROLES } from "@/constants/roles";
+import { COACH_ROLES, isAlumnoRole } from "@/constants/roles";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
 
 function getStorageBucket() {
@@ -243,7 +243,7 @@ export async function deleteUserAccountCompletely(
     throw new Error("No se puede eliminar una cuenta de coach desde aquí");
   }
 
-  if (role !== ROLES.STUDENT) {
+  if (!isAlumnoRole(role)) {
     throw new Error("Solo se pueden eliminar cuentas de alumno");
   }
 

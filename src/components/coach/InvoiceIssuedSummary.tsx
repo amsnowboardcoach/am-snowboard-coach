@@ -18,7 +18,7 @@ export function InvoiceIssuedSummary({ booking }: { booking: Booking }) {
   const recipient = inv.recipient;
 
   return (
-    <div className="mt-3 space-y-2 rounded-lg bg-zinc-900/60 p-3 text-xs text-zinc-400">
+    <div className="mt-3 space-y-2 rounded-lg bg-zinc-100 p-3 text-xs text-zinc-600">
       {(inv.issuerLegalName || inv.issuerTaxId) && (
         <p>
           <span className="text-zinc-500">Emisor:</span> {inv.issuerLegalName}{" "}
@@ -54,10 +54,10 @@ export function InvoiceIssuedSummary({ booking }: { booking: Booking }) {
         </p>
       )}
       {tax && (
-        <p className="text-zinc-300">
+        <p className="text-zinc-700">
           Base {centsToEuros(tax.baseAmountCents)} + IVA {tax.vatRatePercent}% (
           {centsToEuros(tax.vatAmountCents)}) ={" "}
-          <strong className="text-zinc-100">
+          <strong className="text-zinc-900">
             {centsToEuros(tax.totalAmountCents)}
           </strong>
         </p>

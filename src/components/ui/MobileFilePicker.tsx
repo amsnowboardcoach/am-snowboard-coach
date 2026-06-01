@@ -54,8 +54,8 @@ export function MobileFilePicker({
       </label>
       {hint && <p className="mt-2 text-xs text-zinc-500">{hint}</p>}
       {selectedName && (
-        <p className="mt-2 text-sm text-zinc-400">
-          Archivo: <span className="text-zinc-200">{selectedName}</span>
+        <p className="mt-2 text-sm text-zinc-600">
+          Archivo: <span className="text-zinc-800">{selectedName}</span>
         </p>
       )}
     </div>

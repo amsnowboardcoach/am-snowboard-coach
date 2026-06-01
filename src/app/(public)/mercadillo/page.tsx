@@ -5,7 +5,7 @@ import { buildPageMetadata } from "@/lib/seo/metadata";
 export const metadata = buildPageMetadata({
   title: "Mercadillo snowboard — segunda mano Sierra Nevada",
   description:
-    "Compra y vende material de snowboard usado o nuevo entre la comunidad AM. Contacta por WhatsApp o email. Los anuncios vendidos desaparecen solos.",
+    "Compra y vende material de snowboard usado o nuevo entre la comunidad. Contacta por WhatsApp o email. Los anuncios vendidos desaparecen solos.",
   path: "/mercadillo",
   keywords: [
     "mercadillo snowboard",
@@ -20,7 +20,7 @@ export default function MercadilloPage() {
       <PageHeader
         eyebrow="Comunidad"
         title="Mercadillo"
-        description="Tipo Wallapop para la comunidad AM: tablas, botas, ropa y accesorios. Explora sin cuenta; para publicar regístrate. Al marcar como vendido, el anuncio se elimina automáticamente."
+        description="Tipo Wallapop para la comunidad: tablas, botas, ropa y accesorios. Cada anuncio lo revisa Alejandro antes de publicarse. Explora sin cuenta; para publicar regístrate."
       />
       <MarketplaceHub />
     </PageShell>

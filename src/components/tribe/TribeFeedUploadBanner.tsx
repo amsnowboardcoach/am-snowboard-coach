@@ -42,7 +42,7 @@ export function TribeFeedUploadBanner() {
           href="/coach?tab=tribu"
           className="font-medium text-sky-400 hover:text-sky-300"
         >
-          panel del coach → La Tribu
+          panel del coach
         </Link>
         .
       </div>

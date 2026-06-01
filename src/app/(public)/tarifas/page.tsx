@@ -13,6 +13,7 @@ import {
   BOOKING_DEPOSIT_PERCENT,
 } from "@/constants/booking-payment";
 import {
+  RECOMMENDED_SESSION_DURATION_ID,
   SESSION_DURATIONS,
   sessionTotalEuros,
   type SessionDuration,
@@ -29,8 +30,6 @@ export const metadata = buildPageMetadata({
   path: "/tarifas",
   keywords: ["precio clase snowboard Granada", "tarifas monitor Sierra Nevada"],
 });
-
-const FEATURED_DURATION_ID = "3h" as const;
 
 function depositEuros(total: number): number {
   return Math.round((total * BOOKING_DEPOSIT_PERCENT) / 100);
@@ -160,7 +159,7 @@ export default async function TarifasPage() {
             <PricingCard
               key={session.id}
               session={session}
-              featured={session.id === FEATURED_DURATION_ID}
+              featured={session.id === RECOMMENDED_SESSION_DURATION_ID}
             />
           ))}
         </ul>

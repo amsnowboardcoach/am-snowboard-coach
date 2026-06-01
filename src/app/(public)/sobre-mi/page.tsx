@@ -58,7 +58,7 @@ export default async function SobreMiPage() {
             </Link>
           </div>
           <div className="space-y-4">
-            <div className="relative aspect-[3/4] overflow-hidden rounded-2xl">
+            <div className="relative hidden aspect-[3/4] overflow-hidden rounded-2xl lg:block">
               <Image
                 src={media.sobreMiPortrait.image.src}
                 alt={media.sobreMiPortrait.image.alt}

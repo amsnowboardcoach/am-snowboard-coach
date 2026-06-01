@@ -1,4 +1,9 @@
-import type { MarketplaceCategory, MarketplaceCondition } from "@/types/marketplace";
+import type {
+  MarketplaceCategory,
+  MarketplaceCondition,
+  MarketplaceListing,
+  MarketplaceModerationStatus,
+} from "@/types/marketplace";
 
 export const MARKETPLACE_MAX_IMAGES = 5;
 export const MARKETPLACE_MAX_IMAGE_BYTES = 10 * 1024 * 1024;
@@ -27,7 +32,25 @@ export const MARKETPLACE_CATEGORIES: {
 ];
 
 export const MARKETPLACE_DISCLAIMER =
-  "El mercadillo conecta a miembros de la comunidad. Las ventas son entre particulares; AM Snowboard Coach no gestiona pagos ni envíos. Al marcar como vendido, el anuncio desaparece del listado.";
+  "El mercadillo conecta a miembros de la comunidad. Alejandro revisa cada anuncio antes de publicarlo. Las ventas son entre particulares; no gestionamos pagos ni envíos. Al marcar como vendido, el anuncio desaparece del listado.";
+
+export const MARKETPLACE_MODERATION_LABEL: Record<
+  MarketplaceModerationStatus,
+  string
+> = {
+  pending: "En revisión",
+  approved: "Publicado",
+  rejected: "No publicado",
+};
+
+/** Anuncio visible en el mercadillo público (incluye legacy sin moderationStatus). */
+export function isMarketplaceListingPublic(
+  listing: Pick<MarketplaceListing, "moderationStatus" | "status">,
+): boolean {
+  if (listing.status !== "active") return false;
+  const mod = listing.moderationStatus ?? "approved";
+  return mod === "approved";
+}
 
 export function formatMarketplacePrice(euros: number): string {
   return `${euros.toLocaleString("es-ES")} €`;

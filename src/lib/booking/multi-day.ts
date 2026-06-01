@@ -46,7 +46,7 @@ export function requiredDayCount(
 
 export function isDaySelectionComplete(
   pickedDateKeys: string[],
-  selected: AvailableSlotOption[],
+  selected: readonly { date: string }[],
 ): boolean {
   return (
     pickedDateKeys.length >= 1 && selected.length === pickedDateKeys.length

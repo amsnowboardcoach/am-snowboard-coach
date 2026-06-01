@@ -44,7 +44,7 @@ export function TribeVideoStrip({
           </Link>
           .
         </p>
-        <div className="mt-6 rounded-2xl border border-dashed border-zinc-700 px-6 py-12 text-center text-sm text-zinc-500">
+        <div className="mt-6 rounded-2xl border border-dashed border-zinc-300 px-6 py-12 text-center text-sm text-zinc-500">
           Aún no hay vídeos publicados. Pronto subiremos contenido de prueba.
         </div>
       </section>

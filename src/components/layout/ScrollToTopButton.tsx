@@ -31,7 +31,7 @@ export function ScrollToTopButton({
       onClick={() => scrollToTop()}
       aria-label="Volver arriba"
       className={cn(
-        "fixed z-50 flex size-12 items-center justify-center rounded-full border border-zinc-700/90 bg-zinc-900/95 text-zinc-200 shadow-lg shadow-black/40 backdrop-blur-md transition-all duration-300 ease-out hover:border-sky-500/50 hover:bg-zinc-800 hover:text-sky-300 active:scale-95",
+        "fixed z-50 flex size-12 items-center justify-center rounded-full border border-zinc-300/90 bg-white/95 text-zinc-800 shadow-lg shadow-black/40 backdrop-blur-md transition-all duration-300 ease-out hover:border-sky-500/50 hover:bg-zinc-800 hover:text-sky-600 active:scale-95",
         aboveMobileNav
           ? "bottom-[calc(10.5rem+env(safe-area-inset-bottom,0px))] right-4 sm:bottom-[5.5rem]"
           : "bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] right-4 sm:bottom-6",

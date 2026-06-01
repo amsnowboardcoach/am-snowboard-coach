@@ -8,6 +8,7 @@ import { DeleteAccountSection } from "@/components/perfil/DeleteAccountSection";
 import { StudentNoticesPanel } from "@/components/perfil/StudentNoticesPanel";
 import { StudentNoticesUnreadBadge } from "@/components/perfil/StudentNoticesUnreadBadge";
 import { useAuth } from "@/contexts/AuthProvider";
+import { roleDisplayLabel } from "@/constants/roles";
 import { isStudentProfile } from "@/lib/auth/coach-role";
 import { studentLevelLabel } from "@/lib/booking/contact-notes";
 
@@ -106,7 +107,7 @@ export default function PerfilPage() {
         </div>
         <div>
           <dt className="text-zinc-500">Rol</dt>
-          <dd>{profile?.role ?? "—"}</dd>
+          <dd>{roleDisplayLabel(profile?.role)}</dd>
         </div>
       </dl>
 

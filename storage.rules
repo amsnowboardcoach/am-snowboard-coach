@@ -11,10 +11,16 @@ service firebase.storage {
         && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['coach', 'collaborator', 'admin'];
     }
 
+    function isAlumnoRoleValue(role) {
+      return role == 'alumno' || role == 'student';
+    }
+
     function isRegisteredStudent() {
       return isSignedIn()
         && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
-        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'student';
+        && isAlumnoRoleValue(
+          firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role
+        );
     }
 
     match /progress_videos/{userId}/{videoId}/{fileName} {
@@ -27,11 +33,16 @@ service firebase.storage {
       allow delete: if isCoach() || (isSignedIn() && request.auth.uid == userId);
     }
 
+    function tribeMediaContentTypeOk(name) {
+      return request.resource.contentType.matches('image/.*|video/.*')
+        || name.matches('.*\\.(?i)(jpg|jpeg|png|webp|heic|heif|gif|mp4|mov|m4v|webm)$');
+    }
+
     match /tribe/{postId}/{fileName} {
       allow read: if true;
       allow write: if isRegisteredStudent()
         && request.resource.size < 100 * 1024 * 1024
-        && request.resource.contentType.matches('image/.*|video/.*');
+        && tribeMediaContentTypeOk(fileName);
     }
 
     function hasUserProfile() {

@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthProvider";
 import { CoachHubShell } from "@/components/coach/CoachHubShell";
 import { CoachProfileSetup } from "@/components/coach/CoachProfileSetup";
 import { isCoachEmail } from "@/lib/auth/config";
+import { roleDisplayLabel } from "@/constants/roles";
 import { isCoachRole } from "@/lib/auth/paths";
 
 export default function CoachDashboardPage() {
@@ -54,7 +55,7 @@ export default function CoachDashboardPage() {
         <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-6">
           <p className="text-sm text-amber-200">
             Tu email es de coach pero el perfil tiene rol{" "}
-            <strong>{profile.role}</strong>. Crea o actualiza el perfil:
+            <strong>{roleDisplayLabel(profile.role)}</strong>. Crea o actualiza el perfil:
           </p>
           <CoachProfileSetup
             user={user}
@@ -69,7 +70,8 @@ export default function CoachDashboardPage() {
     return (
       <div className="space-y-4">
         <p className="text-zinc-400">
-          Esta zona es solo para el coach. Tu rol actual: {profile.role}.
+          Esta zona es solo para el coach. Tu rol actual:{" "}
+          {roleDisplayLabel(profile.role)}.
         </p>
         <Link href="/perfil" className="text-sky-400 hover:underline">
           Ir a mi perfil

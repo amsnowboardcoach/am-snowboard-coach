@@ -11,7 +11,7 @@ import {
   fetchCoachBookings,
 } from "@/lib/firebase/bookings";
 import { getFirebaseDb } from "@/lib/firebase/client";
-import { fetchActiveMarketplaceListings } from "@/lib/firebase/marketplace-listings";
+import { fetchPendingMarketplaceListings } from "@/lib/firebase/marketplace-listings";
 import { fetchStudentProgressVideos } from "@/lib/firebase/progress-videos";
 import { fetchCoachStudents } from "@/lib/firebase/students";
 
@@ -19,8 +19,8 @@ export interface CoachHubStats {
   pendingBookings: number;
   pendingInvoices: number;
   pendingTribePosts: number;
+  pendingMarketplaceListings: number;
   pendingVideos: number;
-  activeListings: number;
   studentCount: number;
   upcomingBookings: number;
 }
@@ -30,7 +30,7 @@ export async function fetchCoachHubStats(
 ): Promise<CoachHubStats> {
   const now = Date.now();
 
-  const [bookings, students, tribeSnap, listings] = await Promise.all([
+  const [bookings, students, tribeSnap, pendingListings] = await Promise.all([
     fetchCoachBookings(coachId),
     fetchCoachStudents(coachId),
     getDocs(
@@ -40,7 +40,7 @@ export async function fetchCoachHubStats(
         limit(50),
       ),
     ),
-    fetchActiveMarketplaceListings(100),
+    fetchPendingMarketplaceListings(50),
   ]);
 
   const pendingBookings = bookings.filter((b) =>
@@ -66,8 +66,8 @@ export async function fetchCoachHubStats(
     pendingBookings,
     pendingInvoices: countPaidWithoutInvoice(bookings),
     pendingTribePosts: tribeSnap.size,
+    pendingMarketplaceListings: pendingListings.length,
     pendingVideos,
-    activeListings: listings.length,
     studentCount: students.length,
     upcomingBookings,
   };

@@ -869,10 +869,15 @@ export function BookingForm() {
     const params = new URLSearchParams(searchParams.toString());
     params.set("book", "1");
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    requestAnimationFrame(() => {
-      scrollToId("booking-auth-gate", { block: "start" });
-    });
   }
+
+  useEffect(() => {
+    if (!showAuthGate || !formReady) return;
+    const timer = window.setTimeout(() => {
+      scrollToId("booking-auth-gate", { block: "start" });
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [showAuthGate, formReady]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -1144,47 +1149,14 @@ export function BookingForm() {
 
       <BookingCancellationPolicy compact />
 
-      {showAuthGate && formReady && (
-        <BookingAuthGate
-          totalEuros={totalEuros}
-          chargeEuros={chargeEuros}
-          summary={bookingSummary}
-          confirming={submitting}
-          onConfirm={confirmBookingAfterAuth}
-          onError={setAuthError}
-          onGoogleSuccess={async () => {
-            setShowAuthGate(true);
-            setBookingPendingSubmit(true);
-            const loadedProfile = await syncSessionAfterLogin();
-            const authUser = getFirebaseAuth().currentUser;
-            if (authUser?.email) {
-              const displayName =
-                loadedProfile?.displayName?.trim() ||
-                authUser.displayName?.trim() ||
-                authUser.email.split("@")[0] ||
-                "Alumno";
-              setName(displayName);
-              setEmail(authUser.email);
-            }
-          }}
-        />
-      )}
-
-      {authError && (
-        <p className="text-sm text-red-400" role="alert">
-          {authError}
-        </p>
-      )}
-
-      {submitError && (
-        <p className="text-sm text-red-400" role="alert">
-          {submitError}
-        </p>
-      )}
-
       <div
         id="booking-summary"
-        className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] z-10 -mx-2 space-y-4 rounded-2xl border border-zinc-800 bg-zinc-950/95 p-4 shadow-xl backdrop-blur-md sm:static sm:mx-0 sm:border-zinc-800/80 sm:bg-transparent sm:p-0 sm:shadow-none"
+        className={cn(
+          "z-10 -mx-2 space-y-4 rounded-2xl border border-zinc-800 p-4 sm:mx-0 sm:border-zinc-800/80 sm:p-0",
+          showAuthGate
+            ? "static bg-transparent shadow-none sm:bg-transparent"
+            : "sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] bg-zinc-950/95 shadow-xl backdrop-blur-md sm:static sm:bg-transparent sm:shadow-none",
+        )}
       >
         <div>
           <h3 className="text-sm font-semibold text-zinc-200">Resumen</h3>
@@ -1223,14 +1195,51 @@ export function BookingForm() {
                 : `Reservar y pagar ${chargeEuros} €`}
         </button>
         <p className="mt-2 text-center text-xs text-zinc-500">
-          {formReady && showAuthGate && canBook
-            ? "También puedes confirmar con el botón verde de arriba. "
-            : formReady && !showAuthGate
-              ? "Al pulsar reservar entrarás con tu cuenta (o la crearás en un paso). "
-              : null}
+          {formReady && !showAuthGate
+            ? "Al pulsar reservar verás el último paso (entrar o registrarte). "
+            : null}
           {BOOKING_PAYMENT_OPTIONS_NOTE}
         </p>
       </div>
+
+      {submitError && (
+        <p className="text-sm text-red-400" role="alert">
+          {submitError}
+        </p>
+      )}
+
+      {authError && (
+        <p className="text-sm text-red-400" role="alert">
+          {authError}
+        </p>
+      )}
+
+      {showAuthGate && formReady && (
+        <BookingAuthGate
+          className="scroll-mt-header"
+          totalEuros={totalEuros}
+          chargeEuros={chargeEuros}
+          summary={bookingSummary}
+          confirming={submitting}
+          onConfirm={confirmBookingAfterAuth}
+          onError={setAuthError}
+          onGoogleSuccess={async () => {
+            setShowAuthGate(true);
+            setBookingPendingSubmit(true);
+            const loadedProfile = await syncSessionAfterLogin();
+            const authUser = getFirebaseAuth().currentUser;
+            if (authUser?.email) {
+              const displayName =
+                loadedProfile?.displayName?.trim() ||
+                authUser.displayName?.trim() ||
+                authUser.email.split("@")[0] ||
+                "Alumno";
+              setName(displayName);
+              setEmail(authUser.email);
+            }
+          }}
+        />
+      )}
     </form>
   );
 }

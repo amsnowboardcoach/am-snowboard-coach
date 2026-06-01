@@ -4,10 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthProvider";
+import { COACH_ROLES } from "@/constants/roles";
 import {
   MARKETPLACE_CATEGORIES,
   MARKETPLACE_CONDITIONS,
+  MARKETPLACE_MODERATION_LABEL,
   formatMarketplacePrice,
+  isMarketplaceListingPublic,
 } from "@/constants/marketplace";
 import { formatFirestoreClientError } from "@/lib/firebase/firestore-errors";
 import { formatFirestoreDate } from "@/lib/utils/dates";
@@ -26,7 +29,7 @@ interface MarketplaceListingDetailProps {
 export function MarketplaceListingDetail({
   listingId,
 }: MarketplaceListingDetailProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [listing, setListing] = useState<MarketplaceListing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +38,10 @@ export function MarketplaceListingDetail({
 
   useEffect(() => {
     setLoading(true);
-    fetchMarketplaceListingById(listingId)
+    fetchMarketplaceListingById(listingId, {
+      viewerId: user?.uid,
+      viewerIsCoach: Boolean(profile && COACH_ROLES.includes(profile.role)),
+    })
       .then(setListing)
       .catch((err) =>
         setError(
@@ -43,7 +49,7 @@ export function MarketplaceListingDetail({
         ),
       )
       .finally(() => setLoading(false));
-  }, [listingId]);
+  }, [listingId, user?.uid, profile?.role]);
 
   if (loading) {
     return <p className="text-center text-zinc-500">Cargando anuncio…</p>;
@@ -66,6 +72,7 @@ export function MarketplaceListingDetail({
   }
 
   const isOwner = user?.uid === listing.sellerId;
+  const isPublic = isMarketplaceListingPublic(listing);
   const conditionLabel =
     MARKETPLACE_CONDITIONS.find((c) => c.id === listing.condition)?.label;
   const categoryLabel =
@@ -156,6 +163,20 @@ export function MarketplaceListingDetail({
           {listing.description}
         </p>
 
+        {isOwner && !isPublic && (
+          <p
+            className={`mt-4 rounded-lg border px-4 py-3 text-sm ${
+              listing.moderationStatus === "rejected"
+                ? "border-red-500/30 bg-red-500/10 text-red-300"
+                : "border-amber-500/30 bg-amber-500/10 text-amber-200"
+            }`}
+          >
+            {MARKETPLACE_MODERATION_LABEL[listing.moderationStatus ?? "pending"]}
+            {listing.moderationStatus === "pending" &&
+              " — Alejandro lo revisará antes de que aparezca en el mercadillo."}
+          </p>
+        )}
+
         <div className="mt-6 flex flex-wrap gap-2">
           <button
             type="button"
@@ -173,15 +194,15 @@ export function MarketplaceListingDetail({
               <button
                 type="button"
                 onClick={() => void handleMarkSold()}
-                disabled={markingSold}
+                disabled={markingSold || !isPublic}
                 className="mt-3 w-full rounded-full bg-emerald-500/20 py-3 text-sm font-semibold text-emerald-300 hover:bg-emerald-500/30 disabled:opacity-50"
               >
                 {markingSold ? "Eliminando…" : "Marcar como vendido"}
               </button>
             </>
-          ) : (
+          ) : isPublic ? (
             <MarketplaceContactActions listing={listing} />
-          )}
+          ) : null}
         </div>
       </div>
     </article>

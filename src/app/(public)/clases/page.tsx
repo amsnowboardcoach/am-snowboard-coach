@@ -7,6 +7,7 @@ import {
   BOOKING_NOT_INCLUDED,
 } from "@/constants/booking-info";
 import {
+  RECOMMENDED_SESSION_DURATION_ID,
   SESSION_DURATIONS,
   formatExtraParticipantsNote,
   sessionTotalEuros,
@@ -19,6 +20,7 @@ import { SectionHeading } from "@/components/layout/SectionHeading";
 import { getSiteMedia } from "@/lib/pexels/site-media";
 import { reservarHref } from "@/lib/booking/reservar-url";
 import { buildPageMetadata } from "@/lib/seo/metadata";
+import { cn } from "@/lib/utils/cn";
 import type { LessonTypeId } from "@/constants/lesson-types";
 
 export const metadata = buildPageMetadata({
@@ -153,11 +155,23 @@ export default async function ClasesPage() {
           subtitle="Los huecos libres salen del calendario al reservar."
         />
         <ul className="mt-10 grid gap-5 lg:grid-cols-3">
-          {SESSION_DURATIONS.map((session) => (
+          {SESSION_DURATIONS.map((session) => {
+            const featured = session.id === RECOMMENDED_SESSION_DURATION_ID;
+            return (
             <li
               key={session.id}
-              className="flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6"
+              className={cn(
+                "relative flex flex-col rounded-2xl border p-6",
+                featured
+                  ? "border-sky-500/45 bg-gradient-to-b from-sky-500/15 to-zinc-900/50 pt-8 shadow-lg shadow-sky-500/10"
+                  : "border-zinc-800 bg-zinc-900/40",
+              )}
             >
+              {featured && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-sky-500 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-950">
+                  Recomendado
+                </span>
+              )}
               <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
                 En pista
               </p>
@@ -191,12 +205,18 @@ export default async function ClasesPage() {
               </div>
               <Link
                 href={reservarHref({ duracion: session.id })}
-                className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-sky-500 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-sky-400"
+                className={cn(
+                  "mt-6 inline-flex w-full items-center justify-center rounded-full py-2.5 text-sm font-semibold transition",
+                  featured
+                    ? "bg-sky-500 text-zinc-950 hover:bg-sky-400"
+                    : "bg-sky-500/15 text-sky-200 ring-1 ring-sky-500/35 hover:bg-sky-500 hover:text-zinc-950",
+                )}
               >
                 Reservar {session.shortLabel}
               </Link>
             </li>
-          ))}
+            );
+          })}
         </ul>
 
         <div className="mt-10 glass-panel rounded-2xl p-6 sm:p-8">

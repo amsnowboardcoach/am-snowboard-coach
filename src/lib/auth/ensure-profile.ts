@@ -3,9 +3,23 @@ import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase/client";
 import { createUserProfile } from "@/lib/firebase/users";
 import { requestCoachNotifyStudentRegistered } from "@/lib/push/request-coach-student-registered";
-import { ROLES } from "@/constants/roles";
+import { isAlumnoRole, LEGACY_STUDENT_ROLE, ROLES } from "@/constants/roles";
 import { isCoachEmail } from "@/lib/auth/config";
 import type { UserProfile } from "@/types/firestore";
+
+/** Parches de rol en Firestore; si las reglas no lo permiten, se ignora el error. */
+async function tryPatchUserRole(
+  ref: ReturnType<typeof doc>,
+  patch: Record<string, unknown>,
+): Promise<UserProfile | null> {
+  try {
+    await updateDoc(ref, { ...patch, updatedAt: serverTimestamp() });
+    const fixed = await getDoc(ref);
+    return fixed.exists() ? (fixed.data() as UserProfile) : null;
+  } catch {
+    return null;
+  }
+}
 
 export async function ensureUserProfile(user: User): Promise<UserProfile> {
   const ref = doc(getFirebaseDb(), "users", user.uid);
@@ -13,19 +27,17 @@ export async function ensureUserProfile(user: User): Promise<UserProfile> {
 
   if (snap.exists()) {
     const existing = snap.data() as UserProfile;
-    if (
-      user.email &&
-      isCoachEmail(user.email) &&
-      existing.role === ROLES.STUDENT
-    ) {
-      await updateDoc(ref, {
+    if (user.email && isCoachEmail(user.email) && isAlumnoRole(existing.role)) {
+      const fixed = await tryPatchUserRole(ref, {
         role: ROLES.COACH,
         assignedCoachId: user.uid,
-        updatedAt: serverTimestamp(),
       });
-      const fixed = await getDoc(ref);
-      if (fixed.exists()) {
-        return fixed.data() as UserProfile;
+      if (fixed) return fixed;
+    }
+    if (user.email && !isCoachEmail(user.email)) {
+      if (existing.role === LEGACY_STUDENT_ROLE) {
+        const fixed = await tryPatchUserRole(ref, { role: ROLES.STUDENT });
+        if (fixed) return fixed;
       }
     }
     return existing;

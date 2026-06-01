@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthProvider";
-import { COACH_ROLES, ROLES } from "@/constants/roles";
+import { COACH_ROLES, isAlumnoRole, ROLES } from "@/constants/roles";
 import {
   isPushConfigured,
   isPushSupported,
@@ -78,7 +78,7 @@ export function PwaShell() {
   const [toast, setToast] = useState<ToastState>(null);
 
   const isCoach = profile && COACH_ROLES.includes(profile.role);
-  const isStudent = profile?.role === ROLES.STUDENT;
+  const isStudent = profile?.role ? isAlumnoRole(profile.role) : false;
   const aboveTabBar = hasPublicMobileTabBar(pathname);
 
   useEffect(() => {

@@ -20,11 +20,24 @@ import {
   mapStorageUploadError,
   uploadUserFile,
 } from "@/lib/firebase/storage-upload";
+import { isMarketplaceListingPublic } from "@/constants/marketplace";
 import type {
   MarketplaceCategory,
   MarketplaceCondition,
   MarketplaceListing,
+  MarketplaceModerationStatus,
 } from "@/types/marketplace";
+
+function mapListing(
+  id: string,
+  data: Record<string, unknown>,
+): MarketplaceListing {
+  const listing = { id, ...data } as MarketplaceListing;
+  if (!listing.moderationStatus) {
+    listing.moderationStatus = "approved";
+  }
+  return listing;
+}
 
 const LISTINGS = "marketplace_listings";
 
@@ -115,6 +128,7 @@ export async function createMarketplaceListing(input: {
       contactPhone: input.contactPhone?.trim() || null,
       contactEmail: input.contactEmail?.trim().toLowerCase() || null,
       status: "active",
+      moderationStatus: "pending",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -140,21 +154,79 @@ export async function fetchActiveMarketplaceListings(
   const q = query(
     listingsCol(),
     where("status", "==", "active"),
+    where("moderationStatus", "==", "approved"),
     orderBy("createdAt", "desc"),
     limit(max),
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as MarketplaceListing);
+  return snap.docs
+    .map((d) => mapListing(d.id, d.data() as Record<string, unknown>))
+    .filter(isMarketplaceListingPublic);
+}
+
+export async function fetchPendingMarketplaceListings(
+  max = 30,
+): Promise<MarketplaceListing[]> {
+  const q = query(
+    listingsCol(),
+    where("moderationStatus", "==", "pending"),
+    orderBy("createdAt", "desc"),
+    limit(max),
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) =>
+    mapListing(d.id, d.data() as Record<string, unknown>),
+  );
+}
+
+export async function setMarketplaceListingModeration(
+  listingId: string,
+  moderationStatus: Extract<MarketplaceModerationStatus, "approved" | "rejected">,
+): Promise<void> {
+  await updateDoc(listingRef(listingId), {
+    moderationStatus,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/** Anuncios activos sin moderationStatus (antes de la moderación). Solo coach. */
+export async function syncLegacyMarketplaceModeration(): Promise<number> {
+  const q = query(
+    listingsCol(),
+    where("status", "==", "active"),
+    orderBy("createdAt", "desc"),
+    limit(80),
+  );
+  const snap = await getDocs(q);
+  let updated = 0;
+  for (const d of snap.docs) {
+    if (d.data().moderationStatus) continue;
+    await updateDoc(d.ref, {
+      moderationStatus: "approved",
+      updatedAt: serverTimestamp(),
+    });
+    updated += 1;
+  }
+  return updated;
 }
 
 export async function fetchMarketplaceListingById(
   listingId: string,
+  options?: { viewerId?: string; viewerIsCoach?: boolean },
 ): Promise<MarketplaceListing | null> {
   const snap = await getDoc(listingRef(listingId));
   if (!snap.exists()) return null;
-  const data = snap.data();
-  if (data.status !== "active") return null;
-  return { id: snap.id, ...data } as MarketplaceListing;
+  const listing = mapListing(
+    snap.id,
+    snap.data() as Record<string, unknown>,
+  );
+  if (listing.status !== "active") return null;
+  if (isMarketplaceListingPublic(listing)) return listing;
+  if (options?.viewerIsCoach) return listing;
+  if (options?.viewerId && listing.sellerId === options.viewerId) {
+    return listing;
+  }
+  return null;
 }
 
 export async function fetchMyActiveListings(
@@ -168,7 +240,9 @@ export async function fetchMyActiveListings(
     limit(30),
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as MarketplaceListing);
+  return snap.docs.map((d) =>
+    mapListing(d.id, d.data() as Record<string, unknown>),
+  );
 }
 
 /** Marca vendido y elimina el anuncio (desaparece del mercadillo). */
@@ -184,6 +258,12 @@ export async function markListingSoldAndRemove(
   }
   if (data.status !== "active") {
     throw new Error("Este anuncio ya no está activo.");
+  }
+  const moderationStatus = data.moderationStatus as
+    | MarketplaceModerationStatus
+    | undefined;
+  if (moderationStatus && moderationStatus !== "approved") {
+    throw new Error("El anuncio debe estar publicado antes de marcarlo como vendido.");
   }
 
   const paths = (data.storagePaths as string[] | undefined) ?? [];
@@ -208,6 +288,12 @@ export async function updateActiveListing(
   const data = snap.data();
   if (data.sellerId !== sellerId) throw new Error("No autorizado.");
   if (data.status !== "active") throw new Error("Anuncio no editable.");
+  const moderationStatus = data.moderationStatus as
+    | MarketplaceModerationStatus
+    | undefined;
+  if (moderationStatus === "rejected") {
+    throw new Error("Este anuncio no se publicó y no se puede editar.");
+  }
 
   const updates: Record<string, unknown> = { updatedAt: serverTimestamp() };
   if (patch.title != null) {
@@ -225,6 +311,12 @@ export async function updateActiveListing(
       throw new Error("Precio inválido.");
     }
     updates.priceEuros = Math.round(patch.priceEuros);
+  }
+
+  const hasContentChange =
+    "title" in updates || "description" in updates || "priceEuros" in updates;
+  if (hasContentChange && (moderationStatus === "approved" || !moderationStatus)) {
+    updates.moderationStatus = "pending";
   }
 
   await updateDoc(listingRef(listingId), updates);

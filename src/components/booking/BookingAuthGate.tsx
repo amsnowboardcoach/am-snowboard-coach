@@ -17,6 +17,8 @@ interface BookingAuthGateProps {
   onConfirm?: () => void | Promise<void>;
   confirming?: boolean;
   className?: string;
+  /** Título del bloque sin sesión (por defecto: clase en pista) */
+  headline?: string;
 }
 
 export function BookingAuthGate({
@@ -28,6 +30,7 @@ export function BookingAuthGate({
   onConfirm,
   confirming = false,
   className,
+  headline = "Tu clase está lista",
 }: BookingAuthGateProps) {
   const chargeEuros = chargeEurosProp ?? totalEuros;
   const pathname = usePathname();
@@ -56,7 +59,7 @@ export function BookingAuthGate({
     return (
       <div
         className={cn(
-          "rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-5 text-sm",
+          "scroll-mt-header rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-5 text-sm",
           className,
         )}
         id="booking-auth-gate"
@@ -95,7 +98,7 @@ export function BookingAuthGate({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-sky-500/35 bg-sky-500/10 p-5 sm:p-6",
+        "scroll-mt-header rounded-2xl border border-sky-500/35 bg-sky-500/10 p-5 sm:p-6",
         className,
       )}
       id="booking-auth-gate"
@@ -103,9 +106,7 @@ export function BookingAuthGate({
       <p className="text-xs font-semibold uppercase tracking-wider text-sky-400">
         Último paso
       </p>
-      <h3 className="mt-2 text-lg font-semibold text-zinc-100">
-        Tu clase está lista
-      </h3>
+      <h3 className="mt-2 text-lg font-semibold text-zinc-100">{headline}</h3>
       <p className="mt-1 text-sm text-zinc-400">{summary}</p>
       <p className="mt-2 text-xl font-bold text-sky-300">{totalEuros} €</p>
       <p className="mt-4 text-sm text-zinc-300">

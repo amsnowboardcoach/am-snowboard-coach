@@ -187,11 +187,7 @@ export function TribeFeed() {
           </p>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-zinc-500">
             Sé el primero en compartir un momento en la nieve. Si eres alumno,
-            sube desde{" "}
-            <Link href="/perfil/tribu" className="text-sky-400 hover:underline">
-              tu panel → La Tribu
-            </Link>
-            .
+            sube desde tu panel de alumno.
           </p>
           <Link
             href="/login"

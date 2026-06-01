@@ -37,13 +37,13 @@ export function IssuerInfoCard() {
   if (!issuer) return null;
 
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
+    <div className="rounded-2xl border border-zinc-200 bg-zinc-100/90 p-5">
       <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
         Emisor (tus datos fiscales)
       </h2>
-      <p className="mt-3 font-medium text-zinc-100">{issuer.legalName}</p>
+      <p className="mt-3 font-medium text-zinc-900">{issuer.legalName}</p>
       <p className="text-sm text-sky-400">NIF {issuer.taxId}</p>
-      <p className="mt-2 text-sm text-zinc-400">{formatIssuerAddress(issuer)}</p>
+      <p className="mt-2 text-sm text-zinc-600">{formatIssuerAddress(issuer)}</p>
       {issuer.phone && (
         <p className="mt-1 text-sm text-zinc-500">{issuer.phone}</p>
       )}

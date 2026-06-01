@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { PageHero } from "@/components/layout/PageHero";
 import { TribeFeed } from "@/components/tribe/TribeFeed";
@@ -26,23 +25,10 @@ export default async function TribuPage() {
       <PageHero
         eyebrow="Comunidad AM"
         title="La Tribu"
-        subtitle="Momentos reales en pista: mira el feed sin cuenta, reacciona, comenta y comparte. Los alumnos suben solo desde su panel (Perfil → La Tribu)."
+        subtitle="Momentos reales en pista: mira el feed sin cuenta, reacciona, comenta y comparte. Los alumnos suben solo desde su panel."
         imageSrc={heroImage}
         imageAlt="Comunidad de snowboard en Sierra Nevada"
-      >
-        <Link
-          href="/login"
-          className="inline-flex min-h-12 items-center justify-center rounded-full bg-sky-500 px-8 py-3.5 font-semibold text-zinc-950 shadow-lg shadow-sky-500/20 transition hover:bg-sky-400"
-        >
-          Área de alumno
-        </Link>
-        <a
-          href="#feed"
-          className="inline-flex min-h-12 items-center justify-center rounded-full border border-zinc-500/80 px-6 py-3.5 text-sm font-medium text-zinc-100 transition hover:border-sky-400/60 hover:text-white"
-        >
-          Ver feed
-        </a>
-      </PageHero>
+      />
 
       <section className="page-container page-pad-y-tight">
         <TribeHowItWorks />

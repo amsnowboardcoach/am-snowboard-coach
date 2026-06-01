@@ -2,6 +2,8 @@ import type { Timestamp } from "firebase/firestore";
 
 export type MarketplaceListingStatus = "active" | "sold";
 
+export type MarketplaceModerationStatus = "pending" | "approved" | "rejected";
+
 export type MarketplaceCondition = "new" | "like_new" | "used";
 
 export type MarketplaceCategory =
@@ -28,6 +30,7 @@ export interface MarketplaceListing {
   contactPhone?: string;
   contactEmail?: string;
   status: MarketplaceListingStatus;
+  moderationStatus: MarketplaceModerationStatus;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

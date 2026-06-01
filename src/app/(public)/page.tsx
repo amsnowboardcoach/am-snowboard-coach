@@ -20,7 +20,7 @@ export default async function HomePage() {
       <PageHero
         tall
         title="Aprende snowboard con método, en Sierra Nevada"
-        subtitle="Alejandro Martín, Head Coach con más de 7.500 horas en pista. De tu primera bajada al freestyle en Snowpark Sulayr: clases claras, seguimiento real y comunidad."
+        subtitle="De tu primera bajada al freestyle en Snowpark Sulayr: clases claras, seguimiento real y comunidad."
         imageSrc={media.hero.image.src}
         imageAlt={media.hero.image.alt}
         videoSrc={media.hero.video?.src}

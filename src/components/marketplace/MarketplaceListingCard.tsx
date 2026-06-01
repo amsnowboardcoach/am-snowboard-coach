@@ -6,6 +6,8 @@ import { useState } from "react";
 import {
   MARKETPLACE_CATEGORIES,
   MARKETPLACE_CONDITIONS,
+  MARKETPLACE_MODERATION_LABEL,
+  isMarketplaceListingPublic,
 } from "@/constants/marketplace";
 import { formatFirestoreDate } from "@/lib/utils/dates";
 import {
@@ -41,6 +43,9 @@ export function MarketplaceListingCard({
   const categoryLabel =
     MARKETPLACE_CATEGORIES.find((c) => c.id === listing.category)?.label ??
     listing.category;
+  const isPublic = isMarketplaceListingPublic(listing);
+  const moderationLabel =
+    MARKETPLACE_MODERATION_LABEL[listing.moderationStatus ?? "approved"];
 
   async function handleMarkSold() {
     if (
@@ -128,6 +133,17 @@ export function MarketplaceListingCard({
               {categoryLabel} · {conditionLabel} ·{" "}
               {formatFirestoreDate(listing.createdAt)}
             </p>
+            {isOwner && !isPublic && (
+              <p
+                className={`mt-2 text-xs font-medium ${
+                  listing.moderationStatus === "rejected"
+                    ? "text-red-400"
+                    : "text-amber-400"
+                }`}
+              >
+                {moderationLabel}
+              </p>
+            )}
           </div>
         </div>
 
@@ -162,10 +178,21 @@ export function MarketplaceListingCard({
         {isOwner ? (
           <div className="mt-4 border-t border-zinc-800 pt-4">
             <p className="text-xs text-zinc-500">Tu anuncio</p>
+            {listing.moderationStatus === "pending" && (
+              <p className="mt-1 text-xs text-amber-400/90">
+                En revisión por el coach. Aún no es visible en el mercadillo
+                público.
+              </p>
+            )}
+            {listing.moderationStatus === "rejected" && (
+              <p className="mt-1 text-xs text-red-400/90">
+                Este anuncio no se publicó. Puedes crear uno nuevo si lo deseas.
+              </p>
+            )}
             <button
               type="button"
               onClick={() => void handleMarkSold()}
-              disabled={markingSold}
+              disabled={markingSold || !isPublic}
               className="mt-2 w-full rounded-full border border-emerald-500/40 bg-emerald-500/10 py-2.5 text-sm font-semibold text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-50"
             >
               {markingSold ? "Eliminando…" : "Marcar como vendido"}

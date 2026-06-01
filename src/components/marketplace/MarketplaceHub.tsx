@@ -118,8 +118,8 @@ export function MarketplaceHub() {
             </p>
           ) : myListings.length === 0 ? (
             <p className="rounded-xl border border-dashed border-zinc-700 py-12 text-center text-sm text-zinc-500">
-              No tienes anuncios activos. Cuando vendas uno, desaparecerá de
-              aquí automáticamente.
+              No tienes anuncios activos. Los nuevos pasan por revisión del coach
+              antes de publicarse. Cuando vendas uno, desaparecerá de aquí.
             </p>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2">

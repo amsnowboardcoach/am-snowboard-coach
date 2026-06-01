@@ -1,4 +1,9 @@
-import { COACH_ROLES, ROLES, type UserRole } from "@/constants/roles";
+import {
+  COACH_ROLES,
+  isAlumnoRole,
+  ROLES,
+  type UserRole,
+} from "@/constants/roles";
 import { isCoachEmail } from "@/lib/auth/config";
 import type { UserProfile } from "@/types/firestore";
 
@@ -12,8 +17,8 @@ export function roleForRegistration(
   return requested ?? ROLES.STUDENT;
 }
 
-export function isStudentRole(role: UserRole): boolean {
-  return role === ROLES.STUDENT;
+export function isStudentRole(role: UserRole | string): boolean {
+  return isAlumnoRole(role);
 }
 
 /** Perfil que debe tratarse como alumno (listados, Tribu, pasaporte alumno). */

@@ -57,7 +57,7 @@ export function BookingAuthPrompt({
         <p className="font-medium text-emerald-200">
           Sesión iniciada como {name}
         </p>
-        <p className="mt-1 text-zinc-400">{user.email}</p>
+        <p className="mt-1 text-zinc-600">{user.email}</p>
         <p className="mt-2 text-zinc-500">
           Esta reserva quedará en{" "}
           <Link href="/perfil" className="text-sky-400 hover:underline">
@@ -71,9 +71,9 @@ export function BookingAuthPrompt({
 
   return (
     <div className="space-y-4 rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-4">
-      <p className="text-sm text-zinc-300">
+      <p className="text-sm text-zinc-700">
         Para reservar necesitas una{" "}
-        <strong className="font-medium text-zinc-100">cuenta de alumno</strong>.
+        <strong className="font-medium text-zinc-900">cuenta de alumno</strong>.
         Identifícate con Google o crea cuenta con email antes de enviar la
         solicitud.
       </p>

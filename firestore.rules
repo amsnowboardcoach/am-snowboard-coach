@@ -19,10 +19,14 @@ service cloud.firestore {
         && userDoc().data.role in ['coach', 'collaborator', 'admin'];
     }
 
+    function isAlumnoRoleValue(role) {
+      return role == 'alumno' || role == 'student';
+    }
+
     function isRegisteredStudent() {
       return isSignedIn()
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && userDoc().data.role == 'student';
+        && isAlumnoRoleValue(userDoc().data.role);
     }
 
     function hasUserProfile() {
@@ -30,9 +34,26 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
 
+    function marketplaceListingPublicRead() {
+      return resource.data.status == 'active'
+        && (
+          resource.data.moderationStatus == 'approved'
+          || !('moderationStatus' in resource.data)
+        );
+    }
+
+    function marketplaceSellerModerationUpdate() {
+      return request.resource.data.moderationStatus == resource.data.moderationStatus
+        || (
+          resource.data.moderationStatus == 'approved'
+          && request.resource.data.moderationStatus == 'pending'
+        );
+    }
+
     function marketplaceListingValidCreate() {
       return request.resource.data.sellerId == request.auth.uid
         && request.resource.data.status == 'active'
+        && request.resource.data.moderationStatus == 'pending'
         && request.resource.data.title is string
         && request.resource.data.title.size() >= 3
         && request.resource.data.title.size() <= 80
@@ -78,7 +99,7 @@ service cloud.firestore {
         && request.resource.data.email is string
         && request.resource.data.displayName is string
         && (
-          request.resource.data.role == 'student'
+          isAlumnoRoleValue(request.resource.data.role)
           || (
             request.resource.data.role == 'coach'
             && isCoachSignupEmail()
@@ -101,12 +122,20 @@ service cloud.firestore {
         ]);
     }
 
-    /** Corrige perfil creado como alumno con email de coach (solo rol + updatedAt). */
+    /** Corrige perfil creado como alumno con email de coach. */
     function coachEmailRoleFix() {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
       return isCoachSignupEmail()
-        && resource.data.role == 'student'
+        && isAlumnoRoleValue(resource.data.role)
         && request.resource.data.role == 'coach'
+        && changed.hasOnly(['role', 'assignedCoachId', 'updatedAt']);
+    }
+
+    /** Migra rol legacy `student` → `alumno` al iniciar sesión (con isOwner en allow). */
+    function legacyStudentRoleFix() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return resource.data.role == 'student'
+        && request.resource.data.role == 'alumno'
         && changed.hasOnly(['role', 'updatedAt']);
     }
 
@@ -115,7 +144,8 @@ service cloud.firestore {
       allow create: if isOwner(userId) && userCreateValid(userId);
       allow update: if isCoach()
         || (isOwner(userId) && userSelfUpdateValid())
-        || (isOwner(userId) && coachEmailRoleFix());
+        || (isOwner(userId) && coachEmailRoleFix())
+        || (isOwner(userId) && legacyStudentRoleFix());
 
       match /trick_progress/{trickId} {
         allow read: if isOwner(userId) || isCoach();
@@ -192,7 +222,7 @@ service cloud.firestore {
     }
 
     match /marketplace_listings/{listingId} {
-      allow read: if resource.data.status == 'active'
+      allow read: if marketplaceListingPublicRead()
         || (isSignedIn()
           && resource.data.sellerId == request.auth.uid)
         || isCoach();
@@ -202,8 +232,10 @@ service cloud.firestore {
         || (hasUserProfile()
           && resource.data.sellerId == request.auth.uid
           && resource.data.status == 'active'
+          && resource.data.moderationStatus != 'rejected'
           && request.resource.data.sellerId == resource.data.sellerId
-          && request.resource.data.status == 'active');
+          && request.resource.data.status == 'active'
+          && marketplaceSellerModerationUpdate());
       allow delete: if isCoach()
         || (hasUserProfile() && resource.data.sellerId == request.auth.uid);
     }

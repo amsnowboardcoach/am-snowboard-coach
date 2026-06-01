@@ -48,7 +48,7 @@ function formatPostDate(post: TribePost): string {
 }
 
 export function StudentTribePanel({ studentId }: StudentTribePanelProps) {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [posts, setPosts] = useState<TribePost[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [mediaType, setMediaType] = useState<TribeMediaType>("photo");
@@ -115,6 +115,7 @@ export function StudentTribePanel({ studentId }: StudentTribePanelProps) {
     setSuccess(null);
 
     try {
+      await refreshProfile();
       await uploadTribePost({
         authorId: user.uid,
         authorDisplayName: profile.displayName || user.displayName || "Alumno",

@@ -89,9 +89,10 @@ export function CoachHubOverview({ coachId, onNavigate }: CoachHubOverviewProps)
         },
         {
           tab: "mercadillo",
-          label: "Anuncios activos",
-          value: stats.activeListings,
-          hint: "Mercadillo público",
+          label: "Mercadillo pendiente",
+          value: stats.pendingMarketplaceListings,
+          hint: "Anuncios por aprobar",
+          urgent: stats.pendingMarketplaceListings > 0,
         },
       ]
     : [];
