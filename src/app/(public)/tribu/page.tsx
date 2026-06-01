@@ -26,7 +26,7 @@ export default async function TribuPage() {
       <PageHero
         eyebrow="Comunidad AM"
         title="La Tribu"
-        subtitle="Momentos reales en pista: mira el feed sin cuenta, reacciona, comenta y comparte. Los alumnos publican desde el móvil tras una revisión rápida."
+        subtitle="Momentos reales en pista: mira el feed sin cuenta, reacciona, comenta y comparte. Los alumnos suben solo desde su panel (Perfil → La Tribu)."
         imageSrc={heroImage}
         imageAlt="Comunidad de snowboard en Sierra Nevada"
       >

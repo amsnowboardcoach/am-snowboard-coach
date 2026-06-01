@@ -12,7 +12,7 @@ import {
 import type { TribeMediaType, TribePost } from "@/types/tribe-post";
 import { TribePostCard } from "@/components/tribe/TribePostCard";
 import { TribeFeedSkeleton } from "@/components/tribe/TribeFeedSkeleton";
-import { TribeUploadPanel } from "@/components/tribe/TribeUploadPanel";
+import { TribeFeedUploadBanner } from "@/components/tribe/TribeFeedUploadBanner";
 import { cn } from "@/lib/utils/cn";
 
 type FeedFilter = "all" | TribeMediaType;
@@ -108,7 +108,7 @@ export function TribeFeed() {
 
   return (
     <div className="stack-page">
-      <TribeUploadPanel onUploaded={() => void load(true)} />
+      <TribeFeedUploadBanner />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -187,7 +187,11 @@ export function TribeFeed() {
           </p>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-zinc-500">
             Sé el primero en compartir un momento en la nieve. Si eres alumno,
-            usa el panel de arriba para subir foto o vídeo.
+            sube desde{" "}
+            <Link href="/perfil/tribu" className="text-sky-400 hover:underline">
+              tu panel → La Tribu
+            </Link>
+            .
           </p>
           <Link
             href="/login"

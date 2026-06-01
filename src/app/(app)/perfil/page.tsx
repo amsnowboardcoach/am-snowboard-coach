@@ -40,9 +40,9 @@ const links: PerfilLink[] = [
     icon: "🎬",
   },
   {
-    href: "/tribu",
+    href: "/perfil/tribu",
     title: "La Tribu",
-    desc: "Fotos, vídeos y momentos en la nieve",
+    desc: "Sube fotos y vídeos · revisión del coach",
     icon: "🔥",
   },
 ];

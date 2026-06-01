@@ -6,6 +6,7 @@ import { getAuthRedirectPath } from "@/lib/auth/redirect";
 const ALLOWED_NEXT_PREFIXES = [
   "/perfil",
   "/perfil/avisos",
+  "/perfil/tribu",
   "/coach",
   "/reservar",
   "/tribu",

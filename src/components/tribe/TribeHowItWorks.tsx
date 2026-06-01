@@ -12,7 +12,7 @@ const STEPS = [
   {
     title: "Publica si eres alumno",
     description:
-      "Con tu área de alumno subes desde el móvil; el coach revisa antes de que salga al feed.",
+      "Entra a tu perfil → La Tribu, sube foto o vídeo desde el móvil y el coach lo aprueba antes del feed.",
   },
 ] as const;
 

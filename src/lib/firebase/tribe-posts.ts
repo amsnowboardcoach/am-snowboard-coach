@@ -76,6 +76,7 @@ export async function uploadTribePost(input: {
   mediaType: TribeMediaType;
   caption?: string;
   legalConsent: boolean;
+  onUploadProgress?: (percent: number) => void;
 }): Promise<string> {
   if (!input.legalConsent) {
     throw new Error("Debes aceptar las condiciones de publicación.");
@@ -90,7 +91,7 @@ export async function uploadTribePost(input: {
   const storageRef = ref(getFirebaseStorage(), storagePath);
 
   try {
-    await uploadUserFile(storageRef, input.file);
+    await uploadUserFile(storageRef, input.file, input.onUploadProgress);
   } catch (err) {
     throw new Error(mapStorageUploadError(err));
   }
