@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { MARKETPLACE_CATEGORIES } from "@/constants/marketplace";
+import { formatFirestoreClientError } from "@/lib/firebase/firestore-errors";
 import {
   fetchActiveMarketplaceListings,
   getMarketplaceShareUrl,
@@ -28,7 +29,7 @@ export function CoachHubMarketplacePanel() {
       setListings(await fetchActiveMarketplaceListings(80));
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "No se pudo cargar el mercadillo",
+        formatFirestoreClientError(err, "No se pudo cargar el mercadillo"),
       );
     } finally {
       setLoading(false);
@@ -95,6 +96,7 @@ export function CoachHubMarketplacePanel() {
                   fill
                   className="object-cover"
                   sizes="128px"
+                  unoptimized
                 />
               </div>
             )}

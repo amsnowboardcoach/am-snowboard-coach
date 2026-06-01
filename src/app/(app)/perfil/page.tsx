@@ -32,22 +32,24 @@ export default function PerfilPage() {
   const isStudent = profile && !COACH_ROLES.includes(profile.role);
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold">
-        Hola, {profile?.displayName ?? user?.displayName}
-      </h1>
-      <p className="mt-2 text-zinc-400">
-        Tu espacio personal: progreso, vídeos y comunidad
-      </p>
+    <div className="stack-page">
+      <header>
+        <h1 className="page-title">
+          Hola, {profile?.displayName ?? user?.displayName}
+        </h1>
+        <p className="page-lead">
+          Tu espacio personal: progreso, vídeos y comunidad
+        </p>
+      </header>
 
       {isStudent && (
         <CoachWhatsAppCard
-          className="mt-8"
+          className=""
           prefill={`Hola Alejandro, soy ${profile?.displayName ?? "alumno AM"}. `}
         />
       )}
 
-      <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-3">
+      <dl className="grid gap-4 text-sm sm:grid-cols-3 sm:gap-6">
         <div>
           <dt className="text-zinc-500">Email</dt>
           <dd>{profile?.email ?? user?.email}</dd>
@@ -62,7 +64,7 @@ export default function PerfilPage() {
         </div>
       </dl>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-grid sm:grid-cols-3">
         {links.map((item) => (
           <Link
             key={item.href}

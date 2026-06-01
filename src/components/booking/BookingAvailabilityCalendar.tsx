@@ -544,7 +544,7 @@ export function BookingAvailabilityCalendar({
         </div>
 
         <p className="mt-2 text-center text-[11px] text-zinc-600">
-          Temporada {BOOKING_SEASON_LABEL} · máx. {MAX_BOOKING_DAYS} días
+          Temporada {BOOKING_SEASON_LABEL} · varios días con el mismo turno
         </p>
 
         <div className="mt-2 grid grid-cols-7 gap-1 text-center">

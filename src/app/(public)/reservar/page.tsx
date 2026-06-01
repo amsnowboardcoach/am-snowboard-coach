@@ -29,8 +29,8 @@ export default async function ReservarPage() {
         tall={false}
       />
 
-      <section className="mx-auto max-w-4xl px-4 py-8 pb-24 sm:py-12 sm:pb-20">
-        <div className="glass-panel rounded-2xl p-6 sm:p-10">
+      <section className="page-container max-w-4xl section-pad-tight">
+        <div className="glass-panel rounded-2xl p-6 sm:p-8 lg:p-10">
           <Suspense
             fallback={
               <p className="py-12 text-center text-zinc-500">Cargando reservas…</p>
@@ -39,7 +39,7 @@ export default async function ReservarPage() {
             <ReservarTabs />
           </Suspense>
         </div>
-        <div className="mt-8 space-y-6">
+        <div className="mt-10 stack-section sm:mt-12">
           <BookingCancellationPolicy />
           <p className="text-center text-sm text-zinc-500">
             También puedes reservar por WhatsApp (botón verde abajo a la izquierda).

@@ -13,8 +13,9 @@ import {
   where,
   writeBatch,
 } from "firebase/firestore";
-import { getDownloadURL, ref } from "firebase/storage";
+import { deleteObject, getDownloadURL, ref } from "firebase/storage";
 import { COACH_ROLES } from "@/constants/roles";
+import { formatFirestoreClientError } from "@/lib/firebase/firestore-errors";
 import { getFirebaseDb, getFirebaseStorage } from "@/lib/firebase/client";
 import {
   mapStorageUploadError,
@@ -95,22 +96,41 @@ export async function uploadTribePost(input: {
   }
   const mediaUrl = await getDownloadURL(storageRef);
 
-  await setDoc(postRef, {
-    authorId: input.authorId,
-    authorDisplayName: input.authorDisplayName.trim() || "Alumno AM",
-    authorPhotoURL: input.authorPhotoURL ?? null,
-    mediaType: input.mediaType,
-    storagePath,
-    mediaUrl,
-    caption: input.caption?.trim().slice(0, 500) || null,
-    moderationStatus: moderationForRole(input.authorRole),
-    fireCount: 0,
-    commentCount: 0,
-    legalConsent: true,
-    createdAt: serverTimestamp(),
-  });
+  try {
+    await setDoc(postRef, {
+      authorId: input.authorId,
+      authorDisplayName: input.authorDisplayName.trim() || "Alumno AM",
+      authorPhotoURL: input.authorPhotoURL ?? null,
+      mediaType: input.mediaType,
+      storagePath,
+      mediaUrl,
+      caption: input.caption?.trim().slice(0, 500) || null,
+      moderationStatus: moderationForRole(input.authorRole),
+      fireCount: 0,
+      commentCount: 0,
+      legalConsent: true,
+      createdAt: serverTimestamp(),
+    });
+  } catch (err) {
+    try {
+      await deleteObject(storageRef);
+    } catch {
+      /* ya borrado */
+    }
+    throw new Error(
+      formatFirestoreClientError(err, "No se pudo guardar la publicación."),
+    );
+  }
 
   return postRef.id;
+}
+
+export async function fetchTribePostById(
+  postId: string,
+): Promise<TribePost | null> {
+  const snap = await getDoc(doc(getFirebaseDb(), POSTS, postId));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as TribePost;
 }
 
 export async function fetchApprovedTribePosts(
@@ -133,11 +153,17 @@ export async function fetchApprovedTribePosts(
   return posts.slice(0, max);
 }
 
+export type TribeFeedLoadResult = {
+  posts: TribePost[];
+  /** Tus posts en revisión no se pudieron mezclar en el feed (índice, etc.). */
+  ownPendingHidden?: boolean;
+};
+
 /** Feed Tribu: aprobadas + propias pendientes si hay sesión */
 export async function fetchTribeFeedPosts(
   viewerId: string | null,
   max = 30,
-): Promise<TribePost[]> {
+): Promise<TribeFeedLoadResult> {
   const approvedQ = query(
     postsCol(),
     where("moderationStatus", "==", "approved"),
@@ -150,6 +176,7 @@ export async function fetchTribeFeedPosts(
     byId.set(d.id, { id: d.id, ...d.data() } as TribePost);
   }
 
+  let ownPendingHidden = false;
   if (viewerId) {
     const pendingQ = query(
       postsCol(),
@@ -164,13 +191,14 @@ export async function fetchTribeFeedPosts(
         byId.set(d.id, { id: d.id, ...d.data() } as TribePost);
       }
     } catch {
-      /* índice compuesto pendiente: omitir propias pending */
+      ownPendingHidden = true;
     }
   }
 
-  return [...byId.values()].sort(
+  const posts = [...byId.values()].sort(
     (a, b) => b.createdAt.toMillis() - a.createdAt.toMillis(),
   );
+  return { posts, ownPendingHidden: ownPendingHidden || undefined };
 }
 
 /** Publicaciones de un alumno (panel coach). */

@@ -5,7 +5,7 @@ import {
 } from "@/constants/video-correction";
 import { createVideoCorrectionBookingFromWeb } from "@/lib/firebase/bookings-admin";
 import { sendVideoCorrectionRequestEmails } from "@/lib/email/send-booking";
-import { notifyCoachNewBookingRequest } from "@/lib/push/send-push";
+import { coachNotifyVideoCorrectionBooking } from "@/lib/notify/coach";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { z } from "zod";
@@ -73,16 +73,16 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      await notifyCoachNewBookingRequest({
+      await coachNotifyVideoCorrectionBooking({
         studentName,
-        slotLabel: `${videoCount} vídeo${videoCount > 1 ? "s" : ""} a corregir`,
-        dateLabel: "Video corrección",
-        bookingId,
-        kind: "video_correction",
+        studentEmail,
         videoCount,
+        totalEuros,
+        bookingId,
+        notes,
       });
-    } catch (pushErr) {
-      console.error("[reserve-video] Push:", pushErr);
+    } catch (notifyErr) {
+      console.error("[reserve-video] Aviso coach:", notifyErr);
     }
 
     return NextResponse.json({

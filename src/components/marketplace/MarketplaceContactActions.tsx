@@ -19,12 +19,17 @@ export function MarketplaceContactActions({
   const phone = listing.contactPhone?.trim();
   const email = listing.contactEmail?.trim();
   const digits = phone ? normalizeMarketplacePhone(phone) : "";
+  const hasWhatsApp = digits.length >= 9;
+  const hasEmail = Boolean(email);
+  const hasContact = hasWhatsApp || hasEmail;
 
   return (
     <div className={compact ? "space-y-2" : "space-y-3"}>
-      <p className="text-lg font-bold text-sky-300">
-        {formatMarketplacePrice(listing.priceEuros)}
-      </p>
+      {!compact && (
+        <p className="text-lg font-bold text-sky-300">
+          {formatMarketplacePrice(listing.priceEuros)}
+        </p>
+      )}
       <p className="text-sm text-zinc-500">
         Vendedor:{" "}
         <span className="text-zinc-300">{listing.sellerDisplayName}</span>
@@ -49,6 +54,12 @@ export function MarketplaceContactActions({
           </a>
         )}
       </div>
+      {!hasContact && (
+        <p className="text-sm text-amber-400/90">
+          El vendedor no dejó un teléfono o email válido. Prueba desde el
+          detalle del anuncio o contacta al coach.
+        </p>
+      )}
     </div>
   );
 }

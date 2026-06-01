@@ -26,9 +26,9 @@ export default async function SobreMiPage() {
         imageAlt={media.coach.image.alt}
       />
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <div className="grid items-start gap-12 lg:grid-cols-[1fr_340px]">
-          <div className="space-y-6 text-lg leading-relaxed text-zinc-300">
+      <section className="page-container section-pad">
+        <div className="grid items-start gap-grid lg:grid-cols-[1fr_340px]">
+          <div className="stack-section text-lg leading-relaxed text-zinc-300">
             <p>
               Más de <strong className="text-zinc-100">7.500 horas</strong> de
               clase en pista con alumnos de todos los niveles. Desde la primera

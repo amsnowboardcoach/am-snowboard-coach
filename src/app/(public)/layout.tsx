@@ -18,7 +18,7 @@ export default function PublicLayout({
       <SiteHeader />
       <main
         id="main-content"
-        className="flex-1 overflow-x-hidden pb-24 sm:pb-0"
+        className="flex-1 overflow-x-hidden pb-nav lg:pb-0"
       >
         {children}
       </main>

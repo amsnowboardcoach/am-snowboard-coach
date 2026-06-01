@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthProvider";
+import { formatFirestoreClientError } from "@/lib/firebase/firestore-errors";
 import {
   fetchActiveMarketplaceListings,
   fetchMyActiveListings,
@@ -26,6 +27,7 @@ export function MarketplaceHub() {
   const [myListings, setMyListings] = useState<MarketplaceListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [myError, setMyError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const loadExplore = useCallback(async () => {
@@ -35,7 +37,7 @@ export function MarketplaceHub() {
       setListings(await fetchActiveMarketplaceListings());
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "No se pudo cargar el mercadillo",
+        formatFirestoreClientError(err, "No se pudo cargar el mercadillo"),
       );
     } finally {
       setLoading(false);
@@ -45,12 +47,17 @@ export function MarketplaceHub() {
   const loadMine = useCallback(async () => {
     if (!user?.uid || user.isAnonymous) {
       setMyListings([]);
+      setMyError(null);
       return;
     }
+    setMyError(null);
     try {
       setMyListings(await fetchMyActiveListings(user.uid));
-    } catch {
+    } catch (err) {
       setMyListings([]);
+      setMyError(
+        formatFirestoreClientError(err, "No se pudieron cargar tus anuncios"),
+      );
     }
   }, [user?.uid, user?.isAnonymous]);
 
@@ -67,8 +74,13 @@ export function MarketplaceHub() {
     void loadMine();
   }
 
+  function handleCreated() {
+    refreshAll();
+    setTab("mis");
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="stack-page">
       <nav
         className="grid grid-cols-3 gap-2 rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-2"
         aria-label="Secciones del mercadillo"
@@ -79,7 +91,7 @@ export function MarketplaceHub() {
             type="button"
             onClick={() => setTab(t.id)}
             className={cn(
-              "min-h-11 rounded-full px-2 text-sm font-medium transition",
+              "min-h-11 touch-manipulation rounded-full px-2 text-sm font-medium transition",
               tab === t.id
                 ? "bg-sky-500 text-zinc-950"
                 : "text-zinc-400 hover:text-white",
@@ -91,7 +103,7 @@ export function MarketplaceHub() {
       </nav>
 
       {tab === "publicar" && (
-        <MarketplaceCreateForm onCreated={() => refreshAll()} />
+        <MarketplaceCreateForm onCreated={handleCreated} />
       )}
 
       {tab === "mis" && (
@@ -99,6 +111,10 @@ export function MarketplaceHub() {
           {!user || user.isAnonymous ? (
             <p className="text-center text-sm text-zinc-500">
               Inicia sesión para ver tus anuncios activos.
+            </p>
+          ) : myError ? (
+            <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+              {myError}
             </p>
           ) : myListings.length === 0 ? (
             <p className="rounded-xl border border-dashed border-zinc-700 py-12 text-center text-sm text-zinc-500">

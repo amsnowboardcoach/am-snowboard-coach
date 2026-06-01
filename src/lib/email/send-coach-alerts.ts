@@ -59,3 +59,103 @@ export async function sendCoachNewStudentRegisteredEmail(details: {
     text: `Nuevo alumno: ${details.studentName} (${details.studentEmail}). Panel: ${panelUrl}`,
   });
 }
+
+/** Email al coach: nueva solicitud de clase en pista */
+export async function sendCoachNewSessionBookingEmail(details: {
+  studentName: string;
+  studentEmail: string;
+  lessonTypeName: string;
+  sessionLabel: string;
+  when: string;
+  totalEuros: number;
+  paymentPending?: boolean;
+  bookingNotes?: string;
+  participantCount?: number;
+  panelUrl: string;
+}): Promise<void> {
+  if (!isEmailConfigured()) return;
+
+  const people =
+    details.participantCount && details.participantCount > 1
+      ? `<li>Personas en pista: <strong>${details.participantCount}</strong></li>`
+      : "";
+  const paymentLine = details.paymentPending
+    ? "<li><strong>Pago con tarjeta pendiente</strong> en la web. Acepta en el panel cuando conste el pago.</li>"
+    : "<li>Revisa y acepta o rechaza en el panel.</li>";
+
+  await getTransport().sendMail({
+    from: fromAddress(),
+    to: coachNotifyTo(),
+    subject: `Nueva reserva: ${details.studentName} — ${details.when}`,
+    html: `
+      <p>Nueva solicitud de clase en <strong>AM Snowboard Coach</strong>.</p>
+      <ul>
+        <li><strong>Alumno:</strong> ${details.studentName} &lt;${details.studentEmail}&gt;</li>
+        <li><strong>Estilo:</strong> ${details.lessonTypeName}</li>
+        <li><strong>Modalidad:</strong> ${details.sessionLabel}</li>
+        <li><strong>Cuándo:</strong> ${details.when}</li>
+        ${people}
+        <li><strong>Importe:</strong> ${details.totalEuros} €</li>
+        ${paymentLine}
+      </ul>
+      ${details.bookingNotes ? `<p>Notas: ${details.bookingNotes}</p>` : ""}
+      <p><a href="${details.panelUrl}">Abrir panel de reservas</a></p>
+    `,
+    text: `Nueva reserva de ${details.studentName}. ${details.when}. Panel: ${details.panelUrl}`,
+  });
+}
+
+/** Email al coach: solicitud de video corrección (sin duplicar mail al alumno) */
+export async function sendCoachVideoCorrectionRequestEmail(details: {
+  studentName: string;
+  studentEmail: string;
+  videoCount: number;
+  totalEuros: number;
+  notes?: string;
+  panelUrl: string;
+}): Promise<void> {
+  if (!isEmailConfigured()) return;
+
+  const label = `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`;
+
+  await getTransport().sendMail({
+    from: fromAddress(),
+    to: coachNotifyTo(),
+    subject: `Video corrección: ${details.studentName} — ${label}`,
+    html: `
+      <p>Nueva solicitud de <strong>video corrección</strong>.</p>
+      <ul>
+        <li><strong>Alumno:</strong> ${details.studentName} &lt;${details.studentEmail}&gt;</li>
+        <li><strong>Paquete:</strong> ${label} · ${details.totalEuros} €</li>
+      </ul>
+      ${details.notes ? `<p>Notas: ${details.notes}</p>` : ""}
+      <p><a href="${details.panelUrl}">Abrir panel de reservas</a></p>
+    `,
+    text: `Video corrección: ${details.studentName}, ${label}. Panel: ${details.panelUrl}`,
+  });
+}
+
+/** Email al coach: alumno subió vídeo para revisar */
+export async function sendCoachVideoUploadedEmail(details: {
+  studentName: string;
+  studentEmail: string;
+  videoTitle: string;
+  panelUrl: string;
+}): Promise<void> {
+  if (!isEmailConfigured()) return;
+
+  await getTransport().sendMail({
+    from: fromAddress(),
+    to: coachNotifyTo(),
+    subject: `Vídeo nuevo: ${details.studentName}`,
+    html: `
+      <p>Un alumno ha subido un vídeo pendiente de revisión.</p>
+      <ul>
+        <li><strong>Alumno:</strong> ${details.studentName} &lt;${details.studentEmail}&gt;</li>
+        <li><strong>Título:</strong> ${details.videoTitle}</li>
+      </ul>
+      <p><a href="${details.panelUrl}">Revisar en el panel</a></p>
+    `,
+    text: `Vídeo de ${details.studentName}: ${details.videoTitle}. ${details.panelUrl}`,
+  });
+}

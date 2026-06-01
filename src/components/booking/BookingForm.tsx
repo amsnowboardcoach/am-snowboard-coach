@@ -60,6 +60,10 @@ import {
   setBookingPendingSubmit,
 } from "@/lib/booking/booking-draft";
 import { computeBookingPaymentBreakdown } from "@/lib/booking/payment-amounts";
+import {
+  formatBookingContactSummary,
+  isValidBookingPhone,
+} from "@/lib/booking/contact-notes";
 import { formatReservationSummaryLines } from "@/lib/booking/format-reservation";
 import { scrollToId, scrollToTop } from "@/lib/navigation/scroll";
 import {
@@ -202,6 +206,9 @@ function PriceSummary({
     { n: 2, label: "Estilo", value: lines.style },
     { n: 3, label: "Horario", value: lines.schedule },
     { n: 4, label: "Personas", value: lines.people },
+    ...(lines.contact !== "—"
+      ? [{ n: 5, label: "Contacto", value: lines.contact }]
+      : []),
   ];
   return (
     <div
@@ -269,7 +276,8 @@ export function BookingForm() {
     !authLoading &&
     name.trim().length >= 2 &&
     Boolean(email.trim());
-  const [notes, setNotes] = useState("");
+  const [phone, setPhone] = useState("");
+  const [objectives, setObjectives] = useState("");
   const [paymentOption, setPaymentOption] =
     useState<BookingPaymentOption>("deposit_30");
   const [submitting, setSubmitting] = useState(false);
@@ -339,11 +347,16 @@ export function BookingForm() {
     );
   }, [pickedDateKeys, session.slots, availability]);
 
+  const contactSummary = formatBookingContactSummary({
+    phone,
+    objectives,
+  });
+
   const summaryLines = formatReservationSummaryLines({
     selectedDays,
     participantCount,
     lessonName: lesson ? lessonPublicName(lesson) : undefined,
-    notes,
+    contact: isValidBookingPhone(phone) ? contactSummary : undefined,
   });
 
   useEffect(() => {
@@ -536,7 +549,8 @@ export function BookingForm() {
       );
       setSelectedDays(draft.selectedDays as AvailableSlotOption[]);
       setLessonTypeId(draft.lessonTypeId);
-      setNotes(draft.notes);
+      setPhone(draft.phone ?? "");
+      setObjectives(draft.objectives ?? draft.notes ?? "");
       if (draft.paymentOption) setPaymentOption(draft.paymentOption);
       if (isBookingPendingSubmit() || searchParams.get("book") === "1") {
         setShowAuthGate(true);
@@ -570,7 +584,10 @@ export function BookingForm() {
       "Alumno";
     setName(displayName);
     setEmail(user.email);
-  }, [authLoading, user, profile, refreshProfile]);
+    if (profile?.phone?.trim() && !phone.trim()) {
+      setPhone(profile.phone.trim());
+    }
+  }, [authLoading, user, profile, refreshProfile, phone]);
 
   function pickDuration(id: SessionDurationId) {
     const entry = availByDuration[id];
@@ -715,7 +732,8 @@ export function BookingForm() {
 
   const datesReady = isDaySelectionComplete(pickedDateKeys, selectedDays);
 
-  const formReady = datesReady && datesPickedReady;
+  const contactReady = isValidBookingPhone(phone);
+  const formReady = datesReady && datesPickedReady && contactReady;
 
   const bookingSummary = `${summaryLines.day} · ${summaryLines.schedule} · ${summaryLines.people}`;
 
@@ -734,7 +752,8 @@ export function BookingForm() {
         label: d.label,
       })),
       lessonTypeId,
-      notes,
+      phone,
+      objectives,
       paymentOption,
     });
   }
@@ -745,6 +764,7 @@ export function BookingForm() {
     if (!formReady || selectedDays.length === 0) return;
     if (!user?.email) return;
     if (studentName.length < 2 || !studentEmail) return;
+    if (!isValidBookingPhone(phone)) return;
 
     setSubmitting(true);
     setSubmitError(null);
@@ -766,7 +786,8 @@ export function BookingForm() {
           email: studentEmail,
           lessonTypeId,
           participantCount,
-          notes: notes.trim() || undefined,
+          phone: phone.trim(),
+          objectives: objectives.trim() || undefined,
           paymentOption,
         }),
       });
@@ -814,7 +835,8 @@ export function BookingForm() {
     email,
     lessonTypeId,
     participantCount,
-    notes,
+    phone,
+    objectives,
     paymentOption,
     totalEuros,
     chargeEuros,
@@ -900,12 +922,10 @@ export function BookingForm() {
             <span className="text-zinc-500">4. Personas: </span>
             {summaryLines.people}
           </li>
-          {notes.trim() && (
-            <li>
-              <span className="text-zinc-500">5. Notas: </span>
-              {notes.trim()}
-            </li>
-          )}
+          <li>
+            <span className="text-zinc-500">5. Contacto: </span>
+            {contactSummary}
+          </li>
         </ol>
         {confirmedTotal != null && (
           <p className="mt-4 text-lg font-medium text-sky-300">
@@ -940,7 +960,7 @@ export function BookingForm() {
             setConfirmedCharge(null);
             setConfirmedBalance(null);
             pickDuration(DEFAULT_SESSION_DURATION_ID);
-            setNotes("");
+            setObjectives("");
             setSubmitError(null);
             setPickedDateKeys([]);
             setSelectedDays([]);
@@ -956,10 +976,7 @@ export function BookingForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <FieldBlock
-        title="1. Duración en pista"
-        hint="Solo modalidades con huecos libres en tu calendario (AM + Explora)."
-      >
+      <FieldBlock title="1. Duración en pista">
         <div className="grid gap-2 sm:grid-cols-3">
           {SESSION_DURATIONS.map((d) => {
             const entry = availByDuration[d.id];
@@ -1067,14 +1084,42 @@ export function BookingForm() {
         </p>
       </FieldBlock>
 
-      <FieldBlock title="5. Notas" hint="Opcional">
-        <textarea
-          rows={2}
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Nivel, objetivos, teléfono de contacto…"
-          className="form-input"
-        />
+      <FieldBlock
+        title="5. Datos de contacto"
+        hint="Para coordinar la clase contigo"
+      >
+        <div className="space-y-4">
+          <label className="block text-sm text-zinc-300">
+            Teléfono móvil <span className="text-red-400">*</span>
+            <input
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Ej. 612 345 678"
+              className="form-input mt-1"
+              aria-invalid={phone.length > 0 && !contactReady}
+            />
+            {phone.length > 0 && !contactReady && (
+              <span className="mt-1 block text-xs text-red-400">
+                Introduce un teléfono válido (mínimo 9 dígitos).
+              </span>
+            )}
+          </label>
+
+          <label className="block text-sm text-zinc-300">
+            Objetivos <span className="text-zinc-600">(opcional)</span>
+            <textarea
+              rows={3}
+              value={objectives}
+              onChange={(e) => setObjectives(e.target.value)}
+              placeholder="Qué quieres trabajar, miedos a superar, metas de la temporada…"
+              className="form-input mt-1"
+            />
+          </label>
+        </div>
       </FieldBlock>
 
       <FieldBlock
@@ -1170,7 +1215,9 @@ export function BookingForm() {
                 ? "Elige al menos un día"
                 : selectedDays.length < pickedDateKeys.length
                   ? `Elige turno (${selectedDays.length}/${pickedDateKeys.length} días)`
-                  : "Completa día, turno y estilo"
+                  : !contactReady
+                    ? "Indica tu teléfono móvil"
+                    : "Completa día, turno y estilo"
               : showAuthGate && canBook
                 ? `Confirmar y pagar ${chargeEuros} €`
                 : `Reservar y pagar ${chargeEuros} €`}

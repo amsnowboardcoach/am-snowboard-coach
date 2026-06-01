@@ -1,8 +1,5 @@
 import Link from "next/link";
-import {
-  VIDEO_CORRECTION_PRODUCT,
-  formatVideoCorrectionPrice,
-} from "@/constants/video-correction";
+import { VIDEO_CORRECTION_PRODUCT } from "@/constants/video-correction";
 import { cn } from "@/lib/utils/cn";
 
 interface VideoCorrectionCardProps {
@@ -39,9 +36,6 @@ export function VideoCorrectionCard({
         <span className="ml-2 text-base font-normal text-zinc-500">
           por vídeo
         </span>
-      </p>
-      <p className="mt-1 text-sm text-zinc-500">
-        {formatVideoCorrectionPrice(1)}
       </p>
       {showCta && (
         <Link

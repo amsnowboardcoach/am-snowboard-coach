@@ -33,8 +33,8 @@ export default async function BlogIndexPage() {
         imageAlt={media.sierra.image.alt}
       />
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="page-container section-pad">
+        <div className="grid gap-grid sm:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
             <BlogPostCard key={post.slug} post={post} />
           ))}

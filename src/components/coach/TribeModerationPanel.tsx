@@ -11,6 +11,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
+import { formatFirestoreClientError } from "@/lib/firebase/firestore-errors";
 import { getFirebaseDb } from "@/lib/firebase/client";
 import type { TribePost } from "@/types/tribe-post";
 import { TribePostCard } from "@/components/tribe/TribePostCard";
@@ -25,9 +26,12 @@ export function TribeModerationPanel({
 }: TribeModerationPanelProps) {
   const [pending, setPending] = useState<TribePost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const q = query(
         collection(getFirebaseDb(), "tribe_posts"),
@@ -39,8 +43,14 @@ export function TribeModerationPanel({
       setPending(
         snap.docs.map((d) => ({ id: d.id, ...d.data() }) as TribePost),
       );
-    } catch {
+    } catch (err) {
       setPending([]);
+      setError(
+        formatFirestoreClientError(
+          err,
+          "No se pudieron cargar las publicaciones pendientes",
+        ),
+      );
     } finally {
       setLoading(false);
     }
@@ -51,15 +61,30 @@ export function TribeModerationPanel({
   }, [load]);
 
   async function setStatus(postId: string, status: "approved" | "rejected") {
-    await updateDoc(doc(getFirebaseDb(), "tribe_posts", postId), {
-      moderationStatus: status,
-    });
-    await load();
+    setActionError(null);
+    try {
+      await updateDoc(doc(getFirebaseDb(), "tribe_posts", postId), {
+        moderationStatus: status,
+      });
+      await load();
+    } catch (err) {
+      setActionError(
+        formatFirestoreClientError(err, "No se pudo actualizar la publicación"),
+      );
+    }
   }
 
   if (loading) {
     return (
       <p className="text-sm text-zinc-500">Cargando publicaciones de La Tribu…</p>
+    );
+  }
+
+  if (error) {
+    return (
+      <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        {error}
+      </p>
     );
   }
 
@@ -78,8 +103,14 @@ export function TribeModerationPanel({
         Publicaciones pendientes ({pending.length})
       </h2>
       <p className="mt-1 text-sm text-zinc-500">
-        Aprueba para que aparezcan en la web y La Tribu.
+        Aprueba para que aparezcan en la web y La Tribu. Rechazar oculta el
+        contenido sin avisar al alumno por la app.
       </p>
+      {actionError && (
+        <p className="mt-3 text-sm text-red-400" role="alert">
+          {actionError}
+        </p>
+      )}
       <ul className="mt-6 space-y-8">
         {pending.map((post) => (
           <li key={post.id}>

@@ -1,6 +1,7 @@
 import type { BookingDaysPlan } from "@/constants/booking-plan";
 import type { BookingPaymentOption } from "@/constants/booking-payment";
 import type { SessionDurationId } from "@/constants/session-schedules";
+import type { BookingLevelId } from "@/lib/booking/contact-notes";
 
 const DRAFT_KEY = "am-booking-draft";
 const PENDING_KEY = "am-booking-pending-submit";
@@ -21,7 +22,11 @@ export interface BookingDraft {
   pickedDateKeys: string[];
   selectedDays: BookingDraftSlot[];
   lessonTypeId: string;
-  notes: string;
+  /** @deprecated Usar phone, level, objectives */
+  notes?: string;
+  phone?: string;
+  level?: BookingLevelId | "";
+  objectives?: string;
   paymentOption: BookingPaymentOption;
 }
 

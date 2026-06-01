@@ -118,7 +118,7 @@ textarea {
 }
 
 @utility form-input {
-  @apply mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900/80 px-3 py-3 text-base text-zinc-100 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/25;
+  @apply mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-900/80 px-3.5 py-3 text-base text-zinc-100 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/25 sm:mt-2 sm:px-4;
 }
 
 @utility text-balance {
@@ -150,4 +150,73 @@ textarea {
   border: 1px solid var(--border);
   background: var(--card);
   backdrop-filter: blur(12px);
+}
+
+/* —— Espaciado global (móvil + escritorio) —— */
+
+@utility page-container {
+  @apply mx-auto w-full px-4 sm:px-6 lg:px-8;
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+@utility page-pad-y {
+  @apply py-8 sm:py-12 lg:py-14;
+}
+
+@utility page-pad-y-tight {
+  @apply py-6 sm:py-10 lg:py-12;
+}
+
+@utility page-pad-y-loose {
+  @apply py-12 sm:py-16 lg:py-20;
+}
+
+@utility section-pad {
+  @apply py-12 sm:py-16 lg:py-20;
+}
+
+@utility section-pad-tight {
+  @apply py-10 sm:py-14 lg:py-16;
+}
+
+@utility band-section {
+  @apply border-y border-zinc-800/80 bg-zinc-900/30 section-pad;
+}
+
+@utility page-intro {
+  @apply mb-8 sm:mb-10 lg:mb-12;
+}
+
+@utility page-eyebrow {
+  @apply text-xs font-semibold uppercase tracking-wider text-sky-400/90;
+}
+
+@utility page-title {
+  @apply text-3xl font-bold tracking-tight text-balance sm:text-4xl;
+}
+
+@utility page-lead {
+  @apply mt-3 max-w-2xl text-base leading-relaxed text-zinc-400 sm:mt-4 sm:text-lg;
+}
+
+/** Reserva inferior para la barra móvil (solo rutas públicas). */
+@utility pb-nav {
+  padding-bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
+}
+
+@utility stack-page {
+  @apply flex flex-col gap-8 sm:gap-10 lg:gap-12;
+}
+
+@utility stack-section {
+  @apply flex flex-col gap-6 sm:gap-8;
+}
+
+@utility stack-cards {
+  @apply flex flex-col gap-4 sm:gap-5;
+}
+
+@utility gap-grid {
+  @apply gap-6 sm:gap-8 lg:gap-10;
 }

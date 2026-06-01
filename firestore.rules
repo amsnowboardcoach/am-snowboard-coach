@@ -46,7 +46,11 @@ service cloud.firestore {
         && request.resource.data.category in ['tabla', 'fijaciones', 'botas', 'ropa', 'cascos', 'mochilas', 'accesorios', 'otros']
         && request.resource.data.imageUrls is list
         && request.resource.data.imageUrls.size() >= 1
-        && request.resource.data.imageUrls.size() <= 5;
+        && request.resource.data.imageUrls.size() <= 5
+        && ((request.resource.data.contactPhone is string
+              && request.resource.data.contactPhone.size() >= 8)
+          || (request.resource.data.contactEmail is string
+              && request.resource.data.contactEmail.size() >= 5));
     }
 
     function tribeCommentValidCreate() {

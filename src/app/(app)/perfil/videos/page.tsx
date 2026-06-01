@@ -19,20 +19,21 @@ export default function VideosPage() {
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold">Video corrección</h1>
-      <p className="mt-2 text-zinc-400">
-        Sube tu vídeo y consulta aquí los apuntes de Alejandro cuando publique la
-        corrección.
-      </p>
-      <p className="mt-2 text-sm text-violet-300/90">
-        Análisis profesional: 20 € por vídeo —{" "}
-        <Link href="/reservar?tipo=video" className="underline hover:text-violet-200">
-          solicitar corrección
-        </Link>
-      </p>
+    <div className="stack-page">
+      <header>
+        <h1 className="page-title">Video corrección</h1>
+        <p className="page-lead">
+          Sube tu vídeo y consulta aquí los apuntes de Alejandro cuando publique la
+          corrección.
+        </p>
+        <p className="mt-3 text-sm text-violet-300/90">
+          <Link href="/reservar?tipo=video" className="underline hover:text-violet-200">
+            Solicitar video corrección
+          </Link>
+        </p>
+      </header>
 
-      <div className="mt-8">
+      <div>
         <StudentVideosPanel studentId={user.uid} />
       </div>
     </div>

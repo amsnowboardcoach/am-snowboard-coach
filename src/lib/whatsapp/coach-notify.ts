@@ -35,11 +35,7 @@ function coachNotifyPhoneDigits(): string {
 }
 
 export function isCoachWhatsAppNotifyConfigured(): boolean {
-  return Boolean(
-    process.env.TWILIO_ACCOUNT_SID?.trim() &&
-      process.env.TWILIO_AUTH_TOKEN?.trim() &&
-      process.env.TWILIO_WHATSAPP_FROM?.trim(),
-  ) || Boolean(process.env.CALLMEBOT_API_KEY?.trim());
+  return Boolean(process.env.CALLMEBOT_API_KEY?.trim());
 }
 
 export function buildCoachBookingPaidWhatsAppMessage(
@@ -102,41 +98,6 @@ export function buildCoachBookingPaidWhatsAppMessage(
     .join("\n");
 }
 
-async function sendViaTwilio(phone: string, body: string): Promise<void> {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim();
-  const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
-  const from = process.env.TWILIO_WHATSAPP_FROM?.trim();
-  if (!accountSid || !authToken || !from) {
-    throw new Error("Twilio WhatsApp no configurado");
-  }
-
-  const to = `whatsapp:+${phone}`;
-  const fromAddr = from.startsWith("whatsapp:") ? from : `whatsapp:${from}`;
-
-  const params = new URLSearchParams({
-    From: fromAddr,
-    To: to,
-    Body: body,
-  });
-
-  const res = await fetch(
-    `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: params.toString(),
-    },
-  );
-
-  if (!res.ok) {
-    const errText = await res.text().catch(() => "");
-    throw new Error(`Twilio ${res.status}: ${errText.slice(0, 200)}`);
-  }
-}
-
 async function sendViaCallMeBot(phone: string, body: string): Promise<void> {
   const apiKey = process.env.CALLMEBOT_API_KEY?.trim();
   if (!apiKey) {
@@ -155,35 +116,116 @@ async function sendViaCallMeBot(phone: string, body: string): Promise<void> {
   }
 }
 
-/** Envía WhatsApp al coach (Twilio si está configurado; si no, CallMeBot). */
-export async function sendCoachBookingPaidWhatsApp(
-  details: CoachBookingWhatsAppDetails,
-): Promise<void> {
+/** Envía WhatsApp al coach vía CallMeBot. */
+export async function sendCoachWhatsAppMessage(message: string): Promise<void> {
   if (!isCoachWhatsAppNotifyConfigured()) {
     console.warn(
-      "[whatsapp] Sin TWILIO_* ni CALLMEBOT_API_KEY; omitiendo aviso al coach",
+      "[whatsapp] Sin CALLMEBOT_API_KEY; omitiendo aviso al coach por WhatsApp",
     );
     return;
   }
 
-  const phone = coachNotifyPhoneDigits();
-  const message = buildCoachBookingPaidWhatsAppMessage(details);
+  await sendViaCallMeBot(coachNotifyPhoneDigits(), message);
+}
 
-  const twilioReady = Boolean(
-    process.env.TWILIO_ACCOUNT_SID?.trim() &&
-      process.env.TWILIO_AUTH_TOKEN?.trim() &&
-      process.env.TWILIO_WHATSAPP_FROM?.trim(),
-  );
+export async function sendCoachBookingPaidWhatsApp(
+  details: CoachBookingWhatsAppDetails,
+): Promise<void> {
+  await sendCoachWhatsAppMessage(buildCoachBookingPaidWhatsAppMessage(details));
+}
 
-  if (twilioReady) {
-    try {
-      await sendViaTwilio(phone, message);
-      return;
-    } catch (err) {
-      console.error("[whatsapp] Twilio falló:", err);
-      if (!process.env.CALLMEBOT_API_KEY?.trim()) throw err;
-    }
+export function buildCoachStudentRegisteredWhatsApp(details: {
+  studentName: string;
+  studentEmail: string;
+}): string {
+  const panelUrl = `${getAppBaseUrl()}/coach?tab=alumnos`;
+  return [
+    "AM Snowboard Coach",
+    "Nuevo alumno registrado",
+    "",
+    `Nombre: ${details.studentName}`,
+    `Email: ${details.studentEmail}`,
+    "",
+    `Panel: ${panelUrl}`,
+  ].join("\n");
+}
+
+export function buildCoachNewSessionBookingWhatsApp(details: {
+  studentName: string;
+  studentEmail: string;
+  lessonTypeName: string;
+  sessionLabel: string;
+  startAt: Date;
+  endAt: Date;
+  totalEuros: number;
+  paymentPending?: boolean;
+  bookingId: string;
+  bookingNotes?: string;
+}): string {
+  const panelUrl = `${getAppBaseUrl()}/coach?tab=reservas`;
+  const when = formatBookingWhen(details.startAt, details.endAt);
+  const lines = [
+    "AM Snowboard Coach",
+    details.paymentPending
+      ? "Nueva solicitud de clase (pago pendiente)"
+      : "Nueva solicitud de clase",
+    "",
+    `Alumno: ${details.studentName}`,
+    `Email: ${details.studentEmail}`,
+    `Estilo: ${details.lessonTypeName}`,
+    `Modalidad: ${details.sessionLabel}`,
+    `Cuándo: ${when}`,
+    `Importe: ${details.totalEuros} €`,
+  ];
+  if (details.paymentPending) {
+    lines.push("Estado: esperando pago con tarjeta en la web");
   }
+  if (details.bookingNotes?.trim()) {
+    lines.push(`Notas: ${details.bookingNotes.trim().slice(0, 180)}`);
+  }
+  lines.push("", `Panel: ${panelUrl}`, `Ref: ${details.bookingId.slice(0, 8)}`);
+  return lines.join("\n");
+}
 
-  await sendViaCallMeBot(phone, message);
+export function buildCoachVideoCorrectionRequestWhatsApp(details: {
+  studentName: string;
+  studentEmail: string;
+  videoCount: number;
+  totalEuros: number;
+  bookingId: string;
+  notes?: string;
+}): string {
+  const panelUrl = `${getAppBaseUrl()}/coach?tab=reservas`;
+  const label = `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`;
+  const lines = [
+    "AM Snowboard Coach",
+    "Nueva solicitud — video corrección",
+    "",
+    `Alumno: ${details.studentName}`,
+    `Email: ${details.studentEmail}`,
+    `${label} · ${details.totalEuros} €`,
+  ];
+  if (details.notes?.trim()) {
+    lines.push(`Notas: ${details.notes.trim().slice(0, 180)}`);
+  }
+  lines.push("", `Panel: ${panelUrl}`, `Ref: ${details.bookingId.slice(0, 8)}`);
+  return lines.join("\n");
+}
+
+export function buildCoachVideoUploadedWhatsApp(details: {
+  studentName: string;
+  videoTitle: string;
+  studentId: string;
+}): string {
+  const panelUrl = `${getAppBaseUrl()}/coach/alumnos/${details.studentId}`;
+  return [
+    "AM Snowboard Coach",
+    "Vídeo nuevo de un alumno",
+    "",
+    `Alumno: ${details.studentName}`,
+    `Título: ${details.videoTitle}`,
+    "Estado: pendiente de revisión",
+    "",
+    `Revisar: ${panelUrl}`,
+  ].join("\n");
 }

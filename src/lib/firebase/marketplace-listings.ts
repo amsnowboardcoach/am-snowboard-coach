@@ -12,9 +12,14 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { deleteObject, getDownloadURL, ref } from "firebase/storage";
 import { MARKETPLACE_MAX_IMAGE_BYTES, MARKETPLACE_MAX_IMAGES } from "@/constants/marketplace";
+import { formatFirestoreClientError } from "@/lib/firebase/firestore-errors";
 import { getFirebaseDb, getFirebaseStorage } from "@/lib/firebase/client";
+import {
+  mapStorageUploadError,
+  uploadUserFile,
+} from "@/lib/firebase/storage-upload";
 import type {
   MarketplaceCategory,
   MarketplaceCondition,
@@ -67,7 +72,8 @@ export async function createMarketplaceListing(input: {
   if (description.length < 10 || description.length > 2000) {
     throw new Error("La descripción debe tener entre 10 y 2000 caracteres.");
   }
-  if (input.priceEuros < 1 || input.priceEuros > 99_999) {
+  const priceEuros = Math.round(input.priceEuros);
+  if (!Number.isFinite(priceEuros) || priceEuros < 1 || priceEuros > 99_999) {
     throw new Error("Indica un precio válido entre 1 y 99 999 €.");
   }
   if (!input.contactPhone?.trim() && !input.contactEmail?.trim()) {
@@ -86,27 +92,44 @@ export async function createMarketplaceListing(input: {
     const safeName = file.name.replace(/[^\w.\-() ]/g, "_").slice(0, 80);
     const storagePath = `marketplace/${refDoc.id}/${i}-${safeName}`;
     const storageRef = ref(getFirebaseStorage(), storagePath);
-    await uploadBytes(storageRef, file, { contentType: file.type });
+    try {
+      await uploadUserFile(storageRef, file);
+    } catch (err) {
+      throw new Error(mapStorageUploadError(err));
+    }
     imageUrls.push(await getDownloadURL(storageRef));
     storagePaths.push(storagePath);
   }
 
-  await setDoc(refDoc, {
-    sellerId: input.sellerId,
-    sellerDisplayName: input.sellerDisplayName.trim() || "Usuario AM",
-    title,
-    description,
-    priceEuros: Math.round(input.priceEuros),
-    condition: input.condition,
-    category: input.category,
-    imageUrls,
-    storagePaths,
-    contactPhone: input.contactPhone?.trim() || null,
-    contactEmail: input.contactEmail?.trim().toLowerCase() || null,
-    status: "active",
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
+  try {
+    await setDoc(refDoc, {
+      sellerId: input.sellerId,
+      sellerDisplayName: input.sellerDisplayName.trim() || "Usuario AM",
+      title,
+      description,
+      priceEuros,
+      condition: input.condition,
+      category: input.category,
+      imageUrls,
+      storagePaths,
+      contactPhone: input.contactPhone?.trim() || null,
+      contactEmail: input.contactEmail?.trim().toLowerCase() || null,
+      status: "active",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  } catch (err) {
+    for (const storagePath of storagePaths) {
+      try {
+        await deleteObject(ref(getFirebaseStorage(), storagePath));
+      } catch {
+        /* ya borrado */
+      }
+    }
+    throw new Error(
+      formatFirestoreClientError(err, "No se pudo publicar el anuncio."),
+    );
+  }
 
   return refDoc.id;
 }

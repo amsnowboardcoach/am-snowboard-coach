@@ -58,13 +58,15 @@ export default function PasaportePage() {
   }, [authLoading, user, load]);
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold">Pasaporte de Trucos</h1>
-      <p className="mt-2 text-zinc-400">
-        Maniobras que Alejandro te va desbloqueando según tu progreso en pista.
-      </p>
+    <div className="stack-page">
+      <header>
+        <h1 className="page-title">Pasaporte de Trucos</h1>
+        <p className="page-lead">
+          Maniobras que Alejandro te va desbloqueando según tu progreso en pista.
+        </p>
+      </header>
 
-      {authLoading && <p className="mt-8 text-zinc-500">Cargando…</p>}
+      {authLoading && <p className="text-zinc-500">Cargando…</p>}
 
       {!authLoading && !user && (
         <p className="mt-8 text-sm text-amber-200">

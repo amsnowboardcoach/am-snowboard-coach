@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ROLES } from "@/constants/roles";
 import { verifyUserBearer } from "@/lib/auth/verify-user-token";
-import { sendCoachNewStudentRegisteredEmail } from "@/lib/email/send-coach-alerts";
 import { getAdminDb } from "@/lib/firebase/admin";
-import { notifyCoachNewStudentRegistered } from "@/lib/push/send-push";
+import { coachNotifyStudentRegistered } from "@/lib/notify/coach";
 
 export const runtime = "nodejs";
 
@@ -49,12 +48,11 @@ export async function POST(request: NextRequest) {
   const studentEmail = (data.email as string) || auth.email;
 
   try {
-    await notifyCoachNewStudentRegistered({
+    await coachNotifyStudentRegistered({
       studentName,
       studentEmail,
       studentId: auth.uid,
     });
-    await sendCoachNewStudentRegisteredEmail({ studentName, studentEmail });
     await userRef.update({ registrationCoachNotified: true });
   } catch (err) {
     console.error("[push/student-registered]", err);

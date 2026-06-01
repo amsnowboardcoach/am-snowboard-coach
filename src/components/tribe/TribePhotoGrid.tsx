@@ -19,7 +19,7 @@ export function TribePhotoGrid() {
   }, []);
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16">
+    <section className="page-container section-pad">
       <SectionHeading
         centered
         title="Ambiente en la nieve"

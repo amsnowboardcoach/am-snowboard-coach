@@ -7,7 +7,9 @@ import { useAuth } from "@/contexts/AuthProvider";
 import {
   MARKETPLACE_CATEGORIES,
   MARKETPLACE_CONDITIONS,
+  formatMarketplacePrice,
 } from "@/constants/marketplace";
+import { formatFirestoreClientError } from "@/lib/firebase/firestore-errors";
 import { formatFirestoreDate } from "@/lib/utils/dates";
 import {
   fetchMarketplaceListingById,
@@ -35,7 +37,11 @@ export function MarketplaceListingDetail({
     setLoading(true);
     fetchMarketplaceListingById(listingId)
       .then(setListing)
-      .catch(() => setError("No se pudo cargar el anuncio"))
+      .catch((err) =>
+        setError(
+          formatFirestoreClientError(err, "No se pudo cargar el anuncio"),
+        ),
+      )
       .finally(() => setLoading(false));
   }, [listingId]);
 
@@ -101,6 +107,13 @@ export function MarketplaceListingDetail({
   const photo = listing.imageUrls[photoIndex] ?? listing.imageUrls[0];
 
   return (
+    <div className="space-y-4">
+      <Link
+        href="/mercadillo"
+        className="inline-block text-sm text-sky-400 hover:underline"
+      >
+        ← Volver al mercadillo
+      </Link>
     <article className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50">
       <div className="relative aspect-[4/3] bg-black sm:aspect-video">
         {photo && (
@@ -132,6 +145,9 @@ export function MarketplaceListingDetail({
 
       <div className="p-6">
         <h1 className="text-2xl font-bold text-zinc-100">{listing.title}</h1>
+        <p className="mt-2 text-2xl font-bold text-sky-400">
+          {formatMarketplacePrice(listing.priceEuros)}
+        </p>
         <p className="mt-1 text-xs text-zinc-500">
           {categoryLabel} · {conditionLabel} ·{" "}
           {formatFirestoreDate(listing.createdAt)}
@@ -169,5 +185,6 @@ export function MarketplaceListingDetail({
         </div>
       </div>
     </article>
+    </div>
   );
 }

@@ -77,7 +77,9 @@ export function TribeUploadPanel({ onUploaded }: TribeUploadPanelProps) {
   async function handleFileSelected(file: File) {
     if (!user || !profile) return;
     if (!legalAccepted) {
-      setError("Marca la casilla de consentimiento antes de elegir el archivo.");
+      setError(
+        "Antes de subir, marca la casilla de consentimiento más abajo.",
+      );
       return;
     }
 
@@ -99,7 +101,7 @@ export function TribeUploadPanel({ onUploaded }: TribeUploadPanelProps) {
       setCaption("");
       setLastFileName(null);
       setSuccess(
-        "Enviado. Lo revisaré y aparecerá en el feed cuando lo apruebe.",
+        "¡Gracias! Tu momento está en cola. Cuando el coach lo apruebe, aparecerá en el feed para toda la comunidad.",
       );
       onUploaded?.();
     } catch (err) {
@@ -131,7 +133,7 @@ export function TribeUploadPanel({ onUploaded }: TribeUploadPanelProps) {
               setError(null);
               setLastFileName(null);
             }}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+            className={`min-h-11 touch-manipulation rounded-full px-4 py-1.5 text-sm font-medium transition ${
               mediaType === t
                 ? "bg-sky-500/20 text-sky-300"
                 : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"

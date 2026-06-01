@@ -12,7 +12,6 @@ import {
   BOOKING_BALANCE_ON_CLASS_DAY,
   BOOKING_DEPOSIT_PERCENT,
 } from "@/constants/booking-payment";
-import { MAX_BOOKING_DAYS } from "@/constants/booking-plan";
 import {
   SESSION_DURATIONS,
   formatExtraParticipantsNote,
@@ -158,13 +157,13 @@ export default async function TarifasPage() {
         </div>
       </PageHero>
 
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
+      <section className="page-container section-pad-tight">
         <SectionHeading
           centered
           title="Precios por duración"
           subtitle="El importe final se calcula al reservar según días y participantes."
         />
-        <ul className="mt-10 grid gap-6 lg:grid-cols-3 lg:items-stretch">
+        <ul className="mt-10 grid gap-grid sm:mt-12 lg:grid-cols-3 lg:items-stretch">
           {SESSION_DURATIONS.map((session) => (
             <PricingCard
               key={session.id}
@@ -175,8 +174,8 @@ export default async function TarifasPage() {
         </ul>
       </section>
 
-      <section className="border-y border-zinc-800/80 bg-zinc-900/30 py-12 sm:py-16">
-        <div className="mx-auto max-w-6xl px-4">
+      <section className="band-section section-pad-tight">
+        <div className="page-container">
           <SectionHeading
             centered
             title="Cómo pagar al reservar"
@@ -212,17 +211,16 @@ export default async function TarifasPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
+      <section className="page-container section-pad-tight">
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="glass-panel rounded-2xl p-6 sm:p-8">
             <h3 className="text-lg font-semibold text-zinc-100">
               Varios días, mismo proceso
             </h3>
             <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-              En la reserva puedes elegir hasta {MAX_BOOKING_DAYS} días en el
-              calendario. Si no hay el mismo turno libre todos los días, eliges
-              el horario disponible de cada fecha. El total se calcula
-              automáticamente.
+              En la reserva puedes elegir los días que quieras en el calendario.
+              Si no hay el mismo turno libre todos los días, eliges el horario
+              disponible de cada fecha. El total se calcula automáticamente.
             </p>
             <Link
               href={reservarHref()}

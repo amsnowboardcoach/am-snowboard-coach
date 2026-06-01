@@ -9,6 +9,7 @@ import {
 import {
   BOOKING_LOCATION,
   bookingPracticalInfoPlainLines,
+  buildSessionCalendarEventTitle,
 } from "@/constants/booking-info";
 import { createCalendarEvent } from "@/lib/google/calendar";
 import {
@@ -751,7 +752,7 @@ export async function formalizeSessionBooking(
   const studentName =
     booking.studentDisplayName || booking.studentEmail || "Alumno";
   const studentEmail = booking.studentEmail || "";
-  const summary = `Clase snowboard — ${studentName} (${booking.lessonTypeName})`;
+  const summary = buildSessionCalendarEventTitle(studentName);
 
   const googleCalendarEventId =
     booking.googleCalendarEventId ??

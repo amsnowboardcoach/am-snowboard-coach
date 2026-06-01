@@ -7,6 +7,25 @@ export const BOOKING_MEETING_POINT_LABEL = "Punto de encuentro";
 /** Ubicación en Google Calendar, JSON-LD y mapas */
 export const BOOKING_LOCATION = `Sierra Nevada — ${BOOKING_MEETING_POINT}`;
 
+/** Prefijo del título en Google Calendar al confirmar clase (p. ej. «Ale snow Casini»). */
+export const CALENDAR_EVENT_TITLE_PREFIX = "Ale snow";
+
+/**
+ * Etiqueta del alumno en el título del calendario.
+ * «Marco Casini» → «Casini»; un solo nombre se usa tal cual.
+ */
+export function studentLabelForCalendarTitle(displayName: string): string {
+  const trimmed = displayName.trim();
+  if (!trimmed) return "Alumno";
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "Alumno";
+  return parts.length > 1 ? parts[parts.length - 1]! : parts[0]!;
+}
+
+export function buildSessionCalendarEventTitle(studentDisplayName: string): string {
+  return `${CALENDAR_EVENT_TITLE_PREFIX} ${studentLabelForCalendarTitle(studentDisplayName)}`;
+}
+
 export const BOOKING_NOT_INCLUDED =
   "El forfait y el material de snowboard no están incluidos en el precio de la clase.";
 

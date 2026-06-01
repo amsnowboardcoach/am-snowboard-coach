@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyUserBearer } from "@/lib/auth/verify-user-token";
 import { getAdminDb } from "@/lib/firebase/admin";
-import { notifyCoachStudentVideoUploaded } from "@/lib/push/send-push";
+import { coachNotifyVideoUploaded } from "@/lib/notify/coach";
 
 export const runtime = "nodejs";
 
@@ -49,10 +49,12 @@ export async function POST(request: NextRequest) {
     (userSnap.data()?.displayName as string) ||
     auth.email.split("@")[0] ||
     "Alumno";
+  const studentEmail = (userSnap.data()?.email as string) || auth.email;
 
   try {
-    await notifyCoachStudentVideoUploaded({
+    await coachNotifyVideoUploaded({
       studentName,
+      studentEmail,
       videoTitle: (video.title as string) || "Vídeo sin título",
       studentId: auth.uid,
     });

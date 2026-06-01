@@ -11,6 +11,7 @@ import {
   tribeCommentDisplayName,
 } from "@/lib/auth/tribe-visitor";
 import { formatFirestoreDate } from "@/lib/utils/dates";
+import { formatFirestoreClientError } from "@/lib/firebase/firestore-errors";
 import {
   addTribeComment,
   fetchTribeComments,
@@ -25,6 +26,7 @@ interface TribePostCardProps {
   post: TribePost;
   compact?: boolean;
   videoVertical?: boolean;
+  highlighted?: boolean;
   onFireChange?: (postId: string, fireCount: number) => void;
 }
 
@@ -32,6 +34,7 @@ export function TribePostCard({
   post,
   compact = false,
   videoVertical = false,
+  highlighted = false,
   onFireChange,
 }: TribePostCardProps) {
   const { user, profile } = useAuth();
@@ -97,7 +100,7 @@ export function TribePostCard({
       onFireChange?.(post.id, result.fireCount);
     } catch (err) {
       setActionError(
-        err instanceof Error ? err.message : "No se pudo guardar la reacción",
+        formatFirestoreClientError(err, "No se pudo guardar tu reacción"),
       );
     } finally {
       setActing(false);
@@ -106,6 +109,14 @@ export function TribePostCard({
 
   async function handleComment(e: React.FormEvent) {
     e.preventDefault();
+    const trimmed = commentText.trim();
+    if (!trimmed) return;
+
+    if (needsGuestName && !guestName.trim()) {
+      setActionError("Escribe cómo quieres que te vean en el comentario.");
+      return;
+    }
+
     setActing(true);
     setActionError(null);
     try {
@@ -114,18 +125,14 @@ export function TribePostCard({
         profile?.displayName || user?.displayName,
         guestName,
       );
-      if (needsGuestName && !guestName.trim()) {
-        setActionError("Escribe un nombre para el comentario.");
-        return;
-      }
       storeTribeGuestName(guestName);
-      await addTribeComment(post.id, uid, name, commentText);
+      await addTribeComment(post.id, uid, name, trimmed);
       setCommentText("");
       setCommentCount((c) => c + 1);
       await loadComments();
     } catch (err) {
       setActionError(
-        err instanceof Error ? err.message : "No se pudo enviar el comentario",
+        formatFirestoreClientError(err, "No se pudo enviar el comentario"),
       );
     } finally {
       setActing(false);
@@ -148,9 +155,11 @@ export function TribePostCard({
 
   return (
     <article
+      id={`tribe-post-${post.id}`}
       className={cn(
         "overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50",
         compact && "max-w-sm",
+        highlighted && "ring-2 ring-sky-500/60",
       )}
     >
       <header className="flex items-center gap-3 px-4 py-3">
@@ -174,7 +183,9 @@ export function TribePostCard({
           <p className="text-xs text-zinc-500">
             {formatFirestoreDate(post.createdAt)}
             {pending && (
-              <span className="ml-2 text-amber-400">· En revisión</span>
+              <span className="ml-2 text-amber-400">
+                · En revisión (solo tú lo ves)
+              </span>
             )}
           </p>
         </div>
@@ -216,7 +227,7 @@ export function TribePostCard({
             onClick={() => void handleFire()}
             disabled={acting}
             className={cn(
-              "flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl text-sm transition sm:min-h-0 sm:min-w-0",
+              "flex min-h-11 min-w-11 touch-manipulation items-center justify-center gap-1.5 rounded-xl text-sm transition sm:min-h-0 sm:min-w-0",
               fired ? "text-orange-400" : "text-zinc-300 hover:text-orange-300",
             )}
             aria-pressed={fired}
@@ -230,7 +241,7 @@ export function TribePostCard({
           <button
             type="button"
             onClick={() => setCommentsOpen((o) => !o)}
-            className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl text-sm text-zinc-300 active:text-sky-300 sm:min-h-0 sm:min-w-0"
+            className="flex min-h-11 min-w-11 touch-manipulation items-center justify-center gap-1.5 rounded-xl text-sm text-zinc-300 active:text-sky-300 sm:min-h-0 sm:min-w-0"
           >
             <span className="text-lg" aria-hidden>
               💬

@@ -37,8 +37,8 @@ export default function CoachDashboardPage() {
 
   if (!profile) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Panel del Coach</h1>
+      <div className="stack-section">
+        <h1 className="page-title">Panel del Coach</h1>
         <CoachProfileSetup
           user={user}
           onReady={() => void refreshProfile()}
@@ -49,8 +49,8 @@ export default function CoachDashboardPage() {
 
   if (!isCoach && isCoachByEmail) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Panel del Coach</h1>
+      <div className="stack-section">
+        <h1 className="page-title">Panel del Coach</h1>
         <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-6">
           <p className="text-sm text-amber-200">
             Tu email es de coach pero el perfil tiene rol{" "}

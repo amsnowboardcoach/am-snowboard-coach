@@ -54,7 +54,7 @@ export function PageHero({
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/75 to-zinc-950/30" />
       <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/60 to-transparent" />
-      <div className="relative mx-auto flex max-w-6xl flex-col justify-end px-4 pb-12 pt-[max(6rem,calc(3.5rem+env(safe-area-inset-top)))] sm:pb-16 sm:pt-28">
+      <div className="page-container relative flex max-w-6xl flex-col justify-end pb-12 pt-[max(5.5rem,calc(3.25rem+env(safe-area-inset-top)))] sm:pb-16 sm:pt-28 lg:pb-20 lg:pt-32">
         {eyebrow && (
           <p className="mb-3 text-xs font-medium uppercase tracking-[0.15em] text-sky-400 sm:text-sm sm:tracking-[0.2em]">
             {eyebrow}

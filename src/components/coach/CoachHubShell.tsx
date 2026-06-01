@@ -60,11 +60,11 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
   );
 
   return (
-    <div className="lg:flex lg:gap-8">
+    <div className="lg:flex lg:gap-10 xl:gap-12">
       <CoachPushActivator />
       <aside className="lg:w-56 lg:shrink-0">
         <nav
-          className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-1 lg:gap-1"
+          className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-1 lg:gap-2"
           aria-label="Secciones del panel coach"
         >
           {COACH_HUB_TABS.map((tab) => (
@@ -102,7 +102,7 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
       </aside>
 
       <div key={activeTab} className="min-w-0 flex-1">
-        <header className="mb-8">
+        <header className="mb-8 sm:mb-10">
           <p className="text-xs font-semibold uppercase tracking-wider text-sky-400/90">
             Panel del coach
           </p>

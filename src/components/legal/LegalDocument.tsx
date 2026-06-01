@@ -66,15 +66,13 @@ interface LegalDocumentProps {
 
 export function LegalDocument({ doc }: LegalDocumentProps) {
   return (
-    <article className="mx-auto max-w-3xl px-4 py-10 pb-24 sm:py-14">
-      <p className="text-xs font-semibold uppercase tracking-wider text-sky-400/90">
-        Información legal
-      </p>
-      <h1 className="mt-2 text-3xl font-bold text-zinc-50">{doc.title}</h1>
-      {doc.subtitle && (
-        <p className="mt-3 text-zinc-400">{doc.subtitle}</p>
-      )}
-      <p className="mt-4 text-sm text-zinc-500">
+    <article className="page-container max-w-3xl page-pad-y stack-page">
+      <header className="page-intro">
+        <p className="page-eyebrow">Información legal</p>
+        <h1 className="page-title text-zinc-50">{doc.title}</h1>
+        {doc.subtitle && <p className="page-lead">{doc.subtitle}</p>}
+      </header>
+      <p className="text-sm text-zinc-500">
         Última actualización: {formatLegalDate(LEGAL_LAST_UPDATED)}
       </p>
 

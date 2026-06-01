@@ -8,8 +8,16 @@ export function formatReservationSummaryLines(options: {
   participantCount: number;
   lessonName?: string;
   notes?: string;
-}): { day: string; schedule: string; people: string; style: string; notes: string } {
-  const { selectedDays, participantCount, lessonName, notes } = options;
+  contact?: string;
+}): {
+  day: string;
+  schedule: string;
+  people: string;
+  style: string;
+  notes: string;
+  contact: string;
+} {
+  const { selectedDays, participantCount, lessonName, notes, contact } = options;
   const day =
     selectedDays.length === 0
       ? "—"
@@ -38,5 +46,6 @@ export function formatReservationSummaryLines(options: {
     people,
     style: lessonName ?? "—",
     notes: notes?.trim() || "—",
+    contact: contact?.trim() || "—",
   };
 }

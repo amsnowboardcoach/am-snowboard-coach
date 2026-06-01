@@ -11,7 +11,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (!isFirebaseConfigured()) {
     return (
-      <div className="site-mesh mx-auto max-w-lg px-4 py-24 text-center text-zinc-400">
+      <div className="page-container max-w-lg py-24 text-center text-zinc-400">
         Configura Firebase en <code className="text-sky-400">.env.local</code>{" "}
         para acceder al área privada.
       </div>
@@ -39,7 +39,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AppHeader />
       <main
         id="main-content"
-        className="mx-auto w-full max-w-6xl flex-1 overflow-x-hidden px-4 py-6 pb-24 sm:py-8 sm:pb-8"
+        className="page-container max-w-6xl flex-1 overflow-x-hidden py-8 sm:py-10 lg:py-12"
       >
         {children}
       </main>

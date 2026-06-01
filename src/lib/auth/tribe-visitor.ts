@@ -7,7 +7,9 @@ const GUEST_NAME_KEY = "tribe_guest_name";
 /** Sesión mínima para reaccionar/comentar sin cuenta de alumno (Firebase Anonymous Auth). */
 export async function ensureTribeVisitorAuth(): Promise<string> {
   if (!isFirebaseConfigured()) {
-    throw new Error("La Tribu no está disponible: falta configurar Firebase.");
+    throw new Error(
+      "La Tribu no está disponible en este momento. Prueba más tarde o recarga la página.",
+    );
   }
   const auth = getFirebaseAuth();
   if (auth.currentUser) {

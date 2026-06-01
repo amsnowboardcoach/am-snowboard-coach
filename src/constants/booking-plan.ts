@@ -2,7 +2,8 @@ import { differenceInCalendarDays, parseISO } from "date-fns";
 
 export type BookingDaysPlan = "single" | "consecutive" | "spread";
 
-export const MAX_BOOKING_DAYS = 5;
+/** Máximo de días por solicitud en el calendario (sin límite bajo en copy público). */
+export const MAX_BOOKING_DAYS = 14;
 
 /** Deduce el plan según las fechas elegidas en el calendario */
 export function inferDaysPlanFromDates(dateKeys: string[]): BookingDaysPlan {

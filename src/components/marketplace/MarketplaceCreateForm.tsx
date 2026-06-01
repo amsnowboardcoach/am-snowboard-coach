@@ -67,6 +67,23 @@ export function MarketplaceCreateForm({ onCreated }: MarketplaceCreateFormProps)
     const files = fileRef.current?.files;
     if (!files?.length || !user || !profile) return;
 
+    const price = Number(priceEuros);
+    if (!Number.isFinite(price) || price < 1 || price > 99_999) {
+      setError("Indica un precio válido entre 1 y 99 999 €.");
+      return;
+    }
+    const phone = contactPhone.trim();
+    const email = (
+      contactEmail.trim() ||
+      profile.email ||
+      user.email ||
+      ""
+    ).trim();
+    if (!phone && !email) {
+      setError("Indica teléfono o email para que te contacten.");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
     setSuccess(null);
@@ -77,12 +94,11 @@ export function MarketplaceCreateForm({ onCreated }: MarketplaceCreateFormProps)
           profile.displayName || user.displayName || "Usuario AM",
         title,
         description,
-        priceEuros: Number(priceEuros),
+        priceEuros: price,
         condition,
         category,
-        contactPhone: contactPhone.trim() || undefined,
-        contactEmail:
-          contactEmail.trim() || profile.email || user.email || undefined,
+        contactPhone: phone || undefined,
+        contactEmail: email || undefined,
         imageFiles: Array.from(files),
       });
       setTitle("");

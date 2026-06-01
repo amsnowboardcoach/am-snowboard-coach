@@ -1,4 +1,5 @@
 import { MarketplaceHub } from "@/components/marketplace/MarketplaceHub";
+import { PageHeader, PageShell } from "@/components/layout/PageShell";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata = buildPageMetadata({
@@ -15,19 +16,13 @@ export const metadata = buildPageMetadata({
 
 export default function MercadilloPage() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-10 pb-24 sm:py-14 sm:pb-20">
-      <p className="text-xs font-semibold uppercase tracking-wider text-sky-400/90">
-        Comunidad
-      </p>
-      <h1 className="mt-2 text-3xl font-bold">Mercadillo</h1>
-      <p className="mt-3 max-w-2xl text-zinc-400">
-        Tipo Wallapop para la comunidad AM: tablas, botas, ropa y accesorios.
-        Explora sin cuenta; para publicar regístrate. Al marcar como vendido, el
-        anuncio se elimina automáticamente.
-      </p>
-      <div className="mt-10">
-        <MarketplaceHub />
-      </div>
-    </section>
+    <PageShell spacing="default" className="stack-page">
+      <PageHeader
+        eyebrow="Comunidad"
+        title="Mercadillo"
+        description="Tipo Wallapop para la comunidad AM: tablas, botas, ropa y accesorios. Explora sin cuenta; para publicar regístrate. Al marcar como vendido, el anuncio se elimina automáticamente."
+      />
+      <MarketplaceHub />
+    </PageShell>
   );
 }

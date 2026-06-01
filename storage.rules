@@ -39,12 +39,28 @@ service firebase.storage {
         && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid));
     }
 
+    function marketplaceListingSeller(listingId) {
+      return firestore.get(/databases/(default)/documents/marketplace_listings/$(listingId)).data.sellerId;
+    }
+
+    function canWriteMarketplaceFiles(listingId) {
+      return !firestore.exists(/databases/(default)/documents/marketplace_listings/$(listingId))
+        || marketplaceListingSeller(listingId) == request.auth.uid;
+    }
+
+    function canDeleteMarketplaceFiles(listingId) {
+      return !firestore.exists(/databases/(default)/documents/marketplace_listings/$(listingId))
+        || marketplaceListingSeller(listingId) == request.auth.uid
+        || isCoach();
+    }
+
     match /marketplace/{listingId}/{fileName} {
       allow read: if true;
       allow write: if hasUserProfile()
+        && canWriteMarketplaceFiles(listingId)
         && request.resource.size < 10 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
-      allow delete: if hasUserProfile();
+      allow delete: if hasUserProfile() && canDeleteMarketplaceFiles(listingId);
     }
 
     match /invoices/{bookingId}/{fileName} {

@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageHeader, PageShell } from "@/components/layout/PageShell";
 import { TribeFeed } from "@/components/tribe/TribeFeed";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
@@ -11,18 +13,21 @@ export const metadata = buildPageMetadata({
 
 export default function TribuPage() {
   return (
-    <section className="mx-auto max-w-lg px-4 py-10 pb-24 sm:py-14 sm:pb-20">
-      <p className="text-xs font-semibold uppercase tracking-wider text-sky-400/90">
-        Comunidad
-      </p>
-      <h1 className="mt-2 text-3xl font-bold">La Tribu</h1>
-      <p className="mt-3 text-zinc-400">
-        Momentos en la nieve: abre el feed sin cuenta, reacciona, comenta y
-        comparte. Solo alumnos registrados pueden subir fotos y vídeos.
-      </p>
-      <div className="mt-10">
+    <PageShell width="narrow" spacing="default" className="stack-page">
+      <PageHeader
+        eyebrow="Comunidad"
+        title="La Tribu"
+        description="Momentos en la nieve: abre el feed sin cuenta, reacciona, comenta y comparte. Solo alumnos registrados pueden subir fotos y vídeos."
+      />
+      <Suspense
+        fallback={
+          <p className="text-center text-sm text-zinc-500">
+            Cargando La Tribu…
+          </p>
+        }
+      >
         <TribeFeed />
-      </div>
-    </section>
+      </Suspense>
+    </PageShell>
   );
 }

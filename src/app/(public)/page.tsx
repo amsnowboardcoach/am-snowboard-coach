@@ -40,8 +40,8 @@ export default async function HomePage() {
         </Link>
       </PageHero>
 
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:py-20">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
+      <section className="page-container section-pad">
+        <div className="grid items-center gap-grid lg:grid-cols-2">
           <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
             <Image
               src={media.pista.image.src}
@@ -56,7 +56,7 @@ export default async function HomePage() {
               title="En pista, a tu ritmo"
               subtitle="Turnos de mañana y tarde en horario diurno. Reserva en dos minutos, confirmación personal y tu espacio de alumno para seguir progresando."
             />
-            <ul className="mt-8 space-y-4 text-zinc-300">
+            <ul className="mt-8 space-y-4 text-zinc-300 sm:mt-10">
               <li className="flex gap-3">
                 <span className="text-sky-400">✓</span>
                 Calendario en tiempo real: elige día y turno libre
@@ -74,14 +74,14 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-zinc-800/80 bg-zinc-900/30 py-12 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4">
+      <section className="band-section">
+        <div className="page-container">
           <SectionHeading
             centered
             title="Tipos de clase"
             subtitle="Iniciación, carving o freestyle. Duración y turno los eliges al reservar."
           />
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="mt-10 grid gap-grid sm:mt-12 md:grid-cols-3">
             {LESSON_TYPES.map((lesson, i) => (
               <article
                 key={lesson.id}
@@ -137,7 +137,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-8">
+      <section className="page-container pb-6 sm:pb-8">
         <VideoCorrectionCard />
       </section>
 
@@ -148,7 +148,7 @@ export default async function HomePage() {
           title="Guías y consejos en pista"
           subtitle="Guías sobre iniciación, carving, Snowpark Sulayr, tarifas y cómo reservar tu clase."
         />
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-grid sm:mt-12 sm:grid-cols-2 lg:grid-cols-3">
           {latestPosts.map((post) => (
             <BlogPostCard key={post.slug} post={post} />
           ))}
@@ -160,7 +160,7 @@ export default async function HomePage() {
         </p>
       </section>
 
-      <section className="relative overflow-hidden py-12 sm:py-24">
+      <section className="relative overflow-hidden section-pad lg:py-24">
         <Image
           src={media.reservar.image.src}
           alt=""
@@ -168,7 +168,7 @@ export default async function HomePage() {
           className="object-cover opacity-30"
           sizes="100vw"
         />
-        <div className="relative mx-auto max-w-3xl px-4 text-center">
+        <div className="page-container relative max-w-3xl text-center">
           <h2 className="text-3xl font-bold">¿Tu próxima sesión en la nieve?</h2>
           <p className="mt-4 text-zinc-300">
             Reserva en la web o por WhatsApp. Te confirmo por email; pagas con tarjeta o lo acordamos al aceptar tu plaza.

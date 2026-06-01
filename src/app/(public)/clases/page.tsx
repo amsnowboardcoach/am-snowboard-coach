@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { LESSON_TYPES, lessonPublicName } from "@/constants/lesson-types";
-import { MAX_BOOKING_DAYS } from "@/constants/booking-plan";
 import {
   BOOKING_ADVISORY,
   BOOKING_MEETING_POINT,
@@ -10,7 +9,6 @@ import {
 import {
   SESSION_DURATIONS,
   formatExtraParticipantsNote,
-  formatSessionPrice,
   sessionTotalEuros,
 } from "@/constants/session-schedules";
 import { ClasesBookingSteps } from "@/components/clases/ClasesBookingSteps";
@@ -34,7 +32,7 @@ export const metadata = buildPageMetadata({
 const LESSON_HIGHLIGHTS: Record<LessonTypeId, string[]> = {
   iniciacion: [
     "Postura, equilibrio y primeros giros",
-    "Frenado seguro en cuchilla",
+    "Frenado seguro",
     "Confianza desde la primera bajada",
   ],
   carving: [
@@ -83,7 +81,7 @@ export default async function ClasesPage() {
         </div>
       </PageHero>
 
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
+      <section className="page-container section-pad-tight">
         <SectionHeading
           centered
           title="Cómo reservar"
@@ -94,14 +92,14 @@ export default async function ClasesPage() {
 
       <section
         id="estilos"
-        className="scroll-mt-header border-y border-zinc-800/80 bg-zinc-900/30 py-12 sm:py-20"
+        className="scroll-mt-header band-section"
       >
-        <div className="mx-auto max-w-6xl px-4">
+        <div className="page-container">
           <SectionHeading
             title="Estilos de clase"
             subtitle="Elige el enfoque del día; la duración y el turno los marcas al reservar."
           />
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <div className="mt-10 grid gap-grid md:grid-cols-3 sm:mt-12">
             {LESSON_TYPES.map((lesson, i) => (
               <article
                 key={lesson.id}
@@ -138,7 +136,9 @@ export default async function ClasesPage() {
                     href={reservarHref({ estilo: lesson.id })}
                     className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-sky-500/15 py-2.5 text-sm font-semibold text-sky-200 ring-1 ring-sky-500/30 transition hover:bg-sky-500 hover:text-zinc-950"
                   >
-                    Reservar {lessonPublicName(lesson).toLowerCase()}
+                    {lesson.id === "freestyle-sulayr"
+                      ? "Reservar en Sulayr"
+                      : `Reservar ${lesson.name.toLowerCase()}`}
                   </Link>
                 </div>
               </article>
@@ -147,7 +147,7 @@ export default async function ClasesPage() {
         </div>
       </section>
 
-      <section id="duraciones" className="scroll-mt-header mx-auto max-w-6xl px-4 py-12 sm:py-20">
+      <section id="duraciones" className="page-container scroll-mt-header section-pad">
         <SectionHeading
           title="Duración y turnos"
           subtitle="Los huecos libres salen del calendario al reservar."
@@ -173,7 +173,6 @@ export default async function ClasesPage() {
                   / día · 1 persona
                 </span>
               </p>
-              <p className="text-xs text-zinc-500">{formatSessionPrice(session)}</p>
               <p className="mt-1 text-xs text-zinc-600">
                 {formatExtraParticipantsNote(session)}
               </p>
@@ -205,9 +204,8 @@ export default async function ClasesPage() {
             Varios días en la misma reserva
           </h3>
           <p className="mt-2 max-w-2xl text-sm text-zinc-400">
-            En la reserva toca uno o varios días en el calendario (hasta{" "}
-            {MAX_BOOKING_DAYS}) con el mismo turno. El precio se calcula por día
-            según personas y duración.
+            En la reserva elige uno o varios días en el calendario con el mismo
+            turno. El precio se calcula por día según personas y duración.
           </p>
           <Link
             href={reservarHref()}
@@ -218,8 +216,8 @@ export default async function ClasesPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-12 sm:pb-16">
-        <div className="grid gap-6 md:grid-cols-2">
+      <section className="page-container pb-12 sm:pb-16 lg:pb-20">
+        <div className="grid gap-grid md:grid-cols-2">
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
             <h3 className="font-semibold text-zinc-100">Punto de encuentro</h3>
             <p className="mt-2 text-sm leading-relaxed text-zinc-400">

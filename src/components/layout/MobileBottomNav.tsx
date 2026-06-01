@@ -15,7 +15,7 @@ export function MobileBottomNav() {
       className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-800/90 bg-zinc-950/95 pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-md lg:hidden"
       aria-label="Accesos rápidos"
     >
-      <ul className="mx-auto flex max-w-lg items-stretch justify-around px-1 pt-1">
+      <ul className="mx-auto flex max-w-lg items-stretch justify-around px-2 pt-2 pb-1">
         {SITE_MOBILE_TAB_BAR.map((item) => {
           const active =
             item.href === STUDENT_AREA_PATH

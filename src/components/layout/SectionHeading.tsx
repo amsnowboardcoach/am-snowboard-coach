@@ -15,12 +15,14 @@ export function SectionHeading({
 }: SectionHeadingProps) {
   return (
     <div className={cn(centered && "text-center", className)}>
-      <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h2>
+      <h2 className="text-2xl font-bold tracking-tight text-balance sm:text-3xl">
+        {title}
+      </h2>
       {subtitle && (
         <p
           className={cn(
-            "mt-3 text-zinc-400",
-            centered && "mx-auto max-w-2xl",
+            "mt-3 max-w-2xl text-base leading-relaxed text-zinc-400 sm:mt-4",
+            centered && "mx-auto",
           )}
         >
           {subtitle}

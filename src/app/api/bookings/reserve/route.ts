@@ -9,6 +9,7 @@ import {
 } from "@/constants/session-schedules";
 import {
   formatDaysPlanLabel,
+  MAX_BOOKING_DAYS,
   type BookingDaysPlan,
 } from "@/constants/booking-plan";
 import { LESSON_TYPES, lessonPublicName } from "@/constants/lesson-types";
@@ -25,12 +26,17 @@ import { createGroupBookingCheckoutSession } from "@/lib/stripe/checkout";
 import { createBookingFromWeb } from "@/lib/firebase/bookings-admin";
 import { isGoogleCalendarConfigured } from "@/lib/google/calendar";
 import { sendBookingRequestEmails } from "@/lib/email/send-booking";
+import { coachNotifyNewSessionBooking } from "@/lib/notify/coach";
 import { requireBookingStudent } from "@/lib/auth/resolve-booking-student";
 import { addDays } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { formatBookingInTimeZone } from "@/lib/booking/format-datetime";
 import { BOOKING_TIMEZONE } from "@/lib/booking/timezone";
 import { isDateInBookingSeason } from "@/lib/booking/season";
+import {
+  formatBookingContactForNotes,
+  isValidBookingPhone,
+} from "@/lib/booking/contact-notes";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -43,12 +49,19 @@ const sessionItemSchema = z.object({
 const bodySchema = z
   .object({
     durationId: z.enum(["2h", "3h", "full-day"]),
-    sessions: z.array(sessionItemSchema).min(1).max(5).optional(),
+    sessions: z.array(sessionItemSchema).min(1).max(MAX_BOOKING_DAYS).optional(),
     slotId: z.string().min(1).optional(),
     startUtc: z.string().min(1).optional(),
     name: z.string().min(2),
     email: z.string().email(),
     lessonTypeId: z.string().optional(),
+    phone: z
+      .string()
+      .min(1, "Teléfono obligatorio")
+      .refine(isValidBookingPhone, "Teléfono no válido (mín. 9 dígitos)"),
+    level: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+    objectives: z.string().max(1000).optional(),
+    /** Compatibilidad con borradores antiguos */
     notes: z.string().max(2000).optional(),
     participantCount: z.coerce.number().int().min(1).max(8).optional(),
     daysPlan: z.enum(["single", "consecutive", "spread"]).optional(),
@@ -94,7 +107,10 @@ export async function POST(request: NextRequest) {
     name,
     email,
     lessonTypeId,
-    notes,
+    phone,
+    level,
+    objectives,
+    notes: legacyNotes,
     participantCount: participantCountRaw,
     daysPlan: daysPlanRaw,
     paymentOption: paymentOptionRaw,
@@ -120,6 +136,12 @@ export async function POST(request: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: "Duración inválida" }, { status: 400 });
   }
+
+  const contactNotes = formatBookingContactForNotes({
+    phone,
+    level,
+    objectives: objectives ?? legacyNotes,
+  });
 
   const participantCount = participantCountRaw ?? 1;
   const maxParticipants = getMaxParticipants(durationId as SessionDurationId);
@@ -207,7 +229,7 @@ export async function POST(request: NextRequest) {
           ? `Día ${i + 1}/${sessionsInput.length}`
           : null,
         lesson ? `Estilo: ${lessonPublicName(lesson)}` : null,
-        notes?.trim() || null,
+        contactNotes,
       ].filter(Boolean);
       const bookingNotes = noteParts.join(" · ");
 
@@ -307,7 +329,7 @@ export async function POST(request: NextRequest) {
         startAt: first.startAt,
         endAt: first.endAt,
         lessonTypeName: lesson ? lessonPublicName(lesson) : session.name,
-        notes: notes?.trim() || undefined,
+        notes: contactNotes,
         participantCount,
         totalEuros,
         isRegisteredStudent: true,
@@ -316,10 +338,29 @@ export async function POST(request: NextRequest) {
         paymentOption,
         chargeEuros: Math.round(paymentBreakdown.chargeAmountCents / 100),
         balanceEuros: Math.round(paymentBreakdown.balanceAmountCents / 100),
-        notifyCoach: !isOnlinePaymentOption(paymentOption),
+        notifyCoach: false,
       });
     } catch (mailErr) {
       console.error("[reserve] Email:", mailErr);
+    }
+
+    try {
+      await coachNotifyNewSessionBooking({
+        studentName,
+        studentEmail,
+        lessonTypeName: lesson ? lessonPublicName(lesson) : session.name,
+        sessionLabel: session.name,
+        slotLabel: first.slotLabel,
+        startAt: first.startAt,
+        endAt: first.endAt,
+        totalEuros,
+        paymentPending: isOnlinePaymentOption(paymentOption),
+        bookingId: bookingIds[0]!,
+        bookingNotes: contactNotes,
+        participantCount,
+      });
+    } catch (notifyErr) {
+      console.error("[reserve] Aviso coach:", notifyErr);
     }
 
     const chargeEuros = Math.round(paymentBreakdown.chargeAmountCents / 100);

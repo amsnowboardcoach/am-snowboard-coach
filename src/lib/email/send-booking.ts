@@ -348,7 +348,6 @@ export async function sendVideoCorrectionRequestEmails(
 
   const transport = getTransport();
   const from = fromAddress();
-  const coachPanelUrl = `${getAppBaseUrl()}/coach`;
   const label = `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`;
 
   const studentHtml = `
@@ -363,29 +362,12 @@ export async function sendVideoCorrectionRequestEmails(
     <p>Cuando Alejandro confirme, recibirás el enlace de pago por email. Después podrás subir el material en <a href="${getAppBaseUrl()}/perfil/videos">Mis vídeos</a>.</p>
   `;
 
-  const coachHtml = `
-    <h2>Nueva solicitud — video corrección</h2>
-    <p><a href="${coachPanelUrl}">${coachPanelUrl}</a></p>
-    <ul>
-      <li>${details.studentName} &lt;${details.studentEmail}&gt;</li>
-      <li>${label} · ${details.totalEuros} €</li>
-    </ul>
-    ${details.notes ? `<p>Notas: ${details.notes}</p>` : ""}
-  `;
-
   await transport.sendMail({
     from: `"AM Snowboard Coach" <${from}>`,
     to: details.studentEmail,
     replyTo: COACH_EMAIL,
     subject: `Solicitud video corrección — ${label}`,
     html: studentHtml,
-  });
-
-  await transport.sendMail({
-    from: `"AM Snowboard Coach" <${from}>`,
-    to: process.env.BOOKING_NOTIFY_EMAIL?.trim() || COACH_EMAIL,
-    subject: `Confirmar video: ${details.studentName} — ${label}`,
-    html: coachHtml,
   });
 }
 
