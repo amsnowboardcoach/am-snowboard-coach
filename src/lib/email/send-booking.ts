@@ -16,6 +16,7 @@ import {
   BOOKING_DEPOSIT_PERCENT,
 } from "@/constants/booking-payment";
 import type { SessionDuration } from "@/constants/session-schedules";
+import { logCoachEmailSkipped } from "@/lib/email/send-coach-alerts";
 
 export function isEmailConfigured(): boolean {
   return Boolean(
@@ -189,10 +190,9 @@ export async function sendBookingRequestEmails(
 /** Coach: alumno pagó señal o total; puede aceptar o rechazar en el panel */
 export async function sendCoachBookingPaidAwaitingApprovalEmail(
   details: BookingEmailDetails & { chargeEuros: number },
-): Promise<void> {
+): Promise<boolean> {
   if (!isEmailConfigured()) {
-    console.warn("[email] SMTP no configurado; omitiendo envío coach");
-    return;
+    return logCoachEmailSkipped("session-booking-paid");
   }
 
   const transport = getTransport();
@@ -248,6 +248,7 @@ export async function sendCoachBookingPaidAwaitingApprovalEmail(
     subject: `Pago recibido — confirmar: ${details.alumnoName} — ${subjectSuffix}`,
     html,
   });
+  return true;
 }
 
 /** Tras confirmar por el coach */
@@ -435,8 +436,8 @@ export async function sendVideoCorrectionPaymentReceivedEmail(
 /** Coach: alumno pagó video corrección — puede aceptar o rechazar */
 export async function sendCoachVideoBookingPaidAwaitingApprovalEmail(
   details: VideoCorrectionEmailDetails,
-): Promise<void> {
-  if (!isEmailConfigured()) return;
+): Promise<boolean> {
+  if (!isEmailConfigured()) return logCoachEmailSkipped("video-booking-paid");
 
   const transport = getTransport();
   const from = fromAddress();
@@ -460,6 +461,7 @@ export async function sendCoachVideoBookingPaidAwaitingApprovalEmail(
       <p>Al aceptar, el alumno podrá subir el material desde su área de vídeos.</p>
     `,
   });
+  return true;
 }
 
 export async function sendVideoCorrectionRejectedEmail(

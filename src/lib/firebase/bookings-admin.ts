@@ -12,11 +12,13 @@ import {
   buildSessionCalendarEventTitle,
 } from "@/constants/booking-info";
 import { createCalendarEvent } from "@/lib/google/calendar";
+import { deliverEmail } from "@/lib/email/deliver-email";
 import {
   sendBookingConfirmedEmails,
   sendBookingRejectedEmail,
   type BookingEmailDetails,
 } from "@/lib/email/send-booking";
+import { deliverAlumnoPush } from "@/lib/notify/deliver-push";
 import {
   coachNotifySessionBookingPaidAwaitingApproval,
   coachNotifyVideoBookingPaidAwaitingApproval,
@@ -29,6 +31,7 @@ import {
 import { getAppBaseUrl } from "@/constants/project";
 import {
   bookingAlumnoWriteFields,
+  normalizeAlumnoEmail,
   readAlumnoDisplayName,
   readAlumnoEmail,
 } from "@/lib/firebase/booking-alumno-fields";
@@ -46,7 +49,10 @@ import {
 import type { BookingPaymentOption } from "@/constants/booking-payment";
 import { isOnlinePaymentOption } from "@/constants/booking-payment";
 import { computeBookingPaymentBreakdown } from "@/lib/booking/payment-amounts";
-import { refundBookingStripePayment } from "@/lib/stripe/refund-booking";
+import {
+  paymentWasChargedOnline,
+  refundBookingStripePayment,
+} from "@/lib/stripe/refund-booking";
 import type { ParsedCalBooking } from "@/lib/cal/parse-payload";
 import type { CalTriggerEvent } from "@/lib/cal/types";
 import { getAdminDb } from "@/lib/firebase/admin";
@@ -82,14 +88,96 @@ function adminDb() {
 }
 
 async function findUserIdByEmail(email: string): Promise<string | null> {
-  if (!email) return null;
+  const normalized = normalizeAlumnoEmail(email);
+  if (!normalized) return null;
   const snap = await adminDb()
     .collection(USERS)
-    .where("email", "==", email)
+    .where("email", "==", normalized)
     .limit(1)
     .get();
-  if (snap.empty) return null;
-  return snap.docs[0]!.id;
+  if (!snap.empty) return snap.docs[0]!.id;
+  const raw = email.trim();
+  if (raw && raw !== normalized) {
+    const legacy = await adminDb()
+      .collection(USERS)
+      .where("email", "==", raw)
+      .limit(1)
+      .get();
+    if (!legacy.empty) return legacy.docs[0]!.id;
+  }
+  return null;
+}
+
+/**
+ * Asocia reservas antiguas (sin userId o con otro formato) a la cuenta actual del alumno.
+ * Usa Admin SDK; el email de la reserva debe coincidir con el de la cuenta.
+ */
+export async function linkAlumnoBookingsToUser(
+  userId: string,
+  email: string,
+): Promise<number> {
+  const normalized = normalizeAlumnoEmail(email);
+  if (!userId.trim() || !normalized) return 0;
+
+  const db = adminDb();
+  const seen = new Set<string>();
+  const toUpdate: FirebaseFirestore.DocumentReference[] = [];
+
+  const emailVariants = [...new Set([normalized, email.trim()].filter(Boolean))];
+  const fields = ["alumnoEmail", "studentEmail"] as const;
+
+  for (const field of fields) {
+    for (const variant of emailVariants) {
+      const snap = await db
+        .collection(BOOKINGS)
+        .where(field, "==", variant)
+        .get();
+      for (const doc of snap.docs) {
+        if (seen.has(doc.id)) continue;
+        seen.add(doc.id);
+
+        const data = doc.data();
+        const docEmail = readAlumnoEmail(data);
+        if (!docEmail || normalizeAlumnoEmail(docEmail) !== normalized) {
+          continue;
+        }
+
+        const existingUid = String(data.userId ?? "").trim();
+        if (existingUid === userId) continue;
+        if (existingUid && existingUid !== userId) continue;
+
+        toUpdate.push(doc.ref);
+      }
+    }
+  }
+
+  if (toUpdate.length === 0) return 0;
+
+  const batch = db.batch();
+  for (const ref of toUpdate) {
+    batch.update(ref, {
+      userId,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  }
+  await batch.commit();
+  return toUpdate.length;
+}
+
+/** Si la reserva no tiene userId, intenta enlazarla por email del alumno. */
+async function ensureBookingUserIdFromEmail(
+  bookingId: string,
+  booking: Pick<AdminBookingRecord, "userId" | "alumnoEmail">,
+): Promise<void> {
+  if (booking.userId?.trim()) return;
+  const email = booking.alumnoEmail?.trim();
+  if (!email) return;
+  const uid = await findUserIdByEmail(email);
+  if (!uid) return;
+  await adminDb().collection(BOOKINGS).doc(bookingId).update({
+    userId: uid,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
 }
 
 async function findBookingByCalUid(
@@ -192,8 +280,8 @@ export interface WebBookingInput {
   /** Personas en pista (mín. 1). */
   participantCount: number;
   notes?: string;
-  /** UID Firebase cuando la reserva viene de un alumno autenticado. */
-  authUserId?: string;
+  /** UID Firebase del alumno autenticado (obligatorio en reservas web). */
+  authUserId: string;
   paymentOption?: BookingPaymentOption;
   paymentGroupId?: string;
 }
@@ -203,7 +291,7 @@ export interface VideoCorrectionBookingInput {
   alumnoEmail: string;
   videoCount: number;
   notes?: string;
-  authUserId?: string;
+  authUserId: string;
 }
 
 export interface AdminBookingRecord {
@@ -334,6 +422,12 @@ async function applyStripePaymentToBooking(
       paidAt: FieldValue.serverTimestamp(),
     },
     updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  const alumnoEmail = readAlumnoEmail(data);
+  await ensureBookingUserIdFromEmail(bookingId, {
+    userId: (data.userId as string) || "",
+    alumnoEmail: alumnoEmail ?? "",
   });
 }
 
@@ -555,10 +649,10 @@ export async function createBookingFromWeb(
   input: WebBookingInput,
 ): Promise<string> {
   const coachId = getCoachId();
-  const userId =
-    input.authUserId ??
-    (await findUserIdByEmail(input.alumnoEmail)) ??
-    "";
+  const userId = input.authUserId.trim();
+  if (!userId) {
+    throw new Error("La reserva debe vincularse a una cuenta de alumno iniciada.");
+  }
 
   const overlapping = await findOverlappingBookings(input.startAt, input.endAt);
   if (overlapping.length > 0) {
@@ -615,10 +709,10 @@ export async function createVideoCorrectionBookingFromWeb(
   input: VideoCorrectionBookingInput,
 ): Promise<string> {
   const coachId = getCoachId();
-  const userId =
-    input.authUserId ??
-    (await findUserIdByEmail(input.alumnoEmail)) ??
-    "";
+  const userId = input.authUserId.trim();
+  if (!userId) {
+    throw new Error("La reserva debe vincularse a una cuenta de alumno iniciada.");
+  }
   const now = new Date();
   const end = new Date(now.getTime() + 60_000);
   const count = input.videoCount;
@@ -673,10 +767,16 @@ function requiresPaymentBeforeSessionFormalization(
   return isOnlinePaymentOption(option) || option === "after_confirm";
 }
 
+export type BookingCoachActionResult = {
+  paymentRefunded?: boolean;
+  warnings: string[];
+};
+
 /** Bloquea el turno en Google Calendar y confirma la clase en pista */
 export async function formalizeSessionBooking(
   bookingId: string,
-): Promise<boolean> {
+): Promise<string[]> {
+  const warnings: string[] = [];
   const booking = await getBookingById(bookingId);
   if (!booking) throw new Error("Reserva no encontrada");
   if (booking.coachId !== getCoachId()) {
@@ -686,13 +786,13 @@ export async function formalizeSessionBooking(
     booking.productKind === "video_correction" ||
     isVideoCorrectionProduct(booking.lessonTypeId)
   ) {
-    return false;
+    return warnings;
   }
   if (booking.status === "cancelled") {
     throw new Error("La reserva está cancelada");
   }
   if (booking.status === "confirmed" && booking.googleCalendarEventId) {
-    return false;
+    return warnings;
   }
 
   const session = getSessionDuration(
@@ -745,28 +845,34 @@ export async function formalizeSessionBooking(
   });
 
   if (alumnoEmail && wasPending) {
-    await sendBookingConfirmedEmails({
-      ...bookingToEmailDetails(booking, session),
-    });
+    const emailWarn = await deliverEmail("confirm-booking", () =>
+      sendBookingConfirmedEmails({
+        ...bookingToEmailDetails(booking, session),
+      }),
+    );
+    if (emailWarn) warnings.push(emailWarn);
   }
 
   if (wasPending) {
-    await notifyAlumnoBookingConfirmed({
-      userId: booking.userId,
-      dateLabel: formatBookingInTimeZone(booking.startAt, "d MMM yyyy"),
-      slotLabel: booking.sessionSlotLabel || session.name,
-      startAt: booking.startAt,
-      endAt: booking.endAt,
-      isVideoCorrection: false,
-    });
+    const pushWarn = await deliverAlumnoPush("confirm-booking", () =>
+      notifyAlumnoBookingConfirmed({
+        userId: booking.userId,
+        dateLabel: formatBookingInTimeZone(booking.startAt, "d MMM yyyy"),
+        slotLabel: booking.sessionSlotLabel || session.name,
+        startAt: booking.startAt,
+        endAt: booking.endAt,
+        isVideoCorrection: false,
+      }),
+    );
+    if (pushWarn) warnings.push(pushWarn);
   }
 
-  return true;
+  return warnings;
 }
 
 export async function markSessionPaidAndFormalizeByCoach(
   bookingId: string,
-): Promise<void> {
+): Promise<BookingCoachActionResult> {
   const booking = await getBookingById(bookingId);
   if (!booking) throw new Error("Reserva no encontrada");
   if (booking.coachId !== getCoachId()) {
@@ -796,12 +902,14 @@ export async function markSessionPaidAndFormalizeByCoach(
     });
   }
 
-  await formalizeSessionBooking(bookingId);
+  const warnings = await formalizeSessionBooking(bookingId);
+  return { warnings };
 }
 
 export async function confirmBookingByCoach(
   bookingId: string,
-): Promise<void> {
+): Promise<BookingCoachActionResult> {
+  const warnings: string[] = [];
   const booking = await getBookingById(bookingId);
   if (!booking) throw new Error("Reserva no encontrada");
   if (booking.coachId !== getCoachId()) {
@@ -831,22 +939,28 @@ export async function confirmBookingByCoach(
 
     const details = videoEmailDetails(booking);
     if (details.alumnoEmail) {
-      await sendVideoCorrectionConfirmedEmails({
-        ...details,
-        paidWithCard:
-          booking.payment.status === "paid" ||
-          booking.payment.status === "deposit_paid",
-      });
+      const emailWarn = await deliverEmail("confirm-video", () =>
+        sendVideoCorrectionConfirmedEmails({
+          ...details,
+          paidWithCard:
+            booking.payment.status === "paid" ||
+            booking.payment.status === "deposit_paid",
+        }),
+      );
+      if (emailWarn) warnings.push(emailWarn);
     }
 
-    await notifyAlumnoBookingConfirmed({
-      userId: booking.userId,
-      dateLabel: "Video corrección",
-      slotLabel: `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`,
-      isVideoCorrection: true,
-      videoCount: details.videoCount,
-    });
-    return;
+    const pushWarn = await deliverAlumnoPush("confirm-video", () =>
+      notifyAlumnoBookingConfirmed({
+        userId: booking.userId,
+        dateLabel: "Video corrección",
+        slotLabel: `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`,
+        isVideoCorrection: true,
+        videoCount: details.videoCount,
+      }),
+    );
+    if (pushWarn) warnings.push(pushWarn);
+    return { warnings };
   }
 
   if (
@@ -858,10 +972,14 @@ export async function confirmBookingByCoach(
     );
   }
 
-  await formalizeSessionBooking(bookingId);
+  const formalizeWarnings = await formalizeSessionBooking(bookingId);
+  return { warnings: formalizeWarnings };
 }
 
-export async function rejectBookingByCoach(bookingId: string): Promise<void> {
+export async function rejectBookingByCoach(
+  bookingId: string,
+): Promise<BookingCoachActionResult> {
+  const warnings: string[] = [];
   const booking = await getBookingById(bookingId);
   if (!booking) throw new Error("Reserva no encontrada");
   if (booking.coachId !== getCoachId()) {
@@ -870,6 +988,10 @@ export async function rejectBookingByCoach(bookingId: string): Promise<void> {
   if (booking.status !== "pending") {
     throw new Error("Esta reserva ya no está pendiente");
   }
+
+  const shouldRefundOnline =
+    isSessionPaymentReady(booking.payment) &&
+    paymentWasChargedOnline(booking.payment);
 
   let paymentRefunded = false;
   if (
@@ -888,20 +1010,32 @@ export async function rejectBookingByCoach(bookingId: string): Promise<void> {
     updatedAt: FieldValue.serverTimestamp(),
   });
 
+  if (shouldRefundOnline && !paymentRefunded) {
+    warnings.push(
+      "La reserva se ha cancelado, pero el reembolso automático en Stripe no se completó. Revisa el pago en Stripe o devuelve manualmente.",
+    );
+  }
+
   if (
     booking.productKind === "video_correction" ||
     isVideoCorrectionProduct(booking.lessonTypeId)
   ) {
     if (booking.alumnoEmail) {
-      await sendVideoCorrectionRejectedEmail(videoEmailDetails(booking));
+      const emailWarn = await deliverEmail("reject-video", () =>
+        sendVideoCorrectionRejectedEmail(videoEmailDetails(booking)),
+      );
+      if (emailWarn) warnings.push(emailWarn);
     }
-    await notifyAlumnoBookingRejected({
-      userId: booking.userId,
-      dateLabel: "Video corrección",
-      isVideoCorrection: true,
-      paymentRefunded,
-    });
-    return;
+    const pushWarn = await deliverAlumnoPush("reject-video", () =>
+      notifyAlumnoBookingRejected({
+        userId: booking.userId,
+        dateLabel: "Video corrección",
+        isVideoCorrection: true,
+        paymentRefunded,
+      }),
+    );
+    if (pushWarn) warnings.push(pushWarn);
+    return { paymentRefunded, warnings };
   }
 
   const session = getSessionDuration(
@@ -910,18 +1044,26 @@ export async function rejectBookingByCoach(bookingId: string): Promise<void> {
   if (!session) throw new Error("Duración de sesión inválida");
 
   if (booking.alumnoEmail) {
-    await sendBookingRejectedEmail({
-      ...bookingToEmailDetails(booking, session),
-      paymentRefunded,
-    });
+    const emailWarn = await deliverEmail("reject-booking", () =>
+      sendBookingRejectedEmail({
+        ...bookingToEmailDetails(booking, session),
+        paymentRefunded,
+      }),
+    );
+    if (emailWarn) warnings.push(emailWarn);
   }
 
-  await notifyAlumnoBookingRejected({
-    userId: booking.userId,
-    dateLabel: formatBookingInTimeZone(booking.startAt, "d MMM yyyy"),
-    startAt: booking.startAt,
-    endAt: booking.endAt,
-    isVideoCorrection: false,
-    paymentRefunded,
-  });
+  const pushWarn = await deliverAlumnoPush("reject-booking", () =>
+    notifyAlumnoBookingRejected({
+      userId: booking.userId,
+      dateLabel: formatBookingInTimeZone(booking.startAt, "d MMM yyyy"),
+      startAt: booking.startAt,
+      endAt: booking.endAt,
+      isVideoCorrection: false,
+      paymentRefunded,
+    }),
+  );
+  if (pushWarn) warnings.push(pushWarn);
+
+  return { paymentRefunded, warnings };
 }

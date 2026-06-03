@@ -11,7 +11,7 @@ export interface RefundableBookingPayment {
   stripePaymentIntentId?: string;
 }
 
-function paymentWasChargedOnline(
+export function paymentWasChargedOnline(
   payment: RefundableBookingPayment,
 ): boolean {
   if (payment.status !== "deposit_paid" && payment.status !== "paid") {
@@ -67,14 +67,28 @@ export async function refundBookingStripePayment(
     );
   }
 
-  const refund = await getStripe().refunds.create({
-    payment_intent: paymentIntentId,
-    amount: amountCents,
-    reason: "requested_by_customer",
-    metadata: {
-      source: "coach_reject",
-    },
-  });
+  try {
+    const refund = await getStripe().refunds.create({
+      payment_intent: paymentIntentId,
+      amount: amountCents,
+      reason: "requested_by_customer",
+      metadata: {
+        source: "coach_reject",
+      },
+    });
 
-  return { refunded: true, refundId: refund.id };
+    return { refunded: true, refundId: refund.id };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (
+      /already been refunded|charge_already_refunded|has already been fully refunded/i.test(
+        msg,
+      )
+    ) {
+      return { refunded: true };
+    }
+    throw new Error(
+      `No se pudo reembolsar el pago con tarjeta: ${msg.slice(0, 200)}`,
+    );
+  }
 }

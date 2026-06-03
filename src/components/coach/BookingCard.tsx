@@ -5,6 +5,7 @@ import {
   confirmBookingApi,
   markBookingPaidApi,
   rejectBookingApi,
+  type CoachBookingActionResponse,
 } from "@/lib/firebase/coach-booking-actions";
 import { formatFirestoreDate } from "@/lib/utils/dates";
 import { centsToEuros } from "@/lib/utils/money";
@@ -45,6 +46,28 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
   const [confirming, setConfirming] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionNotice, setActionNotice] = useState<{
+    tone: "ok" | "warn";
+    text: string;
+  } | null>(null);
+
+  function applyActionResult(
+    result: CoachBookingActionResponse,
+    fallbackOk: string,
+  ) {
+    const warnings = result.warnings ?? [];
+    if (warnings.length > 0) {
+      setActionNotice({
+        tone: "warn",
+        text: [result.message ?? fallbackOk, ...warnings].join(" "),
+      });
+    } else {
+      setActionNotice({
+        tone: "ok",
+        text: result.message ?? fallbackOk,
+      });
+    }
+  }
 
   const isVideo = isVideoCorrectionProduct(booking.lessonTypeId);
   const totalCents =
@@ -78,8 +101,10 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
   async function confirmRequest() {
     setConfirming(true);
     setActionError(null);
+    setActionNotice(null);
     try {
-      await confirmBookingApi(booking.id);
+      const result = await confirmBookingApi(booking.id);
+      applyActionResult(result, "Reserva aceptada.");
       onUpdated();
     } catch (err) {
       setActionError(
@@ -100,8 +125,10 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
     }
     setRejecting(true);
     setActionError(null);
+    setActionNotice(null);
     try {
-      await rejectBookingApi(booking.id);
+      const result = await rejectBookingApi(booking.id);
+      applyActionResult(result, "Solicitud rechazada.");
       onUpdated();
     } catch (err) {
       setActionError(
@@ -115,8 +142,10 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
   async function markAsPaid() {
     setMarkingPaid(true);
     setActionError(null);
+    setActionNotice(null);
     try {
-      await markBookingPaidApi(booking.id);
+      const result = await markBookingPaidApi(booking.id);
+      applyActionResult(result, "Pago registrado.");
       onUpdated();
     } catch (err) {
       setActionError(
@@ -267,6 +296,18 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
             </button>
           </div>
         </div>
+      )}
+
+      {actionNotice && (
+        <p
+          className={
+            actionNotice.tone === "warn"
+              ? "mt-2 text-sm text-amber-200"
+              : "mt-2 text-sm text-emerald-300"
+          }
+        >
+          {actionNotice.text}
+        </p>
       )}
 
       {actionError && (

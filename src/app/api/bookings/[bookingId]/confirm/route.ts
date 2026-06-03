@@ -18,10 +18,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    await confirmBookingByCoach(bookingId);
+    const result = await confirmBookingByCoach(bookingId);
     return NextResponse.json({
       success: true,
-      message: "Reserva aceptada. Calendario y emails enviados.",
+      message:
+        result.warnings.length > 0
+          ? "Reserva aceptada. Revisa los avisos siguientes."
+          : "Reserva aceptada. Calendario y avisos al alumno enviados.",
+      warnings: result.warnings,
     });
   } catch (err) {
     console.error("[confirm]", err);

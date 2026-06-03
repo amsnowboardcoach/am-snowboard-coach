@@ -7,6 +7,14 @@ export function isEmailConfigured(): boolean {
   );
 }
 
+/** Registra por qué no se envió email al coach (Vercel: SMTP_USER + SMTP_PASS). */
+export function logCoachEmailSkipped(label: string): false {
+  console.error(
+    `[notify-coach] email no enviado (${label}): configura SMTP_USER y SMTP_PASS en el servidor (p. ej. contraseña de aplicación de Gmail)`,
+  );
+  return false;
+}
+
 function getTransport() {
   const user = process.env.SMTP_USER?.trim();
   const pass = process.env.SMTP_PASS?.trim();
@@ -38,8 +46,8 @@ function coachNotifyTo(): string {
 export async function sendCoachNewAlumnoRegisteredEmail(details: {
   alumnoName: string;
   alumnoEmail: string;
-}): Promise<void> {
-  if (!isEmailConfigured()) return;
+}): Promise<boolean> {
+  if (!isEmailConfigured()) return logCoachEmailSkipped("alumno-registered");
 
   const base = getAppBaseUrl();
   const panelUrl = `${base}/coach?tab=alumnos`;
@@ -58,6 +66,7 @@ export async function sendCoachNewAlumnoRegisteredEmail(details: {
     `,
     text: `Nuevo alumno: ${details.alumnoName} (${details.alumnoEmail}). Panel: ${panelUrl}`,
   });
+  return true;
 }
 
 /** Email al coach cuando un alumno elimina su cuenta o el coach la borra */
@@ -66,8 +75,8 @@ export async function sendCoachAlumnoDeletedEmail(details: {
   alumnoEmail: string;
   source: "self" | "coach";
   coachName?: string;
-}): Promise<void> {
-  if (!isEmailConfigured()) return;
+}): Promise<boolean> {
+  if (!isEmailConfigured()) return logCoachEmailSkipped("alumno-deleted");
 
   const base = getAppBaseUrl();
   const panelUrl = `${base}/coach?tab=alumnos`;
@@ -94,6 +103,7 @@ export async function sendCoachAlumnoDeletedEmail(details: {
     `,
     text: `Alumno eliminado: ${details.alumnoName} (${details.alumnoEmail}). ${reason} Panel: ${panelUrl}`,
   });
+  return true;
 }
 
 /** Email al coach: nueva solicitud de clase en pista */
@@ -108,8 +118,8 @@ export async function sendCoachNewSessionBookingEmail(details: {
   bookingNotes?: string;
   participantCount?: number;
   panelUrl: string;
-}): Promise<void> {
-  if (!isEmailConfigured()) return;
+}): Promise<boolean> {
+  if (!isEmailConfigured()) return logCoachEmailSkipped("new-session-booking");
 
   const people =
     details.participantCount && details.participantCount > 1
@@ -139,6 +149,7 @@ export async function sendCoachNewSessionBookingEmail(details: {
     `,
     text: `Nueva reserva de ${details.alumnoName}. ${details.when}. Panel: ${details.panelUrl}`,
   });
+  return true;
 }
 
 /** Email al coach: solicitud de video corrección (sin duplicar mail al alumno) */
@@ -149,8 +160,8 @@ export async function sendCoachVideoCorrectionRequestEmail(details: {
   totalEuros: number;
   notes?: string;
   panelUrl: string;
-}): Promise<void> {
-  if (!isEmailConfigured()) return;
+}): Promise<boolean> {
+  if (!isEmailConfigured()) return logCoachEmailSkipped("video-correction-booking");
 
   const label = `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`;
 
@@ -169,6 +180,7 @@ export async function sendCoachVideoCorrectionRequestEmail(details: {
     `,
     text: `Video corrección: ${details.alumnoName}, ${label}. Panel: ${details.panelUrl}`,
   });
+  return true;
 }
 
 /** Email al coach: alumno subió vídeo para revisar */
@@ -177,8 +189,8 @@ export async function sendCoachVideoUploadedEmail(details: {
   alumnoEmail: string;
   videoTitle: string;
   panelUrl: string;
-}): Promise<void> {
-  if (!isEmailConfigured()) return;
+}): Promise<boolean> {
+  if (!isEmailConfigured()) return logCoachEmailSkipped("video-uploaded");
 
   await getTransport().sendMail({
     from: fromAddress(),
@@ -194,4 +206,5 @@ export async function sendCoachVideoUploadedEmail(details: {
     `,
     text: `Vídeo de ${details.alumnoName}: ${details.videoTitle}. ${details.panelUrl}`,
   });
+  return true;
 }

@@ -27,6 +27,10 @@ import {
   type GoogleSignInResult,
 } from "@/lib/auth/google-sign-in";
 import { loadUserProfile } from "@/lib/auth/load-profile";
+import {
+  linkAlumnoBookingsForCurrentUser,
+  resetAlumnoBookingsLinkCache,
+} from "@/lib/firebase/link-alumno-bookings-client";
 import { isPrivateAppPath, loginPathWithNext } from "@/lib/auth/paths";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import type { UserProfile } from "@/types/firestore";
@@ -148,6 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!firebaseUser) {
           setProfile(null);
           profileUidRef.current = null;
+          resetAlumnoBookingsLinkCache();
           setLoading(false);
           return;
         }
@@ -189,6 +194,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.replace("/coach");
   }, [loading, user, profile, pathname, router]);
 
+  /** Reservas antiguas del mismo email → userId actual (Mis clases en perfil). */
+  useEffect(() => {
+    if (loading || !user?.uid || !profile) return;
+    if (!isAlumnoRole(profile.role) || isCoachEmail(profile.email)) return;
+    void linkAlumnoBookingsForCurrentUser();
+  }, [loading, user?.uid, profile?.uid, profile?.role, profile?.email]);
+
   /** Segundo intento si el primero falló (perfil aún no visible en servidor / token). */
   useEffect(() => {
     if (loading || !user || !profile) return;
@@ -213,6 +225,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut: async () => {
         if (!isFirebaseConfigured()) return;
         profileUidRef.current = null;
+        resetAlumnoBookingsLinkCache();
         await firebaseSignOut(getFirebaseAuth());
       },
     }),

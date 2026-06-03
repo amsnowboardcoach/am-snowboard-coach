@@ -35,20 +35,49 @@ import {
   sendCoachWhatsAppMessage,
 } from "@/lib/whatsapp/coach-notify";
 
+type CoachNotifyChannel = "push" | "email" | "whatsapp";
+
+type CoachNotifyTask = {
+  channel: CoachNotifyChannel;
+  run: () => Promise<boolean>;
+};
+
 async function runCoachNotifications(
   label: string,
-  tasks: Array<() => Promise<void>>,
+  tasks: CoachNotifyTask[],
 ): Promise<boolean> {
-  const results = await Promise.allSettled(tasks.map((t) => t()));
-  let anyOk = false;
+  const results = await Promise.allSettled(
+    tasks.map(async (task) => ({
+      channel: task.channel,
+      ok: await task.run(),
+    })),
+  );
+
+  const delivered: CoachNotifyChannel[] = [];
+  const missed: CoachNotifyChannel[] = [];
+
   for (const r of results) {
     if (r.status === "fulfilled") {
-      anyOk = true;
+      if (r.value.ok) delivered.push(r.value.channel);
+      else missed.push(r.value.channel);
     } else {
       console.error(`[notify-coach] ${label}:`, r.reason);
     }
   }
-  return anyOk;
+
+  if (delivered.length > 0) {
+    console.info(
+      `[notify-coach] ${label}: enviado → ${delivered.join(", ")}`,
+      missed.length > 0 ? `; sin enviar → ${missed.join(", ")}` : "",
+    );
+  } else {
+    console.error(
+      `[notify-coach] ${label}: ningún canal entregó el aviso`,
+      missed.length > 0 ? `(${missed.join(", ")})` : "",
+    );
+  }
+
+  return delivered.length > 0;
 }
 
 /** Registro de alumno: push + email + WhatsApp */
@@ -58,24 +87,33 @@ export async function coachNotifyAlumnoRegistered(details: {
   alumnoId: string;
 }): Promise<boolean> {
   return runCoachNotifications("alumno-registered", [
-    () =>
-      notifyCoachNewAlumnoRegistered({
-        alumnoName: details.alumnoName,
-        alumnoEmail: details.alumnoEmail,
-        alumnoId: details.alumnoId,
-      }),
-    () =>
-      sendCoachNewAlumnoRegisteredEmail({
-        alumnoName: details.alumnoName,
-        alumnoEmail: details.alumnoEmail,
-      }),
-    () =>
-      sendCoachWhatsAppMessage(
-        buildCoachAlumnoRegisteredWhatsApp({
+    {
+      channel: "push",
+      run: () =>
+        notifyCoachNewAlumnoRegistered({
+          alumnoName: details.alumnoName,
+          alumnoEmail: details.alumnoEmail,
+          alumnoId: details.alumnoId,
+        }),
+    },
+    {
+      channel: "email",
+      run: () =>
+        sendCoachNewAlumnoRegisteredEmail({
           alumnoName: details.alumnoName,
           alumnoEmail: details.alumnoEmail,
         }),
-      ),
+    },
+    {
+      channel: "whatsapp",
+      run: () =>
+        sendCoachWhatsAppMessage(
+          buildCoachAlumnoRegisteredWhatsApp({
+            alumnoName: details.alumnoName,
+            alumnoEmail: details.alumnoEmail,
+          }),
+        ),
+    },
   ]);
 }
 
@@ -90,29 +128,38 @@ export async function coachNotifyAlumnoDeleted(details: {
   coachName?: string;
 }): Promise<boolean> {
   return runCoachNotifications("alumno-deleted", [
-    () =>
-      notifyCoachAlumnoDeleted({
-        alumnoName: details.alumnoName,
-        alumnoEmail: details.alumnoEmail,
-        alumnoId: details.alumnoId,
-        source: details.source,
-      }),
-    () =>
-      sendCoachAlumnoDeletedEmail({
-        alumnoName: details.alumnoName,
-        alumnoEmail: details.alumnoEmail,
-        source: details.source,
-        coachName: details.coachName,
-      }),
-    () =>
-      sendCoachWhatsAppMessage(
-        buildCoachAlumnoDeletedWhatsApp({
+    {
+      channel: "push",
+      run: () =>
+        notifyCoachAlumnoDeleted({
+          alumnoName: details.alumnoName,
+          alumnoEmail: details.alumnoEmail,
+          alumnoId: details.alumnoId,
+          source: details.source,
+        }),
+    },
+    {
+      channel: "email",
+      run: () =>
+        sendCoachAlumnoDeletedEmail({
           alumnoName: details.alumnoName,
           alumnoEmail: details.alumnoEmail,
           source: details.source,
           coachName: details.coachName,
         }),
-      ),
+    },
+    {
+      channel: "whatsapp",
+      run: () =>
+        sendCoachWhatsAppMessage(
+          buildCoachAlumnoDeletedWhatsApp({
+            alumnoName: details.alumnoName,
+            alumnoEmail: details.alumnoEmail,
+            source: details.source,
+            coachName: details.coachName,
+          }),
+        ),
+    },
   ]);
 }
 
@@ -135,44 +182,53 @@ export async function coachNotifyNewSessionBooking(details: {
   const panelUrl = `${getAppBaseUrl()}/coach?tab=reservas`;
 
   await runCoachNotifications("new-session-booking", [
-    () =>
-      notifyCoachNewBookingRequest({
-        alumnoName: details.alumnoName,
-        slotLabel: details.slotLabel,
-        dateLabel: when,
-        bookingId: details.bookingId,
-        kind: "session",
-        startAt: details.startAt,
-        endAt: details.endAt,
-      }),
-    () =>
-      sendCoachNewSessionBookingEmail({
-        alumnoName: details.alumnoName,
-        alumnoEmail: details.alumnoEmail,
-        lessonTypeName: details.lessonTypeName,
-        sessionLabel: details.sessionLabel,
-        when,
-        totalEuros: details.totalEuros,
-        paymentPending: details.paymentPending,
-        bookingNotes: details.bookingNotes,
-        participantCount: details.participantCount,
-        panelUrl,
-      }),
-    () =>
-      sendCoachWhatsAppMessage(
-        buildCoachNewSessionBookingWhatsApp({
+    {
+      channel: "push",
+      run: () =>
+        notifyCoachNewBookingRequest({
+          alumnoName: details.alumnoName,
+          slotLabel: details.slotLabel,
+          dateLabel: when,
+          bookingId: details.bookingId,
+          kind: "session",
+          startAt: details.startAt,
+          endAt: details.endAt,
+        }),
+    },
+    {
+      channel: "email",
+      run: () =>
+        sendCoachNewSessionBookingEmail({
           alumnoName: details.alumnoName,
           alumnoEmail: details.alumnoEmail,
           lessonTypeName: details.lessonTypeName,
           sessionLabel: details.sessionLabel,
-          startAt: details.startAt,
-          endAt: details.endAt,
+          when,
           totalEuros: details.totalEuros,
           paymentPending: details.paymentPending,
-          bookingId: details.bookingId,
           bookingNotes: details.bookingNotes,
+          participantCount: details.participantCount,
+          panelUrl,
         }),
-      ),
+    },
+    {
+      channel: "whatsapp",
+      run: () =>
+        sendCoachWhatsAppMessage(
+          buildCoachNewSessionBookingWhatsApp({
+            alumnoName: details.alumnoName,
+            alumnoEmail: details.alumnoEmail,
+            lessonTypeName: details.lessonTypeName,
+            sessionLabel: details.sessionLabel,
+            startAt: details.startAt,
+            endAt: details.endAt,
+            totalEuros: details.totalEuros,
+            paymentPending: details.paymentPending,
+            bookingId: details.bookingId,
+            bookingNotes: details.bookingNotes,
+          }),
+        ),
+    },
   ]);
 }
 
@@ -219,38 +275,47 @@ export async function coachNotifySessionBookingPaidAwaitingApproval(details: {
   };
 
   await runCoachNotifications("session-booking-paid", [
-    () => sendCoachBookingPaidAwaitingApprovalEmail(emailDetails),
-    () =>
-      sendCoachBookingPaidWhatsApp({
-        bookingId: details.bookingId,
-        alumnoName: details.alumnoName,
-        alumnoEmail: details.alumnoEmail,
-        lessonTypeName: details.lessonTypeName,
-        sessionLabel: details.session.name,
-        startAt: details.startAt,
-        endAt: details.endAt,
-        participantCount: details.participantCount,
-        chargeEuros: details.chargeEuros,
-        totalEuros: details.totalEuros,
-        balanceEuros: details.balanceEuros,
-        paymentOption: details.paymentOption,
-        bookingNotes: details.bookingNotes,
-        sessions: details.sessions,
-      }),
-    () =>
-      notifyAfterBookingPaid({
-        id: details.bookingId,
-        userId: details.userId,
-        alumnoDisplayName: details.alumnoName,
-        alumnoEmail: details.alumnoEmail,
-        lessonTypeId: details.lessonTypeId,
-        lessonTypeName: details.lessonTypeName,
-        sessionDurationId: details.session.id,
-        sessionSlotLabel: details.slotLabel,
-        startAt: details.startAt,
-        endAt: details.endAt,
-        amountCents: details.chargeAmountCents,
-      }),
+    {
+      channel: "email",
+      run: () => sendCoachBookingPaidAwaitingApprovalEmail(emailDetails),
+    },
+    {
+      channel: "whatsapp",
+      run: () =>
+        sendCoachBookingPaidWhatsApp({
+          bookingId: details.bookingId,
+          alumnoName: details.alumnoName,
+          alumnoEmail: details.alumnoEmail,
+          lessonTypeName: details.lessonTypeName,
+          sessionLabel: details.session.name,
+          startAt: details.startAt,
+          endAt: details.endAt,
+          participantCount: details.participantCount,
+          chargeEuros: details.chargeEuros,
+          totalEuros: details.totalEuros,
+          balanceEuros: details.balanceEuros,
+          paymentOption: details.paymentOption,
+          bookingNotes: details.bookingNotes,
+          sessions: details.sessions,
+        }),
+    },
+    {
+      channel: "push",
+      run: () =>
+        notifyAfterBookingPaid({
+          id: details.bookingId,
+          userId: details.userId,
+          alumnoDisplayName: details.alumnoName,
+          alumnoEmail: details.alumnoEmail,
+          lessonTypeId: details.lessonTypeId,
+          lessonTypeName: details.lessonTypeName,
+          sessionDurationId: details.session.id,
+          sessionSlotLabel: details.slotLabel,
+          startAt: details.startAt,
+          endAt: details.endAt,
+          amountCents: details.chargeAmountCents,
+        }),
+    },
   ]);
 }
 
@@ -268,52 +333,65 @@ export async function coachNotifyVideoBookingPaidAwaitingApproval(details: {
   const label = `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`;
 
   await runCoachNotifications("video-booking-paid", [
-    () =>
-      sendCoachVideoBookingPaidAwaitingApprovalEmail({
+    {
+      channel: "email",
+      run: () =>
+        sendCoachVideoBookingPaidAwaitingApprovalEmail({
+          alumnoName: details.alumnoName,
+          alumnoEmail: details.alumnoEmail,
+          videoCount: details.videoCount,
+          totalEuros: details.totalEuros,
+          notes: details.notes,
+        }),
+    },
+    {
+      channel: "whatsapp",
+      run: () =>
+        sendCoachWhatsAppMessage(
+          buildCoachVideoBookingPaidWhatsApp({
+            alumnoName: details.alumnoName,
+            alumnoEmail: details.alumnoEmail,
+            videoCount: details.videoCount,
+            totalEuros: details.totalEuros,
+            bookingId: details.bookingId,
+            notes: details.notes,
+          }),
+        ),
+    },
+    {
+      channel: "push",
+      run: () =>
+        notifyAfterBookingPaid({
+          id: details.bookingId,
+          userId: details.userId,
+          alumnoDisplayName: details.alumnoName,
+          alumnoEmail: details.alumnoEmail,
+          lessonTypeId: VIDEO_CORRECTION_PRODUCT.id,
+          lessonTypeName: VIDEO_CORRECTION_PRODUCT.name,
+          productKind: "video_correction",
+          videoCount: details.videoCount,
+          sessionDurationId: null,
+          sessionSlotLabel: label,
+          startAt: new Date(),
+          endAt: new Date(),
+          amountCents: details.amountCents,
+        }),
+    },
+  ]);
+
+  if (details.alumnoEmail) {
+    try {
+      await sendVideoCorrectionPaymentReceivedEmail({
         alumnoName: details.alumnoName,
         alumnoEmail: details.alumnoEmail,
         videoCount: details.videoCount,
         totalEuros: details.totalEuros,
         notes: details.notes,
-      }),
-    () =>
-      sendCoachWhatsAppMessage(
-        buildCoachVideoBookingPaidWhatsApp({
-          alumnoName: details.alumnoName,
-          alumnoEmail: details.alumnoEmail,
-          videoCount: details.videoCount,
-          totalEuros: details.totalEuros,
-          bookingId: details.bookingId,
-          notes: details.notes,
-        }),
-      ),
-    () =>
-      details.alumnoEmail
-        ? sendVideoCorrectionPaymentReceivedEmail({
-            alumnoName: details.alumnoName,
-            alumnoEmail: details.alumnoEmail,
-            videoCount: details.videoCount,
-            totalEuros: details.totalEuros,
-            notes: details.notes,
-          })
-        : Promise.resolve(),
-    () =>
-      notifyAfterBookingPaid({
-        id: details.bookingId,
-        userId: details.userId,
-        alumnoDisplayName: details.alumnoName,
-        alumnoEmail: details.alumnoEmail,
-        lessonTypeId: VIDEO_CORRECTION_PRODUCT.id,
-        lessonTypeName: VIDEO_CORRECTION_PRODUCT.name,
-        productKind: "video_correction",
-        videoCount: details.videoCount,
-        sessionDurationId: null,
-        sessionSlotLabel: label,
-        startAt: new Date(),
-        endAt: new Date(),
-        amountCents: details.amountCents,
-      }),
-  ]);
+      });
+    } catch (err) {
+      console.error("[notify-coach] email alumno video pagado:", err);
+    }
+  }
 }
 
 /** Nueva solicitud de video corrección sin pago (legacy / manual) */
@@ -329,35 +407,44 @@ export async function coachNotifyVideoCorrectionBooking(details: {
   const label = `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`;
 
   await runCoachNotifications("video-correction-booking", [
-    () =>
-      notifyCoachNewBookingRequest({
-        alumnoName: details.alumnoName,
-        slotLabel: label,
-        dateLabel: "Video corrección",
-        bookingId: details.bookingId,
-        kind: "video_correction",
-        videoCount: details.videoCount,
-      }),
-    () =>
-      sendCoachVideoCorrectionRequestEmail({
-        alumnoName: details.alumnoName,
-        alumnoEmail: details.alumnoEmail,
-        videoCount: details.videoCount,
-        totalEuros: details.totalEuros,
-        notes: details.notes,
-        panelUrl,
-      }),
-    () =>
-      sendCoachWhatsAppMessage(
-        buildCoachVideoCorrectionRequestWhatsApp({
+    {
+      channel: "push",
+      run: () =>
+        notifyCoachNewBookingRequest({
+          alumnoName: details.alumnoName,
+          slotLabel: label,
+          dateLabel: "Video corrección",
+          bookingId: details.bookingId,
+          kind: "video_correction",
+          videoCount: details.videoCount,
+        }),
+    },
+    {
+      channel: "email",
+      run: () =>
+        sendCoachVideoCorrectionRequestEmail({
           alumnoName: details.alumnoName,
           alumnoEmail: details.alumnoEmail,
           videoCount: details.videoCount,
           totalEuros: details.totalEuros,
-          bookingId: details.bookingId,
           notes: details.notes,
+          panelUrl,
         }),
-      ),
+    },
+    {
+      channel: "whatsapp",
+      run: () =>
+        sendCoachWhatsAppMessage(
+          buildCoachVideoCorrectionRequestWhatsApp({
+            alumnoName: details.alumnoName,
+            alumnoEmail: details.alumnoEmail,
+            videoCount: details.videoCount,
+            totalEuros: details.totalEuros,
+            bookingId: details.bookingId,
+            notes: details.notes,
+          }),
+        ),
+    },
   ]);
 }
 
@@ -371,26 +458,35 @@ export async function coachNotifyVideoUploaded(details: {
   const panelUrl = `${getAppBaseUrl()}/coach/alumnos/${details.alumnoId}`;
 
   await runCoachNotifications("video-uploaded", [
-    () =>
-      notifyCoachAlumnoVideoUploaded({
-        alumnoName: details.alumnoName,
-        videoTitle: details.videoTitle,
-        alumnoId: details.alumnoId,
-      }),
-    () =>
-      sendCoachVideoUploadedEmail({
-        alumnoName: details.alumnoName,
-        alumnoEmail: details.alumnoEmail,
-        videoTitle: details.videoTitle,
-        panelUrl,
-      }),
-    () =>
-      sendCoachWhatsAppMessage(
-        buildCoachVideoUploadedWhatsApp({
+    {
+      channel: "push",
+      run: () =>
+        notifyCoachAlumnoVideoUploaded({
           alumnoName: details.alumnoName,
           videoTitle: details.videoTitle,
           alumnoId: details.alumnoId,
         }),
-      ),
+    },
+    {
+      channel: "email",
+      run: () =>
+        sendCoachVideoUploadedEmail({
+          alumnoName: details.alumnoName,
+          alumnoEmail: details.alumnoEmail,
+          videoTitle: details.videoTitle,
+          panelUrl,
+        }),
+    },
+    {
+      channel: "whatsapp",
+      run: () =>
+        sendCoachWhatsAppMessage(
+          buildCoachVideoUploadedWhatsApp({
+            alumnoName: details.alumnoName,
+            videoTitle: details.videoTitle,
+            alumnoId: details.alumnoId,
+          }),
+        ),
+    },
   ]);
 }

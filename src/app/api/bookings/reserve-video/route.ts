@@ -41,8 +41,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { name, videoCount, notes } = parsed.data;
-  const alumnoResult = await requireBookingAlumno(request, name);
+  const { name, email, videoCount, notes } = parsed.data;
+  const alumnoResult = await requireBookingAlumno(request, name, email);
   if ("error" in alumnoResult) {
     return NextResponse.json(
       { error: alumnoResult.error },

@@ -23,6 +23,7 @@ import type {
 } from "@/types/firestore";
 import type { InvoiceDocumentType } from "@/constants/invoicing";
 import type { IssuerConfig } from "@/types/issuer";
+import { isVideoCorrectionProduct } from "@/constants/video-correction";
 import {
   bookingAlumnoDisplayName,
   bookingAlumnoEmail,
@@ -30,6 +31,34 @@ import {
 } from "@/lib/firebase/booking-alumno-fields";
 
 const BOOKINGS = "bookings";
+
+export function isSessionBookingRecord(booking: Pick<Booking, "lessonTypeId" | "productKind">): boolean {
+  return (
+    booking.productKind !== "video_correction" &&
+    !isVideoCorrectionProduct(booking.lessonTypeId)
+  );
+}
+
+/** Clases en pista del alumno (excluye video corrección). */
+export async function fetchAlumnoBookings(userId: string): Promise<Booking[]> {
+  const q = query(
+    collection(getFirebaseDb(), BOOKINGS),
+    where("userId", "==", userId),
+  );
+  const snap = await getDocs(q);
+  return snap.docs
+    .map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        ...data,
+        alumnoDisplayName: bookingAlumnoDisplayName(data, ""),
+        alumnoEmail: bookingAlumnoEmail(data),
+      } as Booking;
+    })
+    .filter(isSessionBookingRecord)
+    .sort((a, b) => a.startAt.toMillis() - b.startAt.toMillis());
+}
 
 export async function fetchCoachBookings(coachId: string): Promise<Booking[]> {
   const q = query(

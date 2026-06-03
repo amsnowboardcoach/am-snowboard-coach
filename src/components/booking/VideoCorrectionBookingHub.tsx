@@ -4,7 +4,7 @@ import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { BookingAuthGate } from "@/components/booking/BookingAuthGate";
-import { getBookingAuthHeaders } from "@/lib/auth/booking-auth-headers";
+import { requireBookingAuthHeaders } from "@/lib/auth/booking-auth-headers";
 import { useAuth } from "@/contexts/AuthProvider";
 import {
   VIDEO_CORRECTION_PRODUCT,
@@ -17,7 +17,8 @@ import { cn } from "@/lib/utils/cn";
 export function VideoCorrectionBookingHub() {
   const searchParams = useSearchParams();
   const { user, profile, loading: authLoading } = useAuth();
-  const canBook = Boolean(user?.email) && !authLoading;
+  const canBook =
+    Boolean(user?.uid) && Boolean(user?.email) && !authLoading;
 
   const [videoCount, setVideoCount] = useState(1);
   const [name, setName] = useState("");
@@ -59,12 +60,10 @@ export function VideoCorrectionBookingHub() {
     setSubmitting(true);
     setSubmitError(null);
     try {
+      const headers = await requireBookingAuthHeaders();
       const res = await fetch("/api/bookings/reserve-video", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(await getBookingAuthHeaders()),
-        },
+        headers,
         body: JSON.stringify({
           name,
           email,

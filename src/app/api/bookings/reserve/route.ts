@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
     ? LESSON_TYPES.find((l) => l.id === lessonTypeId)
     : null;
 
-  const alumnoResult = await requireBookingAlumno(request, name);
+  const alumnoResult = await requireBookingAlumno(request, name, email);
   if ("error" in alumnoResult) {
     return NextResponse.json(
       { error: alumnoResult.error },

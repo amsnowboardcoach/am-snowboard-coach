@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { CoachWhatsAppCard } from "@/components/contact/CoachWhatsAppCard";
 import { DeleteAccountSection } from "@/components/perfil/DeleteAccountSection";
 import { ProfilePhotoUpload } from "@/components/perfil/ProfilePhotoUpload";
+import { AlumnoClassesPanel } from "@/components/perfil/AlumnoClassesPanel";
 import { AlumnoNoticesPanel } from "@/components/perfil/AlumnoNoticesPanel";
 import { AlumnoNoticesUnreadBadge } from "@/components/perfil/AlumnoNoticesUnreadBadge";
 import { useAuth } from "@/contexts/AuthProvider";
@@ -22,6 +23,12 @@ type PerfilLink = {
 };
 
 const links: PerfilLink[] = [
+  {
+    href: "/perfil/clases",
+    title: "Mis clases",
+    desc: "Clases reservadas y confirmadas en Sierra Nevada",
+    icon: "📅",
+  },
   {
     href: "/perfil/avisos",
     title: "Avisos del coach",
@@ -72,6 +79,28 @@ export default function PerfilPage() {
       </header>
 
       {isAlumno && <ProfilePhotoUpload />}
+
+      {isAlumno && user?.uid && (
+        <section className="glass-panel rounded-2xl p-5 sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-base font-semibold text-zinc-100">
+              Mis clases
+            </h2>
+            <Link
+              href="/perfil/clases"
+              className="text-sm font-medium link-accent"
+            >
+              Ver todas →
+            </Link>
+          </div>
+          <p className="mt-1 text-sm text-zinc-500">
+            Clases contratadas y confirmadas por Alejandro
+          </p>
+          <div className="mt-4">
+            <AlumnoClassesPanel userId={user.uid} compact />
+          </div>
+        </section>
+      )}
 
       {isAlumno && user?.uid && (
         <section className="glass-panel rounded-2xl p-5 sm:p-6">

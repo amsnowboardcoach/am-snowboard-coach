@@ -47,7 +47,8 @@ import {
   sessionTotalCents,
   type SessionDurationId,
 } from "@/constants/session-schedules";
-import { getBookingAuthHeaders } from "@/lib/auth/booking-auth-headers";
+import { requireBookingAuthHeaders } from "@/lib/auth/booking-auth-headers";
+import { linkAlumnoBookingsForCurrentUser } from "@/lib/firebase/link-alumno-bookings-client";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import type { AvailableSlotOption } from "@/lib/booking/availability";
 import { isDaySelectionComplete } from "@/lib/booking/multi-day";
@@ -271,6 +272,7 @@ export function BookingForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const canBook =
+    Boolean(user?.uid) &&
     Boolean(user?.email) &&
     !authLoading &&
     name.trim().length >= 2 &&
@@ -766,19 +768,17 @@ export function BookingForm() {
     const alumnoName = identity?.name ?? name.trim();
     const alumnoEmail = identity?.email ?? email.trim();
     if (!formReady || selectedDays.length === 0) return;
-    if (!user?.email) return;
+    if (!user?.uid || !user.email) return;
     if (alumnoName.length < 2 || !alumnoEmail) return;
     if (!isValidBookingPhone(phone)) return;
 
     setSubmitting(true);
     setSubmitError(null);
     try {
+      const headers = await requireBookingAuthHeaders();
       const res = await fetch("/api/bookings/reserve", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(await getBookingAuthHeaders()),
-        },
+        headers,
         body: JSON.stringify({
           durationId,
           sessions: selectedDays.map((d) => ({
@@ -863,6 +863,7 @@ export function BookingForm() {
     setName(alumnoName);
     setEmail(alumnoEmail);
     setBookingPendingSubmit(false);
+    await linkAlumnoBookingsForCurrentUser();
     await submitBooking({ name: alumnoName, email: alumnoEmail });
   }
 

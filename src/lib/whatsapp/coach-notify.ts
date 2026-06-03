@@ -117,21 +117,22 @@ async function sendViaCallMeBot(phone: string, body: string): Promise<void> {
 }
 
 /** Envía WhatsApp al coach vía CallMeBot. */
-export async function sendCoachWhatsAppMessage(message: string): Promise<void> {
+export async function sendCoachWhatsAppMessage(message: string): Promise<boolean> {
   if (!isCoachWhatsAppNotifyConfigured()) {
-    console.warn(
-      "[whatsapp] Sin CALLMEBOT_API_KEY; omitiendo aviso al coach por WhatsApp",
+    console.error(
+      "[notify-coach] WhatsApp no enviado: falta CALLMEBOT_API_KEY en el servidor",
     );
-    return;
+    return false;
   }
 
   await sendViaCallMeBot(coachNotifyPhoneDigits(), message);
+  return true;
 }
 
 export async function sendCoachBookingPaidWhatsApp(
   details: CoachBookingWhatsAppDetails,
-): Promise<void> {
-  await sendCoachWhatsAppMessage(buildCoachBookingPaidWhatsAppMessage(details));
+): Promise<boolean> {
+  return sendCoachWhatsAppMessage(buildCoachBookingPaidWhatsAppMessage(details));
 }
 
 export function buildCoachAlumnoRegisteredWhatsApp(details: {

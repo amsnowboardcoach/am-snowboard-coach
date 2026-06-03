@@ -22,14 +22,21 @@ export function CoachPushActivator() {
 
     void warmMessagingServiceWorker();
 
-    if (Notification.permission !== "granted") return;
-    if (synced.current) return;
-    synced.current = true;
-
     void (async () => {
       const ok = await isPushSupported();
       if (!ok) return;
-      await requestPushPermissionAndToken(user.uid);
+
+      if (Notification.permission === "granted") {
+        if (synced.current) return;
+        synced.current = true;
+        await requestPushPermissionAndToken(user.uid);
+        return;
+      }
+
+      if (Notification.permission === "default" && !synced.current) {
+        synced.current = true;
+        await requestPushPermissionAndToken(user.uid);
+      }
     })();
   }, [user, profile, loading]);
 

@@ -18,10 +18,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    await markSessionPaidAndFormalizeByCoach(bookingId);
+    const result = await markSessionPaidAndFormalizeByCoach(bookingId);
     return NextResponse.json({
       success: true,
-      message: "Pago registrado y reserva aceptada en el calendario.",
+      message:
+        result.warnings.length > 0
+          ? "Pago registrado y reserva aceptada. Revisa los avisos."
+          : "Pago registrado y reserva aceptada en el calendario.",
+      warnings: result.warnings,
     });
   } catch (err) {
     console.error("[mark-paid]", err);

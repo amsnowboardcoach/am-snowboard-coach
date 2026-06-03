@@ -100,13 +100,13 @@ async function sendMulticast(
 }
 
 /** Push a todos los dispositivos del coach (UID env + cuenta por email). */
-async function sendPushToCoach(payload: PushPayload): Promise<void> {
+async function sendPushToCoach(payload: PushPayload): Promise<boolean> {
   const userIds = await resolveCoachPushUserIds();
   if (userIds.length === 0) {
-    console.warn(
-      "[push] Sin UIDs de coach. Configura NEXT_PUBLIC_DEFAULT_COACH_ID o el email del coach en Firestore.",
+    console.error(
+      "[notify-coach] push no enviado: sin UID de coach. Configura NEXT_PUBLIC_DEFAULT_COACH_ID en Vercel o inicia sesión con el email en NEXT_PUBLIC_COACH_EMAILS.",
     );
-    return;
+    return false;
   }
 
   const seen = new Set<string>();
@@ -120,17 +120,19 @@ async function sendPushToCoach(payload: PushPayload): Promise<void> {
   }
 
   if (refs.length === 0) {
-    console.warn(
-      "[push] Coach sin tokens FCM. En el móvil: entra en /coach y pulsa «Activar» en el banner de avisos.",
+    console.error(
+      "[notify-coach] push no enviado: el coach no tiene tokens FCM. Abre /coach en el navegador y activa las notificaciones (banner o permiso del sistema).",
       { coachUserIds: userIds },
     );
-    return;
+    return false;
   }
 
   try {
     await sendMulticast(refs, payload);
+    return true;
   } catch (err) {
-    console.error("[push] sendToCoach", err);
+    console.error("[notify-coach] push falló:", err);
+    return false;
   }
 }
 
@@ -164,9 +166,9 @@ export async function notifyCoachNewSessionRequest(details: {
   startAt: Date;
   endAt: Date;
   bookingId: string;
-}): Promise<void> {
+}): Promise<boolean> {
   const when = formatBookingWhen(details.startAt, details.endAt);
-  await sendPushToCoach({
+  return sendPushToCoach({
     title: "Nueva solicitud de clase",
     body: `${details.alumnoName} · ${when}`,
     url: "/coach?tab=reservas",
@@ -179,10 +181,10 @@ export async function notifyCoachNewVideoCorrectionRequest(details: {
   alumnoName: string;
   videoCount: number;
   bookingId: string;
-}): Promise<void> {
+}): Promise<boolean> {
   const n = details.videoCount;
   const label = `${n} vídeo${n > 1 ? "s" : ""} a corregir`;
-  await sendPushToCoach({
+  return sendPushToCoach({
     title: "Nueva solicitud de video corrección",
     body: `${details.alumnoName} · ${label}`,
     url: "/coach?tab=reservas",
@@ -195,8 +197,8 @@ export async function notifyCoachNewAlumnoRegistered(details: {
   alumnoName: string;
   alumnoEmail: string;
   alumnoId: string;
-}): Promise<void> {
-  await sendPushToCoach({
+}): Promise<boolean> {
+  return sendPushToCoach({
     title: "Nuevo alumno registrado",
     body: `${details.alumnoName} · ${details.alumnoEmail}`,
     url: "/coach?tab=alumnos",
@@ -210,12 +212,12 @@ export async function notifyCoachAlumnoDeleted(details: {
   alumnoEmail: string;
   alumnoId: string;
   source: "self" | "coach";
-}): Promise<void> {
+}): Promise<boolean> {
   const reason =
     details.source === "self"
       ? "Baja voluntaria del alumno"
       : "Eliminado desde el panel coach";
-  await sendPushToCoach({
+  return sendPushToCoach({
     title: "Alumno eliminado",
     body: `${details.alumnoName} · ${reason}`,
     url: "/coach?tab=alumnos",
@@ -228,8 +230,8 @@ export async function notifyCoachAlumnoVideoUploaded(details: {
   alumnoName: string;
   videoTitle: string;
   alumnoId: string;
-}): Promise<void> {
-  await sendPushToCoach({
+}): Promise<boolean> {
+  return sendPushToCoach({
     title: "Vídeo nuevo de un alumno",
     body: `${details.alumnoName}: «${details.videoTitle}» — pendiente de revisión`,
     url: `/coach/alumnos/${details.alumnoId}`,
@@ -401,8 +403,8 @@ export async function notifyCoachPaymentReceived(details: {
   amountEuros: number;
   productLabel: string;
   bookingId: string;
-}): Promise<void> {
-  await sendPushToCoach({
+}): Promise<boolean> {
+  return sendPushToCoach({
     title: "Pago recibido — acepta la reserva",
     body: `${details.alumnoName} · ${details.productLabel} · ${details.amountEuros} €`,
     url: "/coach?tab=reservas",
@@ -435,28 +437,26 @@ export async function notifyCoachNewBookingRequest(details: {
   startAt?: Date;
   endAt?: Date;
   videoCount?: number;
-}): Promise<void> {
+}): Promise<boolean> {
   if (details.kind === "video_correction") {
-    await notifyCoachNewVideoCorrectionRequest({
+    return notifyCoachNewVideoCorrectionRequest({
       alumnoName: details.alumnoName,
       videoCount: details.videoCount ?? 1,
       bookingId: details.bookingId,
     });
-    return;
   }
 
   if (details.startAt && details.endAt) {
-    await notifyCoachNewSessionRequest({
+    return notifyCoachNewSessionRequest({
       alumnoName: details.alumnoName,
       slotLabel: details.slotLabel,
       startAt: details.startAt,
       endAt: details.endAt,
       bookingId: details.bookingId,
     });
-    return;
   }
 
-  await sendPushToCoach({
+  return sendPushToCoach({
     title: "Nueva solicitud de reserva",
     body: `${details.alumnoName} · ${details.dateLabel} · ${details.slotLabel}`,
     url: "/coach?tab=reservas",
@@ -558,7 +558,7 @@ export async function notifyAfterBookingPaid(booking: {
   startAt: Date;
   endAt: Date;
   amountCents: number;
-}): Promise<void> {
+}): Promise<boolean> {
   const amountEuros = Math.round(booking.amountCents / 100);
   const alumnoName =
     booking.alumnoDisplayName ||
@@ -578,13 +578,12 @@ export async function notifyAfterBookingPaid(booking: {
         productLabel: "Video corrección",
       });
     }
-    await notifyCoachPaymentReceived({
+    return notifyCoachPaymentReceived({
       alumnoName,
       amountEuros,
       productLabel: "Video corrección",
       bookingId: booking.id,
     });
-    return;
   }
 
   const productLabel =
@@ -599,7 +598,7 @@ export async function notifyAfterBookingPaid(booking: {
     });
   }
 
-  await notifyCoachPaymentReceived({
+  return notifyCoachPaymentReceived({
     alumnoName,
     amountEuros,
     productLabel,

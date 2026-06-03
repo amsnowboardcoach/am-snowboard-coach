@@ -37,6 +37,11 @@ export function bookingAlumnoEmail(booking: BookingAlumnoFields): string {
   return readAlumnoEmail(booking as Record<string, unknown>)?.trim() ?? "";
 }
 
+/** Email canónico para Firestore y consultas (minúsculas). */
+export function normalizeAlumnoEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
 /** Campos de alumno al escribir bookings (nuevo + legacy Firestore). */
 export function bookingAlumnoWriteFields(
   displayName: string,
@@ -48,7 +53,7 @@ export function bookingAlumnoWriteFields(
   studentEmail: string;
 } {
   const alumnoDisplayName = displayName.trim();
-  const alumnoEmail = email.trim();
+  const alumnoEmail = normalizeAlumnoEmail(email);
   return {
     alumnoDisplayName,
     alumnoEmail,

@@ -18,10 +18,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    await rejectBookingByCoach(bookingId);
+    const result = await rejectBookingByCoach(bookingId);
+    const refundNote = result.paymentRefunded
+      ? " Se ha iniciado la devolución del pago con tarjeta."
+      : "";
     return NextResponse.json({
       success: true,
-      message: "Solicitud rechazada.",
+      message: `Solicitud rechazada.${refundNote}`,
+      paymentRefunded: result.paymentRefunded ?? false,
+      warnings: result.warnings,
     });
   } catch (err) {
     console.error("[reject]", err);
