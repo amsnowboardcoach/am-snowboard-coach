@@ -543,11 +543,16 @@ export function BookingForm() {
       setParticipantCount(draft.participantCount);
       setDurationId(draft.durationId);
       setSlotId(draft.slotId);
-      setPickedDateKeys(
+      const draftDates =
         draft.pickedDateKeys ??
-          (draft.selectedDays as AvailableSlotOption[]).map((d) => d.date),
+        (draft.selectedDays as AvailableSlotOption[]).map((d) => d.date);
+      setPickedDateKeys(draftDates);
+      setSelectedDays(
+        draft.homeDatePicker ? [] : (draft.selectedDays as AvailableSlotOption[]),
       );
-      setSelectedDays(draft.selectedDays as AvailableSlotOption[]);
+      if (draft.homeDatePicker) {
+        setSlotId(null);
+      }
       setLessonTypeId(draft.lessonTypeId);
       setPhone(draft.phone ?? "");
       setObjectives(draft.objectives ?? draft.notes ?? "");
@@ -600,7 +605,6 @@ export function BookingForm() {
     }
     setDurationId(id);
     setSlotId(null);
-    setPickedDateKeys([]);
     setSelectedDays([]);
     setPackError(null);
     setParticipantCount((c) => Math.min(c, getMaxParticipants(id)));

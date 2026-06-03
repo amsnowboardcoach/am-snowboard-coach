@@ -28,6 +28,8 @@ export interface BookingDraft {
   level?: BookingLevelId | "";
   objectives?: string;
   paymentOption: BookingPaymentOption;
+  /** Fechas elegidas en home sin turnos; completar en /reservar */
+  homeDatePicker?: boolean;
 }
 
 export function saveBookingDraft(draft: BookingDraft): void {

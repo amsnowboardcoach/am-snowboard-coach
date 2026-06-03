@@ -1,6 +1,10 @@
 import type { User } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { authPhotoURL, usesGoogleSignIn } from "@/lib/auth/auth-photo";
+import {
+  authPhotoURL,
+  hasCustomAvatar,
+  usesGoogleSignIn,
+} from "@/lib/auth/auth-photo";
 import { getFirebaseDb } from "@/lib/firebase/client";
 import { createUserProfile } from "@/lib/firebase/users";
 import { requestCoachNotifyAlumnoRegistered } from "@/lib/push/request-coach-alumno-registered";
@@ -32,11 +36,12 @@ async function syncAlumnoGooglePhoto(
     return null;
   }
   if (!usesGoogleSignIn(user)) return null;
+  if (hasCustomAvatar(existing)) return null;
 
   const photo = authPhotoURL(user);
   if (!photo || existing.photoURL === photo) return null;
 
-  return tryPatchUserDoc(ref, { photoURL: photo });
+  return tryPatchUserDoc(ref, { photoURL: photo, avatarSource: "google" });
 }
 
 export async function ensureUserProfile(user: User): Promise<UserProfile> {

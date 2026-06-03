@@ -24,6 +24,8 @@ export interface UserProfile {
   email: string;
   displayName: string;
   photoURL?: string;
+  /** `custom` = foto subida por el alumno; no sobrescribir con Google al entrar */
+  avatarSource?: "google" | "custom";
   role: UserRole;
   phone?: string;
   level?: "beginner" | "intermediate" | "advanced";

@@ -115,6 +115,7 @@ service cloud.firestore {
         && changed.hasOnly([
           'displayName',
           'photoURL',
+          'avatarSource',
           'phone',
           'level',
           'preferences',

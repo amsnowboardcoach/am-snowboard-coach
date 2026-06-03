@@ -21,21 +21,17 @@ import { BOOKING_AVAILABILITY_FETCH_DAYS } from "@/constants/booking-availabilit
 import {
   DEFAULT_SESSION_DURATION_ID,
   getSessionDuration,
+  SESSION_DURATIONS,
+  type SessionDurationId,
 } from "@/constants/session-schedules";
 import type { AvailableSlotOption } from "@/lib/booking/availability";
-import {
-  saveBookingDraft,
-  type BookingDraftSlot,
-} from "@/lib/booking/booking-draft";
+import { saveBookingDraft } from "@/lib/booking/booking-draft";
 import {
   countDaysWithFreeSlots,
   mergeAvailableSlots,
   mergeCalendarDays,
-  slotsFreeOnAllPickedDates,
   type CalendarDayInfo,
 } from "@/lib/booking/calendar-availability";
-import { isDaySelectionComplete } from "@/lib/booking/multi-day";
-import { formatSlotConflictMessage } from "@/lib/booking/slot-suggestions";
 import type { DurationAvailabilityStatus } from "@/lib/booking/duration-availability";
 import { reservarHref } from "@/lib/booking/reservar-url";
 import {
@@ -58,8 +54,10 @@ function defaultAvailabilityFetchRange(): { start: string; end: string } {
 
 export function HomeHeroBookingSection() {
   const router = useRouter();
-  const durationId = DEFAULT_SESSION_DURATION_ID;
-  const session = getSessionDuration(durationId)!;
+  const [durationId, setDurationId] = useState<SessionDurationId>(
+    DEFAULT_SESSION_DURATION_ID,
+  );
+  const session = getSessionDuration(durationId) ?? SESSION_DURATIONS[0]!;
 
   const [calendarDays, setCalendarDays] = useState<CalendarDayInfo[]>([]);
   const [availableSlots, setAvailableSlots] = useState<AvailableSlotOption[]>(
@@ -72,12 +70,11 @@ export function HomeHeroBookingSection() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [pickedDateKeys, setPickedDateKeys] = useState<string[]>([]);
-  const [selectedDays, setSelectedDays] = useState<BookingDraftSlot[]>([]);
-  const [slotError, setSlotError] = useState<string | null>(null);
 
   const fetchRef = useRef<string | null>(null);
   const genRef = useRef(0);
   const rangeEndRef = useRef("");
+  const durationMountRef = useRef(true);
 
   const fetchAvailability = useCallback(
     async (
@@ -98,7 +95,7 @@ export function HomeHeroBookingSection() {
         return;
       }
       const { start, end } = clamped;
-      const fetchKey = `${start}:${end}:${merge}`;
+      const fetchKey = `${durationId}:${start}:${end}:${merge}`;
       if (!force && fetchRef.current === fetchKey) return;
       fetchRef.current = fetchKey;
       const gen = ++genRef.current;
@@ -156,8 +153,14 @@ export function HomeHeroBookingSection() {
   );
 
   useEffect(() => {
+    fetchRef.current = null;
+    if (!durationMountRef.current) {
+      setPickedDateKeys([]);
+    } else {
+      durationMountRef.current = false;
+    }
     void fetchAvailability(undefined, false, true);
-  }, [fetchAvailability]);
+  }, [durationId, fetchAvailability]);
 
   const navigationRangeEnd = getBookingSeasonBounds().end;
 
@@ -192,127 +195,67 @@ export function HomeHeroBookingSection() {
     [fetchAvailability, navigationRangeEnd],
   );
 
-  const selectedSlotByDate = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const d of selectedDays) map.set(d.date, d.slotId);
-    return map;
-  }, [selectedDays]);
-
-  function pickDateKey(date: string) {
-    setSlotError(null);
-    setPickedDateKeys((prev) => {
-      const exists = prev.includes(date);
-      const next = exists
-        ? prev.filter((d) => d !== date)
-        : prev.length >= MAX_BOOKING_DAYS
-          ? prev
-          : [...prev, date].sort();
-      setSelectedDays((days) => days.filter((d) => next.includes(d.date)));
-      return next;
-    });
-  }
-
-  function pickSlotForDate(date: string, slotId: string) {
-    setSlotError(null);
-    const option = availableSlots.find(
-      (o) => o.date === date && o.slotId === slotId,
-    );
-    if (!option) return;
-    setSelectedDays((prev) =>
-      [
-        ...prev.filter((d) => d.date !== date),
-        {
-          slotId: option.slotId,
-          startUtc: option.startUtc,
-          date: option.date,
-          label: option.label,
-        },
-      ].sort((a, b) => a.date.localeCompare(b.date)),
-    );
-  }
-
-  function pickSlotForAllDates(slotId: string) {
-    setSlotError(null);
-    if (pickedDateKeys.length === 0) {
-      setSelectedDays([]);
-      return;
-    }
-    const days = pickedDateKeys
-      .map((date) =>
-        availableSlots.find((o) => o.date === date && o.slotId === slotId),
-      )
-      .filter((o): o is AvailableSlotOption => Boolean(o));
-    if (days.length !== pickedDateKeys.length) {
-      setSlotError(
-        formatSlotConflictMessage(
-          session.slots,
-          slotId,
-          pickedDateKeys,
-          availableSlots,
-          (d) => format(parseISO(d), "d MMM", { locale: es }),
-        ),
-      );
-      return;
-    }
-    setSelectedDays(
-      days.map((o) => ({
-        slotId: o.slotId,
-        startUtc: o.startUtc,
-        date: o.date,
-        label: o.label,
-      })),
-    );
-  }
-
-  const datesPickedReady = pickedDateKeys.length >= 1;
-  const selectionReady = isDaySelectionComplete(pickedDateKeys, selectedDays);
   const daysPlan = useMemo(
     () => inferDaysPlanFromDates(pickedDateKeys),
     [pickedDateKeys],
   );
 
-  useEffect(() => {
-    if (!datesPickedReady || pickedDateKeys.length !== 1 || selectionReady) {
-      return;
-    }
-    const common = slotsFreeOnAllPickedDates(
-      session.slots,
-      pickedDateKeys,
-      availableSlots,
-    );
-    if (common.length === 1) {
-      pickSlotForAllDates(common[0]!.id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-único turno (1 día)
-  }, [datesPickedReady, pickedDateKeys.length, availableSlots, selectionReady]);
+  function pickDateKey(date: string) {
+    setPickedDateKeys((prev) => {
+      const exists = prev.includes(date);
+      if (exists) return prev.filter((d) => d !== date);
+      if (prev.length >= MAX_BOOKING_DAYS) return prev;
+      return [...prev, date].sort();
+    });
+  }
 
-  function goToReservar(withDraft: boolean) {
-    if (withDraft && selectionReady) {
-      const slotIds = new Set(selectedDays.map((d) => d.slotId));
-      saveBookingDraft({
-        participantCount: 1,
-        daysPlan,
-        consecutiveCount: pickedDateKeys.length,
-        durationId,
-        slotId: slotIds.size === 1 ? selectedDays[0]!.slotId : null,
-        pickedDateKeys,
-        selectedDays,
-        lessonTypeId: LESSON_TYPES[0]!.id,
-        paymentOption: BOOKING_PAYMENT_OPTIONS[0]!.id,
-      });
-      router.push(reservarHref({ duracion: durationId }));
+  function goToReservar() {
+    if (pickedDateKeys.length === 0) {
+      router.push(reservarHref());
       return;
     }
-    router.push("/reservar");
+
+    saveBookingDraft({
+      participantCount: 1,
+      daysPlan,
+      consecutiveCount: pickedDateKeys.length,
+      durationId,
+      slotId: null,
+      pickedDateKeys,
+      selectedDays: [],
+      lessonTypeId: LESSON_TYPES[0]!.id,
+      paymentOption: BOOKING_PAYMENT_OPTIONS[0]!.id,
+      homeDatePicker: true,
+    });
+    router.push(reservarHref({ duracion: durationId }));
   }
 
   return (
     <>
       <div className="rounded-2xl border border-white/15 bg-zinc-950/80 p-3 shadow-xl shadow-black/30 backdrop-blur-md sm:p-4">
-        <p className="mb-3 text-xs font-medium text-zinc-400">
+        <p className="mb-2 text-xs font-medium text-zinc-400">
           Disponibilidad en vivo
         </p>
+        <div className="mb-3 grid grid-cols-3 gap-2">
+          {SESSION_DURATIONS.map((d) => (
+            <button
+              key={d.id}
+              type="button"
+              onClick={() => setDurationId(d.id)}
+              className={cn(
+                "min-h-11 rounded-xl border px-2 py-2 text-center text-sm transition",
+                durationId === d.id
+                  ? "chip-toggle-active"
+                  : "border-zinc-700/80 bg-zinc-900/50 text-zinc-300 hover:border-zinc-500",
+              )}
+            >
+              <span className="block font-semibold">{d.shortLabel}</span>
+            </button>
+          ))}
+        </div>
         <BookingAvailabilityCalendar
+          mode="colorsOnly"
+          previewDurationLabel={session.shortLabel}
           className="border-zinc-700/60 bg-zinc-900/50"
           calendarDays={calendarDays}
           rangeStart={rangeStart}
@@ -320,38 +263,22 @@ export function HomeHeroBookingSection() {
           availableSlots={availableSlots}
           sessionSlots={session.slots}
           selectedDates={pickedDateKeys}
-          selectedSlotByDate={selectedSlotByDate}
+          selectedSlotByDate={new Map()}
           onSelectDate={pickDateKey}
-          onSelectSlotForDate={pickSlotForDate}
-          onSelectSlotForAllDates={pickSlotForAllDates}
+          onSelectSlotForDate={() => {}}
+          onSelectSlotForAllDates={() => {}}
           loadStatus={loadStatus}
           loadError={loadError}
           onRetry={refreshCalendar}
           onRefresh={refreshCalendar}
           onVisibleMonthChange={handleVisibleMonth}
           navigationRangeEnd={navigationRangeEnd}
-          slotSection="when-picked"
-          emptySlotHint="Toca uno o varios días verdes o ámbar y elige turno en cada uno."
+          emptySlotHint={`Toca días verdes o ámbar con hueco para ${session.shortLabel}. En reservar eliges el turno (mañana o tarde).`}
         />
-        {pickedDateKeys.length > 0 && !selectionReady && (
-          <p className="mt-3 text-center text-xs text-zinc-500">
-            {pickedDateKeys.length === 1
-              ? "Elige turno de mañana o tarde."
-              : `Elige turno (${selectedDays.length}/${pickedDateKeys.length} días)`}
-          </p>
-        )}
-        {slotError && (
-          <p className="mt-2 text-center text-xs text-amber-300/95">{slotError}</p>
-        )}
-        {selectionReady && (
+        {pickedDateKeys.length > 0 && (
           <p className="mt-3 text-center text-xs text-emerald-300/90">
             {pickedDateKeys.length === 1 && pickedDateKeys[0] ? (
-              <>
-                {selectedDays[0]?.label} ·{" "}
-                {format(parseISO(pickedDateKeys[0]), "EEEE d MMMM", {
-                  locale: es,
-                })}
-              </>
+              format(parseISO(pickedDateKeys[0]), "EEEE d MMMM", { locale: es })
             ) : (
               <>
                 {formatDaysPlanLabel(daysPlan, pickedDateKeys.length)} ·{" "}
@@ -367,16 +294,14 @@ export function HomeHeroBookingSection() {
       <div className="mt-4 flex w-full flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
         <button
           type="button"
-          onClick={() => goToReservar(selectionReady)}
-          className={cn(
-            "btn-primary-lg",
-          )}
+          onClick={goToReservar}
+          className={cn("btn-primary-lg")}
         >
-          {selectionReady
-            ? pickedDateKeys.length === 1
-              ? "Continuar con este turno"
-              : `Continuar con ${pickedDateKeys.length} días`
-            : "Reservar mi clase"}
+          {pickedDateKeys.length === 0
+            ? "Reservar mi clase"
+            : pickedDateKeys.length === 1
+              ? "Continuar con este día"
+              : `Continuar con ${pickedDateKeys.length} días`}
         </button>
       </div>
     </>

@@ -299,6 +299,8 @@ export function BookingAvailabilityCalendar({
   className,
   slotSection = "always",
   emptySlotHint,
+  previewDurationLabel,
+  mode = "availability",
 }: {
   calendarDays: CalendarDayInfo[];
   rangeStart: string;
@@ -322,11 +324,24 @@ export function BookingAvailabilityCalendar({
   className?: string;
   slotSection?: "always" | "when-picked";
   emptySlotHint?: string;
+  /** Home colorsOnly: etiqueta de duración (2 h, 3 h, día completo) */
+  previewDurationLabel?: string;
+  /**
+   * - availability: colores, fracciones y turnos (reservar)
+   * - colorsOnly: colores en vivo sin fracciones ni turnos (home)
+   * - datesOnly: temporada sin API (legacy)
+   */
+  mode?: "availability" | "colorsOnly" | "datesOnly";
 }) {
+  const datesOnly = mode === "datesOnly";
+  const colorsOnly = mode === "colorsOnly";
+  const showSlotCounts = mode === "availability";
+  const useLiveAvailability = !datesOnly;
   const showSlotPicker =
-    slotSection !== "when-picked" || selectedDates.length > 0;
-  const isLoading = loadStatus === "loading";
-  const isError = loadStatus === "error";
+    mode === "availability" &&
+    (slotSection !== "when-picked" || selectedDates.length > 0);
+  const isLoading = useLiveAvailability && loadStatus === "loading";
+  const isError = useLiveAvailability && loadStatus === "error";
   const calendarDisabled = disabled || isLoading || isError;
   const dayMap = useMemo(
     () => new Map(calendarDays.map((d) => [d.date, d])),
@@ -355,13 +370,14 @@ export function BookingAvailabilityCalendar({
   );
 
   const initialMonth = useMemo(() => {
+    if (datesOnly) return startOfMonth(rangeStartDate);
     const firstFree = calendarDays.find((d) => d.freeCount > 0);
     if (firstFree) {
       const d = parseISO(firstFree.date);
       if (isValid(d)) return startOfMonth(d);
     }
     return startOfMonth(rangeStartDate);
-  }, [calendarDays, rangeStartDate]);
+  }, [calendarDays, rangeStartDate, datesOnly]);
 
   const [viewMonth, setViewMonth] = useState(fallbackMonth);
 
@@ -380,10 +396,11 @@ export function BookingAvailabilityCalendar({
   }, [calendarDays, initialMonth]);
 
   useEffect(() => {
+    if (datesOnly) return;
     if (!rangeStart?.trim() || calendarDays.length === 0) return;
     setViewMonth(initialMonth);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- saltar al primer mes con huecos al cargar datos
-  }, [rangeStart]);
+  }, [rangeStart, datesOnly]);
 
   const safeViewMonth = isValid(viewMonth)
     ? viewMonth
@@ -464,7 +481,11 @@ export function BookingAvailabilityCalendar({
         </div>
 
         <p className="mt-2 text-center text-[11px] text-zinc-500">
-          Temporada {BOOKING_SEASON_LABEL} · elige turno en cada día marcado
+          {datesOnly
+            ? `Temporada ${BOOKING_SEASON_LABEL} · elige uno o varios días`
+            : colorsOnly
+              ? `Temporada ${BOOKING_SEASON_LABEL} · huecos para ${previewDurationLabel ?? "2 h"}`
+              : `Temporada ${BOOKING_SEASON_LABEL} · elige turno en cada día marcado`}
         </p>
 
         <div className="mt-2 grid grid-cols-7 gap-1 text-center">
@@ -477,14 +498,23 @@ export function BookingAvailabilityCalendar({
           const key = format(day, "yyyy-MM-dd");
           const inMonth = isSameMonth(day, safeViewMonth);
           const info = dayMap.get(key);
-          const status = info?.status;
+          const status = datesOnly
+            ? inMonth &&
+              isDateInBookingSeason(day) &&
+              !isBefore(day, rangeStartDate) &&
+              !isAfter(day, navigationEndDate)
+              ? "available"
+              : undefined
+            : info?.status;
           const selected = selectedSet.has(key);
-          const hasFree = (info?.freeCount ?? 0) > 0;
+          const hasFree = datesOnly
+            ? status === "available"
+            : (info?.freeCount ?? 0) > 0;
           const inRange =
             isDateInBookingSeason(day) &&
             !isBefore(day, rangeStartDate) &&
             !isAfter(day, navigationEndDate);
-          const dataLoaded = dayMap.has(key);
+          const dataLoaded = datesOnly || dayMap.has(key);
           const clickable =
             inMonth &&
             inRange &&
@@ -515,14 +545,18 @@ export function BookingAvailabilityCalendar({
                   clickable && !atMax && "active:scale-95",
                 )}
                 aria-label={
-                  inMonth && info
-                    ? `${format(day, "EEEE d MMMM", { locale: es })} — ${dayStatusLabel(status)}`
+                  inMonth && (datesOnly || info)
+                    ? `${format(day, "EEEE d MMMM", { locale: es })}${status ? ` — ${dayStatusLabel(status)}` : ""}`
                     : undefined
                 }
                 aria-pressed={selected}
               >
                 <span>{format(day, "d")}</span>
-                {inMonth && info && info.totalCount > 0 && !selected && (
+                {showSlotCounts &&
+                  inMonth &&
+                  info &&
+                  info.totalCount > 0 &&
+                  !selected && (
                   <span
                     className="absolute bottom-0.5 text-[8px] font-medium opacity-80"
                     aria-hidden
@@ -544,36 +578,38 @@ export function BookingAvailabilityCalendar({
           </p>
         )}
 
-        <div
-          className="flex w-full flex-col items-center gap-2.5"
-          aria-label="Leyenda del calendario"
-        >
-          <div className="flex w-full flex-wrap items-center justify-center gap-x-2.5 gap-y-2 sm:gap-x-3">
-            {LEGEND.map((item) => (
-              <span
-                key={item.status}
-                className="inline-flex items-center justify-center gap-1.5 text-[11px] text-zinc-500"
-              >
+        {useLiveAvailability && (
+          <div
+            className="flex w-full flex-col items-center gap-2.5"
+            aria-label="Leyenda del calendario"
+          >
+            <div className="flex w-full flex-wrap items-center justify-center gap-x-2.5 gap-y-2 sm:gap-x-3">
+              {LEGEND.map((item) => (
                 <span
-                  className={cn("h-3 w-3 shrink-0 rounded-sm", item.className)}
-                  aria-hidden
-                />
-                {item.label}
-              </span>
-            ))}
+                  key={item.status}
+                  className="inline-flex items-center justify-center gap-1.5 text-[11px] text-zinc-500"
+                >
+                  <span
+                    className={cn("h-3 w-3 shrink-0 rounded-sm", item.className)}
+                    aria-hidden
+                  />
+                  {item.label}
+                </span>
+              ))}
+            </div>
+            {onRefresh && (
+              <button
+                type="button"
+                onClick={onRefresh}
+                disabled={isLoading || disabled}
+                className="mx-auto w-full max-w-[220px] rounded-lg border border-zinc-700 px-3 py-2 text-center text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800/80 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 sm:max-w-none sm:w-auto sm:py-1.5"
+                aria-label="Actualizar disponibilidad del calendario"
+              >
+                {isLoading ? "Actualizando…" : "Actualizar calendario"}
+              </button>
+            )}
           </div>
-          {onRefresh && (
-            <button
-              type="button"
-              onClick={onRefresh}
-              disabled={isLoading || disabled}
-              className="mx-auto w-full max-w-[220px] rounded-lg border border-zinc-700 px-3 py-2 text-center text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800/80 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 sm:max-w-none sm:w-auto sm:py-1.5"
-              aria-label="Actualizar disponibilidad del calendario"
-            >
-              {isLoading ? "Actualizando…" : "Actualizar calendario"}
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       {showSlotPicker ? (

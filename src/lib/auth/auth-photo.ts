@@ -13,6 +13,24 @@ export function usesGoogleSignIn(user: User): boolean {
   return user.providerData.some((p) => p.providerId === "google.com");
 }
 
+export function isUploadedAvatarUrl(url: string | undefined): boolean {
+  if (!url?.trim()) return false;
+  const u = url.trim();
+  return (
+    u.includes("firebasestorage.googleapis.com") ||
+    u.includes("/avatars/")
+  );
+}
+
+export function hasCustomAvatar(profile: {
+  photoURL?: string;
+  avatarSource?: string;
+} | null | undefined): boolean {
+  if (!profile) return false;
+  if (profile.avatarSource === "custom") return true;
+  return isUploadedAvatarUrl(profile.photoURL);
+}
+
 /** Foto mostrada en UI: Firestore primero, luego Auth (Google). */
 export function resolvedProfilePhotoURL(
   profile: { photoURL?: string } | null | undefined,

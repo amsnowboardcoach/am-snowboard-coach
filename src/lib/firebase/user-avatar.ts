@@ -1,6 +1,7 @@
 import { updateProfile } from "firebase/auth";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getDownloadURL, ref } from "firebase/storage";
+import { authPhotoURL } from "@/lib/auth/auth-photo";
 import {
   getFirebaseAuth,
   getFirebaseDb,
@@ -48,6 +49,7 @@ export async function uploadUserAvatar(
 
   await updateDoc(doc(getFirebaseDb(), "users", userId), {
     photoURL,
+    avatarSource: "custom",
     updatedAt: serverTimestamp(),
   });
 
@@ -57,4 +59,27 @@ export async function uploadUserAvatar(
   }
 
   return photoURL;
+}
+
+/** Vuelve a la foto de la cuenta de Google (si está vinculada). */
+export async function restoreGoogleProfilePhoto(userId: string): Promise<string | null> {
+  const authUser = getFirebaseAuth().currentUser;
+  if (!authUser || authUser.uid !== userId) {
+    throw new Error("Debes tener la sesión iniciada.");
+  }
+
+  const googlePhoto = authPhotoURL(authUser);
+  if (!googlePhoto) {
+    throw new Error("Tu cuenta de Google no tiene foto de perfil.");
+  }
+
+  await updateDoc(doc(getFirebaseDb(), "users", userId), {
+    photoURL: googlePhoto,
+    avatarSource: "google",
+    updatedAt: serverTimestamp(),
+  });
+
+  await updateProfile(authUser, { photoURL: googlePhoto });
+
+  return googlePhoto;
 }
