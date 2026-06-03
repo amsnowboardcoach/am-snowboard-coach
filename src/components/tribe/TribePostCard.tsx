@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { useAuth } from "@/contexts/AuthProvider";
 import { isCoachProfile } from "@/lib/auth/coach-role";
+import { loginPathWithNext } from "@/lib/auth/paths";
 import { tribeCommentAuthorName } from "@/lib/auth/tribe-comment-author";
 import {
   canInteractOnTribeFeed,
@@ -42,6 +44,7 @@ export function TribePostCard({
   openCommentsOnMount = false,
   onFireChange,
 }: TribePostCardProps) {
+  const router = useRouter();
   const { user, profile, loading: authLoading, refreshProfile } = useAuth();
   const [fired, setFired] = useState(false);
   const [fireCount, setFireCount] = useState(post.fireCount);
@@ -143,6 +146,12 @@ export function TribePostCard({
   function blockInteract(): boolean {
     if (authLoading) return true;
     if (canInteract && user) return false;
+
+    if (!user || user.isAnonymous) {
+      router.push(loginPathWithNext(`/tribu?post=${post.id}`));
+      return true;
+    }
+
     showInteractNotice();
     return true;
   }
