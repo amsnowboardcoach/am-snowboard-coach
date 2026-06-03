@@ -265,7 +265,6 @@ export function HomeHeroBookingSection() {
           onRefresh={refreshCalendar}
           onVisibleMonthChange={handleVisibleMonth}
           navigationRangeEnd={navigationRangeEnd}
-          emptySlotHint="Toca días verdes o ámbar con hueco. En reservar eliges duración (2 h, 3 h o día completo) y turno."
         />
         {pickedDateKeys.length > 0 && (
           <p className="mt-3 text-center text-xs text-emerald-300/90">
