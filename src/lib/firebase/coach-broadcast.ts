@@ -1,8 +1,8 @@
 import { getFirebaseAuthHeaders } from "@/lib/auth/firebase-auth-headers";
-import type { CoachBroadcastTemplateId } from "@/constants/coach-student-messages";
+import type { CoachBroadcastTemplateId } from "@/constants/coach-alumno-messages";
 
 export interface CoachBroadcastRequest {
-  studentIds: string[];
+  alumnoIds: string[];
   templateId: CoachBroadcastTemplateId;
   customTitle?: string;
   customBody?: string;
@@ -19,10 +19,10 @@ export interface CoachBroadcastResponse {
   error?: string;
 }
 
-export async function sendCoachStudentBroadcast(
+export async function sendCoachAlumnoBroadcast(
   input: CoachBroadcastRequest,
 ): Promise<CoachBroadcastResponse> {
-  const res = await fetch("/api/coach/students/broadcast", {
+  const res = await fetch("/api/coach/alumnos/broadcast", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

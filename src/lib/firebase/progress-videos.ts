@@ -20,8 +20,8 @@ import type { ProgressVideo, ProgressVideoStatus } from "@/types/progress-video"
 
 const MAX_VIDEO_BYTES = 200 * 1024 * 1024; // 200 MB (vídeos de móvil suelen ser grandes)
 
-function videosCol(studentId: string) {
-  return collection(getFirebaseDb(), "users", studentId, "progress_videos");
+function videosCol(alumnoId: string) {
+  return collection(getFirebaseDb(), "users", alumnoId, "progress_videos");
 }
 
 export function validateVideoFile(file: File): string | null {
@@ -37,8 +37,8 @@ export function validateVideoFile(file: File): string | null {
   return null;
 }
 
-export async function uploadStudentProgressVideo(
-  studentId: string,
+export async function uploadAlumnoProgressVideo(
+  alumnoId: string,
   file: File,
   title?: string,
 ): Promise<string> {
@@ -46,8 +46,8 @@ export async function uploadStudentProgressVideo(
   if (err) throw new Error(err);
 
   const safeName = file.name.replace(/[^\w.\-() ]/g, "_").slice(0, 120);
-  const videoRef = doc(videosCol(studentId));
-  const storagePath = `progress_videos/${studentId}/${videoRef.id}/${safeName}`;
+  const videoRef = doc(videosCol(alumnoId));
+  const storagePath = `progress_videos/${alumnoId}/${videoRef.id}/${safeName}`;
 
   const storageRef = ref(getFirebaseStorage(), storagePath);
   const contentType = inferFileContentType(file);
@@ -58,7 +58,7 @@ export async function uploadStudentProgressVideo(
   }
 
   await setDoc(videoRef, {
-    studentId,
+    alumnoId,
     title: title?.trim() || safeName.replace(/\.[^.]+$/, "") || "Mi vídeo",
     storagePath,
     fileName: safeName,
@@ -72,10 +72,10 @@ export async function uploadStudentProgressVideo(
   return videoRef.id;
 }
 
-export async function fetchStudentProgressVideos(
-  studentId: string,
+export async function fetchAlumnoProgressVideos(
+  alumnoId: string,
 ): Promise<ProgressVideo[]> {
-  const q = query(videosCol(studentId), orderBy("uploadedAt", "desc"));
+  const q = query(videosCol(alumnoId), orderBy("uploadedAt", "desc"));
   const snap = await getDocs(q);
   return snap.docs.map(
     (d) => ({ id: d.id, ...d.data() }) as ProgressVideo,
@@ -89,12 +89,12 @@ export async function getProgressVideoDownloadUrl(
 }
 
 export async function saveCoachVideoNotes(
-  studentId: string,
+  alumnoId: string,
   videoId: string,
   coachNotes: string,
 ): Promise<void> {
   const trimmed = coachNotes.trim();
-  await updateDoc(doc(getFirebaseDb(), "users", studentId, "progress_videos", videoId), {
+  await updateDoc(doc(getFirebaseDb(), "users", alumnoId, "progress_videos", videoId), {
     coachNotes: trimmed,
     status: trimmed ? ("reviewed" satisfies ProgressVideoStatus) : "pending_review",
     coachNotesUpdatedAt: serverTimestamp(),

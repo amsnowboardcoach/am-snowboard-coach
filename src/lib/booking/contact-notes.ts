@@ -16,7 +16,7 @@ export function bookingLevelLabel(
 }
 
 /** Etiqueta de nivel en perfil / panel coach. */
-export function studentLevelLabel(
+export function alumnoLevelLabel(
   level: UserProfile["level"] | undefined,
 ): string {
   return bookingLevelLabel(level) ?? "Sin definir";

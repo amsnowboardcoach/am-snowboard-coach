@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SITE_MOBILE_TAB_BAR } from "@/constants/site-navigation";
-import { STUDENT_AREA_PATH } from "@/constants/student-area";
+import { ALUMNO_AREA_PATH } from "@/constants/alumno-area";
 import { cn } from "@/lib/utils/cn";
 import { scrollToTop } from "@/lib/navigation/scroll";
 
@@ -18,8 +18,8 @@ export function MobileBottomNav() {
       <ul className="mx-auto flex max-w-lg items-stretch justify-around px-2 pt-2 pb-1">
         {SITE_MOBILE_TAB_BAR.map((item) => {
           const active =
-            item.href === STUDENT_AREA_PATH
-              ? pathname === STUDENT_AREA_PATH ||
+            item.href === ALUMNO_AREA_PATH
+              ? pathname === ALUMNO_AREA_PATH ||
                 pathname.startsWith("/registro") ||
                 pathname.startsWith("/perfil")
               : pathname === item.href ||
@@ -69,7 +69,7 @@ export function MobileBottomNav() {
 function TabIcon({ href, active }: { href: string; active: boolean }) {
   const className = cn("size-5", active ? "text-sky-400" : "text-zinc-500");
   switch (href) {
-    case STUDENT_AREA_PATH:
+    case ALUMNO_AREA_PATH:
       return (
         <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
           <circle cx="12" cy="8" r="3.5" />

@@ -12,8 +12,8 @@ import {
 } from "@/lib/firebase/bookings";
 import { getFirebaseDb } from "@/lib/firebase/client";
 import { fetchPendingMarketplaceListings } from "@/lib/firebase/marketplace-listings";
-import { fetchStudentProgressVideos } from "@/lib/firebase/progress-videos";
-import { fetchCoachStudents } from "@/lib/firebase/students";
+import { fetchAlumnoProgressVideos } from "@/lib/firebase/progress-videos";
+import { fetchCoachAlumnos } from "@/lib/firebase/alumnos";
 
 export interface CoachHubStats {
   pendingBookings: number;
@@ -21,7 +21,7 @@ export interface CoachHubStats {
   pendingTribePosts: number;
   pendingMarketplaceListings: number;
   pendingVideos: number;
-  studentCount: number;
+  alumnoCount: number;
   upcomingBookings: number;
 }
 
@@ -30,9 +30,9 @@ export async function fetchCoachHubStats(
 ): Promise<CoachHubStats> {
   const now = Date.now();
 
-  const [bookings, students, tribeSnap, pendingListings] = await Promise.all([
+  const [bookings, alumnos, tribeSnap, pendingListings] = await Promise.all([
     fetchCoachBookings(coachId),
-    fetchCoachStudents(coachId),
+    fetchCoachAlumnos(coachId),
     getDocs(
       query(
         collection(getFirebaseDb(), "tribe_posts"),
@@ -52,10 +52,10 @@ export async function fetchCoachHubStats(
   ).length;
 
   let pendingVideos = 0;
-  if (students.length > 0) {
+  if (alumnos.length > 0) {
     const videoCounts = await Promise.all(
-      students.map(async (s) => {
-        const videos = await fetchStudentProgressVideos(s.uid);
+      alumnos.map(async (s) => {
+        const videos = await fetchAlumnoProgressVideos(s.uid);
         return videos.filter((v) => v.status === "pending_review").length;
       }),
     );
@@ -68,7 +68,7 @@ export async function fetchCoachHubStats(
     pendingTribePosts: tribeSnap.size,
     pendingMarketplaceListings: pendingListings.length,
     pendingVideos,
-    studentCount: students.length,
+    alumnoCount: alumnos.length,
     upcomingBookings,
   };
 }

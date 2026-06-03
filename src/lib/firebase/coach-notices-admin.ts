@@ -1,10 +1,10 @@
 import { FieldValue } from "firebase-admin/firestore";
-import type { CoachBroadcastTemplateId } from "@/constants/coach-student-messages";
-import { findCoachBroadcastTemplate } from "@/constants/coach-student-messages";
+import type { CoachBroadcastTemplateId } from "@/constants/coach-alumno-messages";
+import { findCoachBroadcastTemplate } from "@/constants/coach-alumno-messages";
 import { getAdminDb } from "@/lib/firebase/admin";
 
-export async function saveCoachNoticeForStudent(input: {
-  studentId: string;
+export async function saveCoachNoticeForAlumno(input: {
+  alumnoId: string;
   title: string;
   body: string;
   templateId: CoachBroadcastTemplateId;
@@ -13,7 +13,7 @@ export async function saveCoachNoticeForStudent(input: {
   const template = findCoachBroadcastTemplate(input.templateId);
   const ref = await getAdminDb()
     .collection("users")
-    .doc(input.studentId)
+    .doc(input.alumnoId)
     .collection("coach_notices")
     .add({
       title: input.title,

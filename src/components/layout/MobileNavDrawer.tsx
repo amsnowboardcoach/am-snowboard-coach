@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { SiteHeaderLogo } from "@/components/layout/SiteHeaderLogo";
-import { STUDENT_AREA_PATH } from "@/constants/student-area";
+import { ALUMNO_AREA_PATH } from "@/constants/alumno-area";
 import { scrollToTop } from "@/lib/navigation/scroll";
 import { cn } from "@/lib/utils/cn";
 
@@ -37,13 +37,13 @@ function linkPath(href: string): string {
   return href.split("?")[0] ?? href;
 }
 
-function isStudentAreaHref(href: string): boolean {
+function isAlumnoAreaHref(href: string): boolean {
   const path = linkPath(href);
-  return path === STUDENT_AREA_PATH || path === "/registro";
+  return path === ALUMNO_AREA_PATH || path === "/registro";
 }
 
 /** Icono de «Área de alumno» (mismo que la barra inferior móvil) */
-function StudentAreaIcon({ className }: { className: string }) {
+function AlumnoAreaIcon({ className }: { className: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
       <circle cx="12" cy="8" r="3.5" />
@@ -54,8 +54,8 @@ function StudentAreaIcon({ className }: { className: string }) {
 
 function NavItemIcon({ href, label }: { href: string; label?: string }) {
   const className = "size-5 shrink-0 text-zinc-500";
-  const isStudentArea =
-    isStudentAreaHref(href) ||
+  const isAlumnoArea =
+    isAlumnoAreaHref(href) ||
     label === "Área de alumno" ||
     label === "Entrar";
 
@@ -69,8 +69,8 @@ function NavItemIcon({ href, label }: { href: string; label?: string }) {
       </svg>
     );
   }
-  if (isStudentArea || href.startsWith("/perfil")) {
-    return <StudentAreaIcon className={className} />;
+  if (isAlumnoArea || href.startsWith("/perfil")) {
+    return <AlumnoAreaIcon className={className} />;
   }
   if (href.startsWith("/clases")) {
     return (

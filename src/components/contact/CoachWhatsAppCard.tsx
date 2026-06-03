@@ -2,7 +2,7 @@
 
 import {
   COACH_WHATSAPP_DISPLAY,
-  COACH_WHATSAPP_STUDENT_INTRO,
+  COACH_WHATSAPP_ALUMNO_INTRO,
   getCoachWhatsAppUrl,
 } from "@/constants/coach-contact";
 import { WhatsAppIcon } from "@/components/contact/WhatsAppIcon";
@@ -31,7 +31,7 @@ export function CoachWhatsAppCard({
 }: CoachWhatsAppCardProps) {
   const href = getCoachWhatsAppUrl(prefill);
   const introText =
-    intro === undefined ? COACH_WHATSAPP_STUDENT_INTRO : intro;
+    intro === undefined ? COACH_WHATSAPP_ALUMNO_INTRO : intro;
   const buttonLabel = showPhone ? `WhatsApp · ${COACH_WHATSAPP_DISPLAY}` : "WhatsApp";
 
   if (compact) {

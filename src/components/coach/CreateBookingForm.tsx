@@ -10,7 +10,7 @@ import { createBooking } from "@/lib/firebase/bookings";
 import { fromDatetimeLocalValue, toDatetimeLocalValue } from "@/lib/utils/dates";
 import type { BookingStatus, PaymentStatus } from "@/types/firestore";
 
-export interface CreateBookingStudentPrefill {
+export interface CreateBookingAlumnoPrefill {
   displayName: string;
   email?: string;
   userId?: string;
@@ -23,7 +23,7 @@ interface CreateBookingFormProps {
   /** Barra fija inferior en móvil (panel coach). */
   stickyMobileCta?: boolean;
   /** Pre-rellena datos del alumno (ficha del coach). */
-  studentPrefill?: CreateBookingStudentPrefill;
+  alumnoPrefill?: CreateBookingAlumnoPrefill;
   title?: string;
   description?: string;
 }
@@ -33,7 +33,7 @@ export function CreateBookingForm({
   onCreated,
   defaultOpen = false,
   stickyMobileCta = false,
-  studentPrefill,
+  alumnoPrefill,
   title = "Nueva reserva",
   description = "No sustituye la reserva online; úsala para casos puntuales.",
 }: CreateBookingFormProps) {
@@ -44,10 +44,10 @@ export function CreateBookingForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [studentDisplayName, setStudentDisplayName] = useState(
-    studentPrefill?.displayName ?? "",
+  const [alumnoDisplayName, setAlumnoDisplayName] = useState(
+    alumnoPrefill?.displayName ?? "",
   );
-  const [studentEmail, setStudentEmail] = useState(studentPrefill?.email ?? "");
+  const [alumnoEmail, setAlumnoEmail] = useState(alumnoPrefill?.email ?? "");
   const [lessonTypeId, setLessonTypeId] = useState<string>(LESSON_TYPES[0].id);
   const [startAt, setStartAt] = useState(toDatetimeLocalValue(defaultStart));
   const [sessionId, setSessionId] = useState<string>("2h");
@@ -93,9 +93,9 @@ export function CreateBookingForm({
     try {
       await createBooking({
         coachId,
-        studentDisplayName,
-        studentEmail: studentEmail || undefined,
-        userId: studentPrefill?.userId,
+        alumnoDisplayName,
+        alumnoEmail: alumnoEmail || undefined,
+        userId: alumnoPrefill?.userId,
         lessonTypeId,
         startAt: fromDatetimeLocalValue(startAt),
         durationMinutes,
@@ -103,9 +103,9 @@ export function CreateBookingForm({
         paymentStatus,
         status,
       });
-      if (!studentPrefill) {
-        setStudentDisplayName("");
-        setStudentEmail("");
+      if (!alumnoPrefill) {
+        setAlumnoDisplayName("");
+        setAlumnoEmail("");
       }
       setOpen(false);
       onCreated();
@@ -117,8 +117,8 @@ export function CreateBookingForm({
   }
 
   if (!open) {
-    const hint = studentPrefill
-      ? `Reserva para ${studentPrefill.displayName} con los turnos de la web.`
+    const hint = alumnoPrefill
+      ? `Reserva para ${alumnoPrefill.displayName} con los turnos de la web.`
       : "Reservas manuales (teléfono, WhatsApp) con los mismos turnos que la web.";
 
     const openButton = (
@@ -168,19 +168,19 @@ export function CreateBookingForm({
           Nombre del alumno *
           <input
             required
-            readOnly={Boolean(studentPrefill)}
-            value={studentDisplayName}
-            onChange={(e) => setStudentDisplayName(e.target.value)}
+            readOnly={Boolean(alumnoPrefill)}
+            value={alumnoDisplayName}
+            onChange={(e) => setAlumnoDisplayName(e.target.value)}
             className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 read-only:opacity-80"
           />
         </label>
         <label className="block text-sm text-zinc-300">
-          Email {studentPrefill ? "" : "(opcional)"}
+          Email {alumnoPrefill ? "" : "(opcional)"}
           <input
             type="email"
-            readOnly={Boolean(studentPrefill?.email)}
-            value={studentEmail}
-            onChange={(e) => setStudentEmail(e.target.value)}
+            readOnly={Boolean(alumnoPrefill?.email)}
+            value={alumnoEmail}
+            onChange={(e) => setAlumnoEmail(e.target.value)}
             className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 read-only:opacity-80"
           />
         </label>

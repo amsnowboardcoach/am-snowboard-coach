@@ -171,12 +171,14 @@ async function deleteBookingsForUser(
   }
 
   if (email) {
-    const byEmail = await db
-      .collection("bookings")
-      .where("studentEmail", "==", email)
-      .get();
-    for (const doc of byEmail.docs) {
-      toDelete.set(doc.id, doc);
+    for (const field of ["alumnoEmail", "studentEmail"] as const) {
+      const byEmail = await db
+        .collection("bookings")
+        .where(field, "==", email)
+        .get();
+      for (const doc of byEmail.docs) {
+        toDelete.set(doc.id, doc);
+      }
     }
   }
 
@@ -269,15 +271,15 @@ export async function deleteUserAccountCompletely(
   return { userId, displayName, email };
 }
 
-export async function assertCoachCanDeleteStudent(
+export async function assertCoachCanDeleteAlumno(
   coachUid: string,
-  studentId: string,
+  alumnoId: string,
 ): Promise<void> {
-  if (coachUid === studentId) {
+  if (coachUid === alumnoId) {
     throw new Error("No puedes eliminar tu propia cuenta desde el panel");
   }
-  const { assertCoachCanManageStudent } = await import(
-    "@/lib/firebase/coach-student-access"
+  const { assertCoachCanManageAlumno } = await import(
+    "@/lib/firebase/coach-alumno-access"
   );
-  await assertCoachCanManageStudent(coachUid, studentId);
+  await assertCoachCanManageAlumno(coachUid, alumnoId);
 }

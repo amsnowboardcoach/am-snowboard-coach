@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { StudentVideosPanel } from "@/components/videos/StudentVideosPanel";
+import { AlumnoVideosPanel } from "@/components/videos/AlumnoVideosPanel";
 import { useAuth } from "@/contexts/AuthProvider";
 
 export default function VideosPage() {
@@ -34,7 +34,7 @@ export default function VideosPage() {
       </header>
 
       <div>
-        <StudentVideosPanel studentId={user.uid} />
+        <AlumnoVideosPanel alumnoId={user.uid} />
       </div>
     </div>
   );

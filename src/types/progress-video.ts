@@ -4,7 +4,7 @@ export type ProgressVideoStatus = "pending_review" | "reviewed";
 
 export interface ProgressVideo {
   id: string;
-  studentId: string;
+  alumnoId: string;
   title: string;
   storagePath: string;
   fileName: string;

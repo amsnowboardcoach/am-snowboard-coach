@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyStudentBearer } from "@/lib/auth/verify-student";
+import { verifyAlumnoBearer } from "@/lib/auth/verify-alumno";
 import { adminCreateTribePost } from "@/lib/firebase/tribe-posts-admin";
 import { validateTribeMediaFile } from "@/lib/firebase/tribe-posts";
 import type { TribeMediaType } from "@/types/tribe-post";
@@ -14,8 +14,8 @@ function parseMediaType(raw: FormDataEntryValue | null): TribeMediaType | null {
 }
 
 export async function POST(request: NextRequest) {
-  const student = await verifyStudentBearer(request);
-  if (!student) {
+  const alumno = await verifyAlumnoBearer(request);
+  if (!alumno) {
     return NextResponse.json(
       {
         error:
@@ -72,9 +72,9 @@ export async function POST(request: NextRequest) {
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
     const postId = await adminCreateTribePost({
-      authorId: student.uid,
-      authorDisplayName: student.displayName,
-      authorPhotoURL: student.authorPhotoURL,
+      authorId: alumno.uid,
+      authorDisplayName: alumno.displayName,
+      authorPhotoURL: alumno.authorPhotoURL,
       fileBuffer: buffer,
       fileName: file.name || (mediaType === "photo" ? "foto.jpg" : "video.mp4"),
       mediaType,

@@ -21,13 +21,13 @@ export async function deleteMyAccount(confirmPhrase: string): Promise<void> {
   }
 }
 
-export async function coachDeleteStudent(studentId: string): Promise<void> {
+export async function coachDeleteAlumno(alumnoId: string): Promise<void> {
   const headers = await getFirebaseAuthHeaders();
   if (!("Authorization" in headers)) {
     throw new Error("Debes iniciar sesión como coach");
   }
 
-  const res = await fetch(`/api/coach/students/${encodeURIComponent(studentId)}`, {
+  const res = await fetch(`/api/coach/alumnos/${encodeURIComponent(alumnoId)}`, {
     method: "DELETE",
     headers,
   });

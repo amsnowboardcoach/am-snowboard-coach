@@ -26,12 +26,12 @@ import {
 } from "@/lib/pwa/install-prompt";
 import { registerPwaServiceWorker } from "@/lib/pwa/register-sw";
 import {
-  hasStudentNotifyConsent,
-  isStudentNotifySetupComplete,
-  isStudentNotifySetupDismissed,
-  markStudentNotifySetupComplete,
-} from "@/lib/pwa/student-notify-setup";
-import { StudentPwaNotifySetup } from "@/components/pwa/StudentPwaNotifySetup";
+  hasAlumnoNotifyConsent,
+  isAlumnoNotifySetupComplete,
+  isAlumnoNotifySetupDismissed,
+  markAlumnoNotifySetupComplete,
+} from "@/lib/pwa/alumno-notify-setup";
+import { AlumnoPwaNotifySetup } from "@/components/pwa/AlumnoPwaNotifySetup";
 import { cn } from "@/lib/utils/cn";
 
 const PWA_INSTALLED_KEY = "am-coach-pwa-installed";
@@ -73,12 +73,12 @@ export function PwaShell() {
   const [pushDismissed, setPushDismissed] = useState(true);
   const [pushLoading, setPushLoading] = useState(false);
   const [pushConfigured, setPushConfigured] = useState(false);
-  const [studentSetupDismissed, setStudentSetupDismissed] = useState(false);
-  const [studentSetupComplete, setStudentSetupComplete] = useState(false);
+  const [alumnoSetupDismissed, setAlumnoSetupDismissed] = useState(false);
+  const [alumnoSetupComplete, setAlumnoSetupComplete] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
 
   const isCoach = profile && COACH_ROLES.includes(profile.role);
-  const isStudent = profile?.role ? isAlumnoRole(profile.role) : false;
+  const isAlumno = profile?.role ? isAlumnoRole(profile.role) : false;
   const aboveTabBar = hasPublicMobileTabBar(pathname);
 
   useEffect(() => {
@@ -96,8 +96,8 @@ export function PwaShell() {
       setPushDismissed(false);
     }
 
-    setStudentSetupDismissed(isStudentNotifySetupDismissed());
-    setStudentSetupComplete(isStudentNotifySetupComplete());
+    setAlumnoSetupDismissed(isAlumnoNotifySetupDismissed());
+    setAlumnoSetupComplete(isAlumnoNotifySetupComplete());
 
     const alreadyInstalled = isPwaInstalled();
     if (alreadyInstalled) markPwaInstalled();
@@ -137,9 +137,9 @@ export function PwaShell() {
 
       if (Notification.permission === "granted") {
         await requestPushPermissionAndToken(user.uid).catch(() => null);
-        if (isStudent) {
-          markStudentNotifySetupComplete();
-          setStudentSetupComplete(true);
+        if (isAlumno) {
+          markAlumnoNotifySetupComplete();
+          setAlumnoSetupComplete(true);
         }
         return;
       }
@@ -152,15 +152,15 @@ export function PwaShell() {
         return;
       }
 
-      if (isStudent && !isStudentNotifySetupDismissed()) {
+      if (isAlumno && !isAlumnoNotifySetupDismissed()) {
         const iosNeedsInstall = isIosDevice() && !isPwaInstalled();
         if (
           Notification.permission === "default" ||
           iosNeedsInstall ||
-          hasStudentNotifyConsent()
+          hasAlumnoNotifyConsent()
         ) {
-          if (!isStudentNotifySetupComplete()) {
-            setStudentSetupComplete(false);
+          if (!isAlumnoNotifySetupComplete()) {
+            setAlumnoSetupComplete(false);
           }
         }
       } else {
@@ -174,7 +174,7 @@ export function PwaShell() {
     return () => {
       cancelled = true;
     };
-  }, [user, profile, loading, pushConfigured, isStudent]);
+  }, [user, profile, loading, pushConfigured, isAlumno]);
 
   useEffect(() => {
     let unsub: (() => void) | null = null;
@@ -258,9 +258,9 @@ export function PwaShell() {
       const token = await requestPushPermissionAndToken(user.uid);
       if (token) {
         setPushBanner(false);
-        if (isStudent) {
-          markStudentNotifySetupComplete();
-          setStudentSetupComplete(true);
+        if (isAlumno) {
+          markAlumnoNotifySetupComplete();
+          setAlumnoSetupComplete(true);
         }
         setToast({ message: "Notificaciones activadas en este dispositivo" });
         return true;
@@ -304,7 +304,7 @@ export function PwaShell() {
   const showIosWrongBrowser =
     isIos && !iosSafari && !installed && !installDismissed && !showInAppHint;
   const showInstall =
-    !isStudent &&
+    !isAlumno &&
     (showInAppHint || showAndroidInstall || showIosInstall || showIosWrongBrowser);
   const showPush =
     pushBanner &&
@@ -312,19 +312,19 @@ export function PwaShell() {
     pushConfigured &&
     !showInstall &&
     isCoach;
-  const studentNeedsIosInstall = isStudent && isIos && !installed;
-  const showStudentNotifySetup =
-    isStudent &&
+  const alumnoNeedsIosInstall = isAlumno && isIos && !installed;
+  const showAlumnoNotifySetup =
+    isAlumno &&
     user &&
     pushConfigured &&
     !loading &&
-    !studentSetupDismissed &&
-    !studentSetupComplete &&
-    (studentNeedsIosInstall ||
+    !alumnoSetupDismissed &&
+    !alumnoSetupComplete &&
+    (alumnoNeedsIosInstall ||
       Notification.permission === "default" ||
-      (hasStudentNotifyConsent() && Notification.permission !== "granted"));
+      (hasAlumnoNotifyConsent() && Notification.permission !== "granted"));
 
-  if (!showInstall && !showPush && !showStudentNotifySetup && !toast) {
+  if (!showInstall && !showPush && !showAlumnoNotifySetup && !toast) {
     return null;
   }
 
@@ -346,8 +346,8 @@ export function PwaShell() {
 
   return (
     <>
-      {showStudentNotifySetup && (
-        <StudentPwaNotifySetup
+      {showAlumnoNotifySetup && (
+        <AlumnoPwaNotifySetup
           aboveTabBar={aboveTabBar}
           installed={installed}
           isIos={isIos}
@@ -360,7 +360,7 @@ export function PwaShell() {
           onNativeInstall={handleNativeInstall}
           onEnablePush={enablePush}
           onToast={(message) => setToast({ message })}
-          onDismiss={() => setStudentSetupDismissed(true)}
+          onDismiss={() => setAlumnoSetupDismissed(true)}
         />
       )}
 
@@ -368,7 +368,7 @@ export function PwaShell() {
         <div
           className={cn(
             "pointer-events-none fixed inset-x-0 z-[56] flex justify-center px-4",
-            showStudentNotifySetup
+            showAlumnoNotifySetup
               ? "bottom-[calc(14rem+env(safe-area-inset-bottom,0px))] sm:bottom-[calc(12rem+env(safe-area-inset-bottom,0px))]"
               : aboveTabBar
                 ? "bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))]"

@@ -72,9 +72,9 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
   const canAcceptSession = needsApproval && !isVideo && paymentReady;
   const canAcceptVideo = needsApproval && isVideo && paymentReady;
 
-  const studentName =
-    booking.studentDisplayName ||
-    booking.studentEmail ||
+  const alumnoName =
+    booking.alumnoDisplayName ||
+    booking.alumnoEmail ||
     "Alumno sin nombre";
 
   async function confirmRequest() {
@@ -139,7 +139,7 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-zinc-100">{studentName}</h3>
+          <h3 className="font-semibold text-zinc-100">{alumnoName}</h3>
           {(booking.source === "web" || booking.source === "hub") && (
             <span className="inline-block rounded-full bg-sky-500/20 px-2 py-0.5 text-xs text-sky-300">
               Web

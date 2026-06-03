@@ -23,10 +23,15 @@ import {
 } from "@/lib/notify/coach";
 import {
   notifyAfterBookingPaid,
-  notifyStudentBookingConfirmed,
-  notifyStudentBookingRejected,
+  notifyAlumnoBookingConfirmed,
+  notifyAlumnoBookingRejected,
 } from "@/lib/push/send-push";
 import { getAppBaseUrl } from "@/constants/project";
+import {
+  bookingAlumnoWriteFields,
+  readAlumnoDisplayName,
+  readAlumnoEmail,
+} from "@/lib/firebase/booking-alumno-fields";
 import {
   VIDEO_CORRECTION_PRODUCT,
   isVideoCorrectionProduct,
@@ -106,8 +111,10 @@ function bookingDocData(parsed: ParsedCalBooking, userId: string, coachId: strin
   return {
     coachId,
     userId,
-    studentDisplayName: parsed.studentDisplayName,
-    studentEmail: parsed.studentEmail,
+    ...bookingAlumnoWriteFields(
+      parsed.alumnoDisplayName,
+      parsed.alumnoEmail,
+    ),
     lessonTypeId: parsed.lessonTypeId,
     lessonTypeName: parsed.lessonTypeName,
     sessionDurationId: parsed.sessionDurationId,
@@ -143,7 +150,7 @@ export async function syncBookingFromCalWebhook(
 ): Promise<CalWebhookSyncResult> {
   const coachId = getCoachId();
   const userId =
-    (await findUserIdByEmail(parsed.studentEmail)) ?? "";
+    (await findUserIdByEmail(parsed.alumnoEmail)) ?? "";
   const existing = await findBookingByCalUid(parsed.calUid);
 
   if (trigger === "BOOKING_CANCELLED" || trigger === "BOOKING_REJECTED") {
@@ -178,8 +185,8 @@ export interface WebBookingInput {
   slotLabel: string;
   lessonTypeId: string;
   lessonTypeName: string;
-  studentDisplayName: string;
-  studentEmail: string;
+  alumnoDisplayName: string;
+  alumnoEmail: string;
   startAt: Date;
   endAt: Date;
   /** Personas en pista (mín. 1). */
@@ -192,8 +199,8 @@ export interface WebBookingInput {
 }
 
 export interface VideoCorrectionBookingInput {
-  studentDisplayName: string;
-  studentEmail: string;
+  alumnoDisplayName: string;
+  alumnoEmail: string;
   videoCount: number;
   notes?: string;
   authUserId?: string;
@@ -203,8 +210,8 @@ export interface AdminBookingRecord {
   id: string;
   coachId: string;
   userId: string;
-  studentDisplayName?: string;
-  studentEmail?: string;
+  alumnoDisplayName?: string;
+  alumnoEmail?: string;
   lessonTypeId: string;
   lessonTypeName: string;
   productKind?: "session" | "video_correction";
@@ -242,8 +249,8 @@ export async function getBookingById(
     id: snap.id,
     coachId: d.coachId as string,
     userId: (d.userId as string) || "",
-    studentDisplayName: d.studentDisplayName as string | undefined,
-    studentEmail: d.studentEmail as string | undefined,
+    alumnoDisplayName: readAlumnoDisplayName(d),
+    alumnoEmail: readAlumnoEmail(d),
     lessonTypeId: d.lessonTypeId as string,
     lessonTypeName: d.lessonTypeName as string,
     productKind: d.productKind as AdminBookingRecord["productKind"],
@@ -385,11 +392,11 @@ export async function markBookingsPaidFromStripe(input: {
         await coachNotifySessionBookingPaidAwaitingApproval({
           bookingId: sessionBooking.id,
           userId: sessionBooking.userId,
-          studentName:
-            sessionBooking.studentDisplayName ||
-            sessionBooking.studentEmail ||
+          alumnoName:
+            sessionBooking.alumnoDisplayName ||
+            sessionBooking.alumnoEmail ||
             "Alumno",
-          studentEmail: sessionBooking.studentEmail || "",
+          alumnoEmail: sessionBooking.alumnoEmail || "",
           lessonTypeId: sessionBooking.lessonTypeId,
           lessonTypeName: sessionBooking.lessonTypeName,
           session,
@@ -432,8 +439,8 @@ export async function markBookingsPaidFromStripe(input: {
       await coachNotifyVideoBookingPaidAwaitingApproval({
         bookingId: videoBooking.id,
         userId: videoBooking.userId,
-        studentName: details.studentName,
-        studentEmail: details.studentEmail,
+        alumnoName: details.alumnoName,
+        alumnoEmail: details.alumnoEmail,
         videoCount: details.videoCount,
         totalEuros: details.totalEuros,
         notes: details.notes,
@@ -477,8 +484,8 @@ function bookingToEmailDetails(
     (booking.payment.balanceAmountCents ?? 0) / 100,
   );
   return {
-    studentName: booking.studentDisplayName || booking.studentEmail || "Alumno",
-    studentEmail: booking.studentEmail || "",
+    alumnoName: booking.alumnoDisplayName || booking.alumnoEmail || "Alumno",
+    alumnoEmail: booking.alumnoEmail || "",
     session,
     slotLabel: booking.sessionSlotLabel || session.name,
     startAt: booking.startAt,
@@ -495,15 +502,15 @@ function bookingToEmailDetails(
       booking.payment.status !== "pending" ? chargeEuros : undefined,
     balanceEuros:
       booking.payment.paymentOption === "deposit_30" ? balanceEuros : 0,
-    isRegisteredStudent: Boolean(booking.userId?.trim()),
+    isRegisteredAlumno: Boolean(booking.userId?.trim()),
   };
 }
 
 function videoEmailDetails(booking: AdminBookingRecord) {
   const count = booking.videoCount ?? 1;
   return {
-    studentName: booking.studentDisplayName || booking.studentEmail || "Alumno",
-    studentEmail: booking.studentEmail || "",
+    alumnoName: booking.alumnoDisplayName || booking.alumnoEmail || "Alumno",
+    alumnoEmail: booking.alumnoEmail || "",
     videoCount: count,
     totalEuros: Math.round(booking.payment.amountCents / 100),
     notes: booking.bookingNotes,
@@ -550,7 +557,7 @@ export async function createBookingFromWeb(
   const coachId = getCoachId();
   const userId =
     input.authUserId ??
-    (await findUserIdByEmail(input.studentEmail)) ??
+    (await findUserIdByEmail(input.alumnoEmail)) ??
     "";
 
   const overlapping = await findOverlappingBookings(input.startAt, input.endAt);
@@ -571,8 +578,7 @@ export async function createBookingFromWeb(
   const ref = await adminDb().collection(BOOKINGS).add({
     coachId,
     userId,
-    studentDisplayName: input.studentDisplayName,
-    studentEmail: input.studentEmail,
+    ...bookingAlumnoWriteFields(input.alumnoDisplayName, input.alumnoEmail),
     lessonTypeId: input.lessonTypeId,
     lessonTypeName: input.lessonTypeName,
     sessionDurationId: input.session.id,
@@ -611,7 +617,7 @@ export async function createVideoCorrectionBookingFromWeb(
   const coachId = getCoachId();
   const userId =
     input.authUserId ??
-    (await findUserIdByEmail(input.studentEmail)) ??
+    (await findUserIdByEmail(input.alumnoEmail)) ??
     "";
   const now = new Date();
   const end = new Date(now.getTime() + 60_000);
@@ -620,8 +626,7 @@ export async function createVideoCorrectionBookingFromWeb(
   const ref = await adminDb().collection(BOOKINGS).add({
     coachId,
     userId,
-    studentDisplayName: input.studentDisplayName,
-    studentEmail: input.studentEmail,
+    ...bookingAlumnoWriteFields(input.alumnoDisplayName, input.alumnoEmail),
     lessonTypeId: VIDEO_CORRECTION_PRODUCT.id,
     lessonTypeName: VIDEO_CORRECTION_PRODUCT.name,
     productKind: "video_correction" as const,
@@ -704,10 +709,10 @@ export async function formalizeSessionBooking(
     throw new Error("Ese turno ya no está disponible");
   }
 
-  const studentName =
-    booking.studentDisplayName || booking.studentEmail || "Alumno";
-  const studentEmail = booking.studentEmail || "";
-  const summary = buildSessionCalendarEventTitle(studentName);
+  const alumnoName =
+    booking.alumnoDisplayName || booking.alumnoEmail || "Alumno";
+  const alumnoEmail = booking.alumnoEmail || "";
+  const summary = buildSessionCalendarEventTitle(alumnoName);
 
   const googleCalendarEventId =
     booking.googleCalendarEventId ??
@@ -720,14 +725,14 @@ export async function formalizeSessionBooking(
           ? `Personas en pista: ${booking.participantCount}`
           : null,
         ...bookingPracticalInfoPlainLines(),
-        `Email: ${studentEmail}`,
+        `Email: ${alumnoEmail}`,
       ]
         .filter(Boolean)
         .join("\n"),
       start: booking.startAt,
       end: booking.endAt,
-      studentEmail,
-      studentName,
+      alumnoEmail,
+      alumnoName,
       location: BOOKING_LOCATION,
     }));
 
@@ -739,14 +744,14 @@ export async function formalizeSessionBooking(
     updatedAt: FieldValue.serverTimestamp(),
   });
 
-  if (studentEmail && wasPending) {
+  if (alumnoEmail && wasPending) {
     await sendBookingConfirmedEmails({
       ...bookingToEmailDetails(booking, session),
     });
   }
 
   if (wasPending) {
-    await notifyStudentBookingConfirmed({
+    await notifyAlumnoBookingConfirmed({
       userId: booking.userId,
       dateLabel: formatBookingInTimeZone(booking.startAt, "d MMM yyyy"),
       slotLabel: booking.sessionSlotLabel || session.name,
@@ -825,7 +830,7 @@ export async function confirmBookingByCoach(
     });
 
     const details = videoEmailDetails(booking);
-    if (details.studentEmail) {
+    if (details.alumnoEmail) {
       await sendVideoCorrectionConfirmedEmails({
         ...details,
         paidWithCard:
@@ -834,7 +839,7 @@ export async function confirmBookingByCoach(
       });
     }
 
-    await notifyStudentBookingConfirmed({
+    await notifyAlumnoBookingConfirmed({
       userId: booking.userId,
       dateLabel: "Video corrección",
       slotLabel: `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`,
@@ -887,10 +892,10 @@ export async function rejectBookingByCoach(bookingId: string): Promise<void> {
     booking.productKind === "video_correction" ||
     isVideoCorrectionProduct(booking.lessonTypeId)
   ) {
-    if (booking.studentEmail) {
+    if (booking.alumnoEmail) {
       await sendVideoCorrectionRejectedEmail(videoEmailDetails(booking));
     }
-    await notifyStudentBookingRejected({
+    await notifyAlumnoBookingRejected({
       userId: booking.userId,
       dateLabel: "Video corrección",
       isVideoCorrection: true,
@@ -904,14 +909,14 @@ export async function rejectBookingByCoach(bookingId: string): Promise<void> {
   );
   if (!session) throw new Error("Duración de sesión inválida");
 
-  if (booking.studentEmail) {
+  if (booking.alumnoEmail) {
     await sendBookingRejectedEmail({
       ...bookingToEmailDetails(booking, session),
       paymentRefunded,
     });
   }
 
-  await notifyStudentBookingRejected({
+  await notifyAlumnoBookingRejected({
     userId: booking.userId,
     dateLabel: formatBookingInTimeZone(booking.startAt, "d MMM yyyy"),
     startAt: booking.startAt,

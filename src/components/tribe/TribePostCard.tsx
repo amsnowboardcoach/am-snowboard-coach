@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import { useAuth } from "@/contexts/AuthProvider";
 import { ROLES } from "@/constants/roles";
-import { isStudentProfile } from "@/lib/auth/coach-role";
+import { isAlumnoProfile } from "@/lib/auth/coach-role";
 import {
   ensureTribeVisitorAuth,
   getStoredTribeGuestName,
@@ -53,11 +54,11 @@ export function TribePostCard({
   const [acting, setActing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const isStudentAccount =
+  const isAlumnoAccount =
     Boolean(user) &&
     !user?.isAnonymous &&
-    Boolean(profile && isStudentProfile(profile));
-  const needsGuestName = !isStudentAccount && !profile?.displayName;
+    Boolean(profile && isAlumnoProfile(profile));
+  const needsGuestName = !isAlumnoAccount && !profile?.displayName;
 
   useEffect(() => {
     setFireCount(post.fireCount);
@@ -167,19 +168,10 @@ export function TribePostCard({
       )}
     >
       <header className="flex items-center gap-3 px-4 py-3">
-        <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-zinc-800 text-sm font-semibold text-sky-300">
-          {post.authorPhotoURL ? (
-            <Image
-              src={post.authorPhotoURL}
-              alt=""
-              width={36}
-              height={36}
-              className="size-full object-cover"
-            />
-          ) : (
-            post.authorDisplayName.charAt(0).toUpperCase()
-          )}
-        </div>
+        <UserAvatar
+          photoURL={post.authorPhotoURL}
+          displayName={post.authorDisplayName}
+        />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-zinc-100">
             {post.authorDisplayName}

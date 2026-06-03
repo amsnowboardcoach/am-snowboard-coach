@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { useAuth } from "@/contexts/AuthProvider";
-import { studentAreaHref } from "@/constants/student-area";
+import { alumnoAreaHref } from "@/constants/alumno-area";
 import { setBookingPendingSubmit } from "@/lib/booking/booking-draft";
 import { cn } from "@/lib/utils/cn";
 interface BookingAuthGateProps {
@@ -79,7 +79,7 @@ export function BookingAuthGate({
       </div>
       <p className="mt-4 text-center text-sm text-zinc-500">
         <Link
-          href={studentAreaHref({ next: returnPath })}
+          href={alumnoAreaHref({ next: returnPath })}
           onClick={() => setBookingPendingSubmit(true)}
           className="font-medium link-accent underline-offset-2 hover:underline"
         >

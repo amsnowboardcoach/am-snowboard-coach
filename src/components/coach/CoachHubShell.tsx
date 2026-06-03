@@ -19,7 +19,7 @@ import { CoachPushActivator } from "@/components/coach/CoachPushActivator";
 import { CoachBookingsPanel } from "@/components/coach/CoachBookingsPanel";
 import { CoachHubInvoicingPanel } from "@/components/coach/CoachHubInvoicingPanel";
 import { CoachHubMarketplacePanel } from "@/components/coach/CoachHubMarketplacePanel";
-import { CoachHubStudentsPanel } from "@/components/coach/CoachHubStudentsPanel";
+import { CoachHubAlumnosPanel } from "@/components/coach/CoachHubAlumnosPanel";
 import { TribeModerationPanel } from "@/components/coach/TribeModerationPanel";
 import { scrollToTop } from "@/lib/navigation/scroll";
 import { cn } from "@/lib/utils/cn";
@@ -181,7 +181,7 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
         )}
 
         {activeTab === "alumnos" && (
-          <CoachHubStudentsPanel coachId={coachId} />
+          <CoachHubAlumnosPanel coachId={coachId} />
         )}
 
         {activeTab === "tribu" && (

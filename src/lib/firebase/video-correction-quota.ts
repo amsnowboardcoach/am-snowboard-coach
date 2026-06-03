@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { isVideoCorrectionProduct } from "@/constants/video-correction";
 import { getFirebaseDb } from "@/lib/firebase/client";
-import { fetchStudentProgressVideos } from "@/lib/firebase/progress-videos";
+import { fetchAlumnoProgressVideos } from "@/lib/firebase/progress-videos";
 
 const BOOKINGS = "bookings";
 
@@ -24,7 +24,7 @@ export interface VideoCorrectionAllowance {
   pendingRequest: boolean;
 }
 
-export async function fetchStudentVideoCorrectionAllowance(
+export async function fetchAlumnoVideoCorrectionAllowance(
   userId: string,
 ): Promise<VideoCorrectionAllowance> {
   const db = getFirebaseDb();
@@ -70,7 +70,7 @@ export async function fetchStudentVideoCorrectionAllowance(
     }
   }
 
-  const videos = await fetchStudentProgressVideos(userId);
+  const videos = await fetchAlumnoProgressVideos(userId);
   const uploadedCount = videos.length;
   const remainingSlots = Math.max(0, paidSlots - uploadedCount);
 

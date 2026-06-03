@@ -12,10 +12,10 @@ export interface PassportSectionNoteDoc {
 export type PassportSectionNotesMap = Partial<Record<TrickCategory, string>>;
 
 export async function fetchPassportSectionNotes(
-  studentId: string,
+  alumnoId: string,
 ): Promise<PassportSectionNotesMap> {
   const snap = await getDocs(
-    collection(getFirebaseDb(), "users", studentId, SUBCOL),
+    collection(getFirebaseDb(), "users", alumnoId, SUBCOL),
   );
   const map: PassportSectionNotesMap = {};
   for (const d of snap.docs) {

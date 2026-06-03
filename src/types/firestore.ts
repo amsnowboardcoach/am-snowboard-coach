@@ -29,6 +29,8 @@ export interface UserProfile {
   level?: "beginner" | "intermediate" | "advanced";
   assignedCoachId: string;
   stripeCustomerId?: string;
+  /** El coach ya recibió aviso (push/email) de este registro */
+  registrationCoachNotified?: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
   preferences?: {
@@ -105,7 +107,11 @@ export interface BookingInvoice {
 export interface Booking {
   id: string;
   userId: string;
+  alumnoDisplayName?: string;
+  alumnoEmail?: string;
+  /** @deprecated Firestore legacy */
   studentDisplayName?: string;
+  /** @deprecated Firestore legacy */
   studentEmail?: string;
   coachId: string;
   lessonTypeId: string;

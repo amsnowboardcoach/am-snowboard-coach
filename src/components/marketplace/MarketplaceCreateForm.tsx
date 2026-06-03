@@ -92,6 +92,7 @@ export function MarketplaceCreateForm({ onCreated }: MarketplaceCreateFormProps)
         sellerId: user.uid,
         sellerDisplayName:
           profile.displayName || user.displayName || "Usuario AM",
+        sellerPhotoURL: profile.photoURL || user.photoURL || undefined,
         title,
         description,
         priceEuros: price,

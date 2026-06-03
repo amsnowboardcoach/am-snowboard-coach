@@ -1,4 +1,4 @@
-import { STUDENT_AREA_PATH } from "@/constants/student-area";
+import { ALUMNO_AREA_PATH } from "@/constants/alumno-area";
 
 export interface SiteNavItem {
   href: string;
@@ -22,7 +22,7 @@ export const SITE_NAV_PUBLIC: SiteNavItem[] = [
 
 export const SITE_NAV_AUTH: SiteNavItem[] = [
   {
-    href: STUDENT_AREA_PATH,
+    href: ALUMNO_AREA_PATH,
     label: "Área de alumno",
     shortLabel: "Área",
   },
@@ -40,7 +40,7 @@ export const SITE_HEADER_CTA: SiteNavItem = SITE_NAV_PUBLIC.find(
 /** Barra inferior móvil (máx. 5 ítems) */
 export const SITE_MOBILE_TAB_BAR: SiteNavItem[] = [
   {
-    href: STUDENT_AREA_PATH,
+    href: ALUMNO_AREA_PATH,
     label: "Área de alumno",
     shortLabel: "Entrar",
   },
@@ -99,7 +99,7 @@ export function getPageWayfinding(pathname: string): WayfindingBlock | null {
         { href: "/reservar", label: "Reservar clase", description: "Confirmación personal" },
         { href: "/clases", label: "Tipos de clase", description: "Qué trabajamos en pista" },
         {
-          href: STUDENT_AREA_PATH,
+          href: ALUMNO_AREA_PATH,
           label: "Área de alumno",
           description: "Pasaporte y vídeos",
         },
@@ -112,7 +112,7 @@ export function getPageWayfinding(pathname: string): WayfindingBlock | null {
         { href: "/tarifas", label: "Tarifas", description: "Personas extra y precios" },
         { href: "/sobre-mi", label: "Sobre el coach", description: "Quién te enseña" },
         {
-          href: STUDENT_AREA_PATH,
+          href: ALUMNO_AREA_PATH,
           label: "Área de alumno",
           description: "Entrar o registrarte para reservar",
         },
@@ -132,7 +132,7 @@ export function getPageWayfinding(pathname: string): WayfindingBlock | null {
         { href: "/reservar", label: "Reservar clase", description: "Únete en pista" },
         { href: "/mercadillo", label: "Mercadillo", description: "Material entre alumnos" },
         {
-          href: STUDENT_AREA_PATH,
+          href: ALUMNO_AREA_PATH,
           label: "Área de alumno",
           description: "Entrar o registrarte en La Tribu",
         },
@@ -144,7 +144,7 @@ export function getPageWayfinding(pathname: string): WayfindingBlock | null {
         { href: "/tribu", label: "La Tribu", description: "Comunidad y fotos" },
         { href: "/reservar", label: "Reservar clase", description: "Clases en Sierra Nevada" },
         {
-          href: STUDENT_AREA_PATH,
+          href: ALUMNO_AREA_PATH,
           label: "Área de alumno",
           description: "Entrar o registrarte",
         },

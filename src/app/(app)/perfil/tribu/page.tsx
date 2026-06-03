@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { StudentTribePanel } from "@/components/tribe/StudentTribePanel";
+import { AlumnoTribePanel } from "@/components/tribe/AlumnoTribePanel";
 import { useAuth } from "@/contexts/AuthProvider";
-import { isStudentProfile } from "@/lib/auth/coach-role";
+import { isAlumnoProfile } from "@/lib/auth/coach-role";
 
 export default function PerfilTribuPage() {
   const { user, profile, loading } = useAuth();
@@ -17,7 +17,7 @@ export default function PerfilTribuPage() {
       router.replace("/login?next=/perfil/tribu");
       return;
     }
-    if (profile && !isStudentProfile(profile)) {
+    if (profile && !isAlumnoProfile(profile)) {
       router.replace("/coach");
     }
   }, [user, profile, loading, router]);
@@ -26,7 +26,7 @@ export default function PerfilTribuPage() {
     return <p className="text-zinc-500">Cargando…</p>;
   }
 
-  if (profile && !isStudentProfile(profile)) {
+  if (profile && !isAlumnoProfile(profile)) {
     return null;
   }
 
@@ -48,7 +48,7 @@ export default function PerfilTribuPage() {
         </p>
       </header>
 
-      <StudentTribePanel studentId={user.uid} />
+      <AlumnoTribePanel alumnoId={user.uid} />
     </div>
   );
 }

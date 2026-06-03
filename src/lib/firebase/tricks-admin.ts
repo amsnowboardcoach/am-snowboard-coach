@@ -11,8 +11,8 @@ export interface TrickProgressUpdateInput {
   coachNotes?: string;
 }
 
-export async function applyStudentTrickProgressUpdates(
-  studentId: string,
+export async function applyAlumnoTrickProgressUpdates(
+  alumnoId: string,
   coachId: string,
   updates: TrickProgressUpdateInput[],
 ): Promise<void> {
@@ -22,7 +22,7 @@ export async function applyStudentTrickProgressUpdates(
   for (const update of updates) {
     const ref = db
       .collection("users")
-      .doc(studentId)
+      .doc(alumnoId)
       .collection("trick_progress")
       .doc(update.trickId);
 

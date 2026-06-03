@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyCoachRequest } from "@/lib/auth/verify-coach";
 import { getAdminDb } from "@/lib/firebase/admin";
-import { notifyStudentVideoReviewReady } from "@/lib/push/send-push";
+import { notifyAlumnoVideoReviewReady } from "@/lib/push/send-push";
 
 export const runtime = "nodejs";
 
 const bodySchema = z.object({
-  studentId: z.string().min(1),
+  alumnoId: z.string().min(1),
   videoId: z.string().min(1),
 });
 
@@ -29,10 +29,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
-  const { studentId, videoId } = parsed.data;
+  const { alumnoId, videoId } = parsed.data;
   const videoSnap = await getAdminDb()
     .collection("users")
-    .doc(studentId)
+    .doc(alumnoId)
     .collection("progress_videos")
     .doc(videoId)
     .get();
@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    await notifyStudentVideoReviewReady({
-      userId: studentId,
+    await notifyAlumnoVideoReviewReady({
+      userId: alumnoId,
       videoTitle: (video.title as string) || "Tu vídeo",
     });
   } catch (err) {

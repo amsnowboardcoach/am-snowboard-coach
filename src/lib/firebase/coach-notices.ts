@@ -14,16 +14,16 @@ import type { CoachNoticeDoc } from "@/types/coach-notice";
 
 const SUB = "coach_notices";
 
-function noticesCol(studentId: string) {
-  return collection(getFirebaseDb(), "users", studentId, SUB);
+function noticesCol(alumnoId: string) {
+  return collection(getFirebaseDb(), "users", alumnoId, SUB);
 }
 
-export async function fetchStudentCoachNotices(
-  studentId: string,
+export async function fetchAlumnoCoachNotices(
+  alumnoId: string,
   max = 50,
 ): Promise<CoachNoticeDoc[]> {
   const q = query(
-    noticesCol(studentId),
+    noticesCol(alumnoId),
     orderBy("createdAt", "desc"),
     limit(max),
   );
@@ -34,10 +34,10 @@ export async function fetchStudentCoachNotices(
 }
 
 export async function countUnreadCoachNotices(
-  studentId: string,
+  alumnoId: string,
 ): Promise<number> {
   const q = query(
-    noticesCol(studentId),
+    noticesCol(alumnoId),
     where("readAt", "==", null),
     limit(100),
   );
@@ -46,21 +46,21 @@ export async function countUnreadCoachNotices(
 }
 
 export async function markCoachNoticeRead(
-  studentId: string,
+  alumnoId: string,
   noticeId: string,
 ): Promise<void> {
   await updateDoc(
-    doc(getFirebaseDb(), "users", studentId, SUB, noticeId),
+    doc(getFirebaseDb(), "users", alumnoId, SUB, noticeId),
     { readAt: serverTimestamp() },
   );
 }
 
 export async function markAllCoachNoticesRead(
-  studentId: string,
+  alumnoId: string,
   notices: CoachNoticeDoc[],
 ): Promise<void> {
   const unread = notices.filter((n) => !n.readAt);
   await Promise.all(
-    unread.map((n) => markCoachNoticeRead(studentId, n.id)),
+    unread.map((n) => markCoachNoticeRead(alumnoId, n.id)),
   );
 }

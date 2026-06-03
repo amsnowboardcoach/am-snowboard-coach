@@ -10,7 +10,7 @@ import { isStripeConfigured } from "@/lib/stripe/config";
 import { createBookingCheckoutSession } from "@/lib/stripe/checkout";
 import { getAppBaseUrl } from "@/constants/project";
 import { z } from "zod";
-import { requireBookingStudent } from "@/lib/auth/resolve-booking-student";
+import { requireBookingAlumno } from "@/lib/auth/resolve-booking-alumno";
 
 export const runtime = "nodejs";
 
@@ -42,22 +42,22 @@ export async function POST(request: NextRequest) {
   }
 
   const { name, videoCount, notes } = parsed.data;
-  const studentResult = await requireBookingStudent(request, name);
-  if ("error" in studentResult) {
+  const alumnoResult = await requireBookingAlumno(request, name);
+  if ("error" in alumnoResult) {
     return NextResponse.json(
-      { error: studentResult.error },
-      { status: studentResult.status },
+      { error: alumnoResult.error },
+      { status: alumnoResult.status },
     );
   }
-  const { studentName, studentEmail, authUserId } = studentResult;
+  const { alumnoName, alumnoEmail, authUserId } = alumnoResult;
   const totalEuros = videoCorrectionTotalEuros(videoCount);
   const amountCents = videoCorrectionTotalCents(videoCount);
   const label = `${videoCount} vídeo${videoCount > 1 ? "s" : ""}`;
 
   try {
     const bookingId = await createVideoCorrectionBookingFromWeb({
-      studentDisplayName: studentName,
-      studentEmail,
+      alumnoDisplayName: alumnoName,
+      alumnoEmail,
       videoCount,
       notes,
       authUserId,
@@ -72,8 +72,8 @@ export async function POST(request: NextRequest) {
           bookingId,
           slotLabel: label,
           lessonTypeName: VIDEO_CORRECTION_PRODUCT.name,
-          studentName,
-          studentEmail,
+          alumnoName,
+          alumnoEmail,
           startAt: now,
           amountCents,
           productTitle: VIDEO_CORRECTION_PRODUCT.name,
@@ -105,8 +105,8 @@ export async function POST(request: NextRequest) {
 
     try {
       await sendVideoCorrectionRequestEmails({
-        studentName,
-        studentEmail,
+        alumnoName,
+        alumnoEmail,
         videoCount,
         totalEuros,
         notes,

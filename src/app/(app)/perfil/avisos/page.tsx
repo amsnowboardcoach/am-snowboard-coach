@@ -3,16 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { StudentNoticesPanel } from "@/components/perfil/StudentNoticesPanel";
+import { AlumnoNoticesPanel } from "@/components/perfil/AlumnoNoticesPanel";
 import { useAuth } from "@/contexts/AuthProvider";
-import { isStudentProfile } from "@/lib/auth/coach-role";
+import { isAlumnoProfile } from "@/lib/auth/coach-role";
 
 export default function PerfilAvisosPage() {
   const { user, profile } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (profile && !isStudentProfile(profile)) {
+    if (profile && !isAlumnoProfile(profile)) {
       router.replace("/coach");
     }
   }, [profile, router]);
@@ -35,7 +35,7 @@ export default function PerfilAvisosPage() {
           de punto de encuentro y otros avisos importantes.
         </p>
       </header>
-      <StudentNoticesPanel studentId={user.uid} />
+      <AlumnoNoticesPanel alumnoId={user.uid} />
     </div>
   );
 }

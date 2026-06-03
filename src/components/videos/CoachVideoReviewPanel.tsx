@@ -4,22 +4,22 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { ProgressVideoCard } from "@/components/videos/ProgressVideoCard";
 import { getFirebaseAuthHeaders } from "@/lib/auth/firebase-auth-headers";
 import {
-  fetchStudentProgressVideos,
+  fetchAlumnoProgressVideos,
   saveCoachVideoNotes,
 } from "@/lib/firebase/progress-videos";
 import type { ProgressVideo } from "@/types/progress-video";
 
 interface CoachVideoReviewPanelProps {
-  studentId: string;
+  alumnoId: string;
 }
 
 function CoachVideoReviewForm({
   video,
-  studentId,
+  alumnoId,
   onSaved,
 }: {
   video: ProgressVideo;
-  studentId: string;
+  alumnoId: string;
   onSaved: () => void;
 }) {
   const [notes, setNotes] = useState(video.coachNotes);
@@ -41,7 +41,7 @@ function CoachVideoReviewForm({
         setSaving(false);
         return;
       }
-      await saveCoachVideoNotes(studentId, video.id, trimmed);
+      await saveCoachVideoNotes(alumnoId, video.id, trimmed);
       try {
         await fetch("/api/push/video-reviewed", {
           method: "POST",
@@ -49,7 +49,7 @@ function CoachVideoReviewForm({
             "Content-Type": "application/json",
             ...(await getFirebaseAuthHeaders()),
           },
-          body: JSON.stringify({ studentId, videoId: video.id }),
+          body: JSON.stringify({ alumnoId, videoId: video.id }),
         });
       } catch {
         /* push opcional */
@@ -89,7 +89,7 @@ function CoachVideoReviewForm({
   );
 }
 
-export function CoachVideoReviewPanel({ studentId }: CoachVideoReviewPanelProps) {
+export function CoachVideoReviewPanel({ alumnoId }: CoachVideoReviewPanelProps) {
   const [videos, setVideos] = useState<ProgressVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -98,13 +98,13 @@ export function CoachVideoReviewPanel({ studentId }: CoachVideoReviewPanelProps)
     setLoading(true);
     setError(null);
     try {
-      setVideos(await fetchStudentProgressVideos(studentId));
+      setVideos(await fetchAlumnoProgressVideos(alumnoId));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al cargar");
     } finally {
       setLoading(false);
     }
-  }, [studentId]);
+  }, [alumnoId]);
 
   useEffect(() => {
     load();
@@ -142,7 +142,7 @@ export function CoachVideoReviewPanel({ studentId }: CoachVideoReviewPanelProps)
             <div className="-mt-2 overflow-hidden rounded-b-2xl border border-t-0 border-zinc-800 bg-zinc-900/80">
               <CoachVideoReviewForm
                 video={video}
-                studentId={studentId}
+                alumnoId={alumnoId}
                 onSaved={load}
               />
             </div>

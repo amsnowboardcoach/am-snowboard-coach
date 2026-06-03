@@ -84,9 +84,9 @@ export async function POST(
         booking.sessionSlotLabel ||
         (isVideo ? videoLabel : session!.name),
       lessonTypeName: booking.lessonTypeName,
-      studentName:
-        booking.studentDisplayName || booking.studentEmail || "Alumno",
-      studentEmail: booking.studentEmail || "",
+      alumnoName:
+        booking.alumnoDisplayName || booking.alumnoEmail || "Alumno",
+      alumnoEmail: booking.alumnoEmail || "",
       startAt: booking.startAt,
       amountCents:
         booking.payment.totalAmountCents ??

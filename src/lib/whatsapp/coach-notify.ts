@@ -8,8 +8,8 @@ import { formatBookingWhen } from "@/lib/booking/format-datetime";
 
 export interface CoachBookingWhatsAppDetails {
   bookingId: string;
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   lessonTypeName: string;
   sessionLabel: string;
   startAt: Date;
@@ -80,8 +80,8 @@ export function buildCoachBookingPaidWhatsAppMessage(
     "Nueva reserva AM Snowboard Coach",
     "Pago recibido — acepta o rechaza en el panel",
     "",
-    `Alumno: ${details.studentName}`,
-    `Email: ${details.studentEmail}`,
+    `Alumno: ${details.alumnoName}`,
+    `Email: ${details.alumnoEmail}`,
     `Estilo: ${details.lessonTypeName}`,
     `Modalidad: ${details.sessionLabel}`,
     `Personas: ${people}`,
@@ -134,25 +134,25 @@ export async function sendCoachBookingPaidWhatsApp(
   await sendCoachWhatsAppMessage(buildCoachBookingPaidWhatsAppMessage(details));
 }
 
-export function buildCoachStudentRegisteredWhatsApp(details: {
-  studentName: string;
-  studentEmail: string;
+export function buildCoachAlumnoRegisteredWhatsApp(details: {
+  alumnoName: string;
+  alumnoEmail: string;
 }): string {
   const panelUrl = `${getAppBaseUrl()}/coach?tab=alumnos`;
   return [
     "AM Snowboard Coach",
     "Nuevo alumno registrado",
     "",
-    `Nombre: ${details.studentName}`,
-    `Email: ${details.studentEmail}`,
+    `Nombre: ${details.alumnoName}`,
+    `Email: ${details.alumnoEmail}`,
     "",
     `Panel: ${panelUrl}`,
   ].join("\n");
 }
 
 export function buildCoachNewSessionBookingWhatsApp(details: {
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   lessonTypeName: string;
   sessionLabel: string;
   startAt: Date;
@@ -170,8 +170,8 @@ export function buildCoachNewSessionBookingWhatsApp(details: {
       ? "Nueva solicitud de clase (pago pendiente)"
       : "Nueva solicitud de clase",
     "",
-    `Alumno: ${details.studentName}`,
-    `Email: ${details.studentEmail}`,
+    `Alumno: ${details.alumnoName}`,
+    `Email: ${details.alumnoEmail}`,
     `Estilo: ${details.lessonTypeName}`,
     `Modalidad: ${details.sessionLabel}`,
     `Cuándo: ${when}`,
@@ -188,8 +188,8 @@ export function buildCoachNewSessionBookingWhatsApp(details: {
 }
 
 export function buildCoachVideoBookingPaidWhatsApp(details: {
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   videoCount: number;
   totalEuros: number;
   bookingId: string;
@@ -202,8 +202,8 @@ export function buildCoachVideoBookingPaidWhatsApp(details: {
     "Video corrección — pago recibido",
     "Acepta o rechaza en el panel",
     "",
-    `Alumno: ${details.studentName}`,
-    `Email: ${details.studentEmail}`,
+    `Alumno: ${details.alumnoName}`,
+    `Email: ${details.alumnoEmail}`,
     `${label} · ${details.totalEuros} € (tarjeta)`,
   ];
   if (details.notes?.trim()) {
@@ -214,8 +214,8 @@ export function buildCoachVideoBookingPaidWhatsApp(details: {
 }
 
 export function buildCoachVideoCorrectionRequestWhatsApp(details: {
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   videoCount: number;
   totalEuros: number;
   bookingId: string;
@@ -227,8 +227,8 @@ export function buildCoachVideoCorrectionRequestWhatsApp(details: {
     "AM Snowboard Coach",
     "Nueva solicitud — video corrección",
     "",
-    `Alumno: ${details.studentName}`,
-    `Email: ${details.studentEmail}`,
+    `Alumno: ${details.alumnoName}`,
+    `Email: ${details.alumnoEmail}`,
     `${label} · ${details.totalEuros} €`,
   ];
   if (details.notes?.trim()) {
@@ -239,16 +239,16 @@ export function buildCoachVideoCorrectionRequestWhatsApp(details: {
 }
 
 export function buildCoachVideoUploadedWhatsApp(details: {
-  studentName: string;
+  alumnoName: string;
   videoTitle: string;
-  studentId: string;
+  alumnoId: string;
 }): string {
-  const panelUrl = `${getAppBaseUrl()}/coach/alumnos/${details.studentId}`;
+  const panelUrl = `${getAppBaseUrl()}/coach/alumnos/${details.alumnoId}`;
   return [
     "AM Snowboard Coach",
     "Vídeo nuevo de un alumno",
     "",
-    `Alumno: ${details.studentName}`,
+    `Alumno: ${details.alumnoName}`,
     `Título: ${details.videoTitle}`,
     "Estado: pendiente de revisión",
     "",

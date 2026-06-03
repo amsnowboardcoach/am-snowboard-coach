@@ -759,11 +759,11 @@ export function BookingForm() {
   }
 
   const submitBooking = useCallback(async (identity?: { name: string; email: string }) => {
-    const studentName = identity?.name ?? name.trim();
-    const studentEmail = identity?.email ?? email.trim();
+    const alumnoName = identity?.name ?? name.trim();
+    const alumnoEmail = identity?.email ?? email.trim();
     if (!formReady || selectedDays.length === 0) return;
     if (!user?.email) return;
-    if (studentName.length < 2 || !studentEmail) return;
+    if (alumnoName.length < 2 || !alumnoEmail) return;
     if (!isValidBookingPhone(phone)) return;
 
     setSubmitting(true);
@@ -782,8 +782,8 @@ export function BookingForm() {
             startUtc: d.startUtc,
           })),
           daysPlan,
-          name: studentName,
-          email: studentEmail,
+          name: alumnoName,
+          email: alumnoEmail,
           lessonTypeId,
           participantCount,
           phone: phone.trim(),
@@ -850,16 +850,16 @@ export function BookingForm() {
       return;
     }
     const loadedProfile = await syncSessionAfterLogin();
-    const studentName =
+    const alumnoName =
       loadedProfile?.displayName?.trim() ||
       user.displayName?.trim() ||
       user.email.split("@")[0] ||
       "Alumno";
-    const studentEmail = user.email;
-    setName(studentName);
-    setEmail(studentEmail);
+    const alumnoEmail = user.email;
+    setName(alumnoName);
+    setEmail(alumnoEmail);
     setBookingPendingSubmit(false);
-    await submitBooking({ name: studentName, email: studentEmail });
+    await submitBooking({ name: alumnoName, email: alumnoEmail });
   }
 
   function openAuthGate() {

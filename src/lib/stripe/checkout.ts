@@ -15,8 +15,8 @@ export interface CreateBookingCheckoutInput {
   session?: SessionDuration;
   slotLabel: string;
   lessonTypeName: string;
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   startAt: Date;
   amountCents: number;
   participantCount?: number;
@@ -49,7 +49,7 @@ export async function createBookingCheckoutSession(
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     ...BOOKING_CHECKOUT_PAYMENT_OPTIONS,
-    customer_email: input.studentEmail,
+    customer_email: input.alumnoEmail,
     client_reference_id: input.bookingId,
     metadata: {
       bookingId: input.bookingId,
@@ -90,8 +90,8 @@ export interface GroupBookingCheckoutInput {
   totalAmountCents: number;
   session: SessionDuration;
   lessonTypeName: string;
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   /** Primera clase del grupo (texto Stripe) */
   firstStartAt: Date;
   firstSlotLabel: string;
@@ -133,7 +133,7 @@ export async function createGroupBookingCheckoutSession(
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     ...BOOKING_CHECKOUT_PAYMENT_OPTIONS,
-    customer_email: input.studentEmail,
+    customer_email: input.alumnoEmail,
     client_reference_id: input.bookingIds[0],
     metadata: {
       type: "booking_group",

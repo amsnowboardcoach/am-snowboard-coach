@@ -10,7 +10,7 @@ import {
   type BookingEmailSessionLine,
 } from "@/lib/email/send-booking";
 import {
-  sendCoachNewStudentRegisteredEmail,
+  sendCoachNewAlumnoRegisteredEmail,
   sendCoachNewSessionBookingEmail,
   sendCoachVideoCorrectionRequestEmail,
   sendCoachVideoUploadedEmail,
@@ -18,13 +18,13 @@ import {
 import {
   notifyAfterBookingPaid,
   notifyCoachNewBookingRequest,
-  notifyCoachNewStudentRegistered,
-  notifyCoachStudentVideoUploaded,
+  notifyCoachNewAlumnoRegistered,
+  notifyCoachAlumnoVideoUploaded,
 } from "@/lib/push/send-push";
 import type { SessionDuration } from "@/constants/session-schedules";
 import {
   buildCoachNewSessionBookingWhatsApp,
-  buildCoachStudentRegisteredWhatsApp,
+  buildCoachAlumnoRegisteredWhatsApp,
   buildCoachVideoBookingPaidWhatsApp,
   buildCoachVideoCorrectionRequestWhatsApp,
   buildCoachVideoUploadedWhatsApp,
@@ -35,38 +35,42 @@ import {
 async function runCoachNotifications(
   label: string,
   tasks: Array<() => Promise<void>>,
-): Promise<void> {
+): Promise<boolean> {
   const results = await Promise.allSettled(tasks.map((t) => t()));
+  let anyOk = false;
   for (const r of results) {
-    if (r.status === "rejected") {
+    if (r.status === "fulfilled") {
+      anyOk = true;
+    } else {
       console.error(`[notify-coach] ${label}:`, r.reason);
     }
   }
+  return anyOk;
 }
 
 /** Registro de alumno: push + email + WhatsApp */
-export async function coachNotifyStudentRegistered(details: {
-  studentName: string;
-  studentEmail: string;
-  studentId: string;
-}): Promise<void> {
-  await runCoachNotifications("student-registered", [
+export async function coachNotifyAlumnoRegistered(details: {
+  alumnoName: string;
+  alumnoEmail: string;
+  alumnoId: string;
+}): Promise<boolean> {
+  return runCoachNotifications("alumno-registered", [
     () =>
-      notifyCoachNewStudentRegistered({
-        studentName: details.studentName,
-        studentEmail: details.studentEmail,
-        studentId: details.studentId,
+      notifyCoachNewAlumnoRegistered({
+        alumnoName: details.alumnoName,
+        alumnoEmail: details.alumnoEmail,
+        alumnoId: details.alumnoId,
       }),
     () =>
-      sendCoachNewStudentRegisteredEmail({
-        studentName: details.studentName,
-        studentEmail: details.studentEmail,
+      sendCoachNewAlumnoRegisteredEmail({
+        alumnoName: details.alumnoName,
+        alumnoEmail: details.alumnoEmail,
       }),
     () =>
       sendCoachWhatsAppMessage(
-        buildCoachStudentRegisteredWhatsApp({
-          studentName: details.studentName,
-          studentEmail: details.studentEmail,
+        buildCoachAlumnoRegisteredWhatsApp({
+          alumnoName: details.alumnoName,
+          alumnoEmail: details.alumnoEmail,
         }),
       ),
   ]);
@@ -74,8 +78,8 @@ export async function coachNotifyStudentRegistered(details: {
 
 /** Nueva reserva de clase en pista (solo si el pago no es online pendiente en Stripe). */
 export async function coachNotifyNewSessionBooking(details: {
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   lessonTypeName: string;
   sessionLabel: string;
   slotLabel: string;
@@ -93,7 +97,7 @@ export async function coachNotifyNewSessionBooking(details: {
   await runCoachNotifications("new-session-booking", [
     () =>
       notifyCoachNewBookingRequest({
-        studentName: details.studentName,
+        alumnoName: details.alumnoName,
         slotLabel: details.slotLabel,
         dateLabel: when,
         bookingId: details.bookingId,
@@ -103,8 +107,8 @@ export async function coachNotifyNewSessionBooking(details: {
       }),
     () =>
       sendCoachNewSessionBookingEmail({
-        studentName: details.studentName,
-        studentEmail: details.studentEmail,
+        alumnoName: details.alumnoName,
+        alumnoEmail: details.alumnoEmail,
         lessonTypeName: details.lessonTypeName,
         sessionLabel: details.sessionLabel,
         when,
@@ -117,8 +121,8 @@ export async function coachNotifyNewSessionBooking(details: {
     () =>
       sendCoachWhatsAppMessage(
         buildCoachNewSessionBookingWhatsApp({
-          studentName: details.studentName,
-          studentEmail: details.studentEmail,
+          alumnoName: details.alumnoName,
+          alumnoEmail: details.alumnoEmail,
           lessonTypeName: details.lessonTypeName,
           sessionLabel: details.sessionLabel,
           startAt: details.startAt,
@@ -136,8 +140,8 @@ export async function coachNotifyNewSessionBooking(details: {
 export async function coachNotifySessionBookingPaidAwaitingApproval(details: {
   bookingId: string;
   userId: string;
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   lessonTypeId: string;
   lessonTypeName: string;
   session: SessionDuration;
@@ -155,8 +159,8 @@ export async function coachNotifySessionBookingPaidAwaitingApproval(details: {
   daysPlanLabel?: string;
 }): Promise<void> {
   const emailDetails: BookingEmailDetails & { chargeEuros: number } = {
-    studentName: details.studentName,
-    studentEmail: details.studentEmail,
+    alumnoName: details.alumnoName,
+    alumnoEmail: details.alumnoEmail,
     session: details.session,
     slotLabel: details.slotLabel,
     startAt: details.startAt,
@@ -169,7 +173,7 @@ export async function coachNotifySessionBookingPaidAwaitingApproval(details: {
     paymentOption: details.paymentOption,
     chargeEuros: details.chargeEuros,
     balanceEuros: details.balanceEuros,
-    isRegisteredStudent: Boolean(details.userId?.trim()),
+    isRegisteredAlumno: Boolean(details.userId?.trim()),
     sessions: details.sessions,
     daysPlanLabel: details.daysPlanLabel,
   };
@@ -179,8 +183,8 @@ export async function coachNotifySessionBookingPaidAwaitingApproval(details: {
     () =>
       sendCoachBookingPaidWhatsApp({
         bookingId: details.bookingId,
-        studentName: details.studentName,
-        studentEmail: details.studentEmail,
+        alumnoName: details.alumnoName,
+        alumnoEmail: details.alumnoEmail,
         lessonTypeName: details.lessonTypeName,
         sessionLabel: details.session.name,
         startAt: details.startAt,
@@ -197,8 +201,8 @@ export async function coachNotifySessionBookingPaidAwaitingApproval(details: {
       notifyAfterBookingPaid({
         id: details.bookingId,
         userId: details.userId,
-        studentDisplayName: details.studentName,
-        studentEmail: details.studentEmail,
+        alumnoDisplayName: details.alumnoName,
+        alumnoEmail: details.alumnoEmail,
         lessonTypeId: details.lessonTypeId,
         lessonTypeName: details.lessonTypeName,
         sessionDurationId: details.session.id,
@@ -214,8 +218,8 @@ export async function coachNotifySessionBookingPaidAwaitingApproval(details: {
 export async function coachNotifyVideoBookingPaidAwaitingApproval(details: {
   bookingId: string;
   userId: string;
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   videoCount: number;
   totalEuros: number;
   notes?: string;
@@ -226,8 +230,8 @@ export async function coachNotifyVideoBookingPaidAwaitingApproval(details: {
   await runCoachNotifications("video-booking-paid", [
     () =>
       sendCoachVideoBookingPaidAwaitingApprovalEmail({
-        studentName: details.studentName,
-        studentEmail: details.studentEmail,
+        alumnoName: details.alumnoName,
+        alumnoEmail: details.alumnoEmail,
         videoCount: details.videoCount,
         totalEuros: details.totalEuros,
         notes: details.notes,
@@ -235,8 +239,8 @@ export async function coachNotifyVideoBookingPaidAwaitingApproval(details: {
     () =>
       sendCoachWhatsAppMessage(
         buildCoachVideoBookingPaidWhatsApp({
-          studentName: details.studentName,
-          studentEmail: details.studentEmail,
+          alumnoName: details.alumnoName,
+          alumnoEmail: details.alumnoEmail,
           videoCount: details.videoCount,
           totalEuros: details.totalEuros,
           bookingId: details.bookingId,
@@ -244,10 +248,10 @@ export async function coachNotifyVideoBookingPaidAwaitingApproval(details: {
         }),
       ),
     () =>
-      details.studentEmail
+      details.alumnoEmail
         ? sendVideoCorrectionPaymentReceivedEmail({
-            studentName: details.studentName,
-            studentEmail: details.studentEmail,
+            alumnoName: details.alumnoName,
+            alumnoEmail: details.alumnoEmail,
             videoCount: details.videoCount,
             totalEuros: details.totalEuros,
             notes: details.notes,
@@ -257,8 +261,8 @@ export async function coachNotifyVideoBookingPaidAwaitingApproval(details: {
       notifyAfterBookingPaid({
         id: details.bookingId,
         userId: details.userId,
-        studentDisplayName: details.studentName,
-        studentEmail: details.studentEmail,
+        alumnoDisplayName: details.alumnoName,
+        alumnoEmail: details.alumnoEmail,
         lessonTypeId: VIDEO_CORRECTION_PRODUCT.id,
         lessonTypeName: VIDEO_CORRECTION_PRODUCT.name,
         productKind: "video_correction",
@@ -274,8 +278,8 @@ export async function coachNotifyVideoBookingPaidAwaitingApproval(details: {
 
 /** Nueva solicitud de video corrección sin pago (legacy / manual) */
 export async function coachNotifyVideoCorrectionBooking(details: {
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   videoCount: number;
   totalEuros: number;
   bookingId: string;
@@ -287,7 +291,7 @@ export async function coachNotifyVideoCorrectionBooking(details: {
   await runCoachNotifications("video-correction-booking", [
     () =>
       notifyCoachNewBookingRequest({
-        studentName: details.studentName,
+        alumnoName: details.alumnoName,
         slotLabel: label,
         dateLabel: "Video corrección",
         bookingId: details.bookingId,
@@ -296,8 +300,8 @@ export async function coachNotifyVideoCorrectionBooking(details: {
       }),
     () =>
       sendCoachVideoCorrectionRequestEmail({
-        studentName: details.studentName,
-        studentEmail: details.studentEmail,
+        alumnoName: details.alumnoName,
+        alumnoEmail: details.alumnoEmail,
         videoCount: details.videoCount,
         totalEuros: details.totalEuros,
         notes: details.notes,
@@ -306,8 +310,8 @@ export async function coachNotifyVideoCorrectionBooking(details: {
     () =>
       sendCoachWhatsAppMessage(
         buildCoachVideoCorrectionRequestWhatsApp({
-          studentName: details.studentName,
-          studentEmail: details.studentEmail,
+          alumnoName: details.alumnoName,
+          alumnoEmail: details.alumnoEmail,
           videoCount: details.videoCount,
           totalEuros: details.totalEuros,
           bookingId: details.bookingId,
@@ -319,33 +323,33 @@ export async function coachNotifyVideoCorrectionBooking(details: {
 
 /** Alumno subió vídeo en su área (corrección) */
 export async function coachNotifyVideoUploaded(details: {
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   videoTitle: string;
-  studentId: string;
+  alumnoId: string;
 }): Promise<void> {
-  const panelUrl = `${getAppBaseUrl()}/coach/alumnos/${details.studentId}`;
+  const panelUrl = `${getAppBaseUrl()}/coach/alumnos/${details.alumnoId}`;
 
   await runCoachNotifications("video-uploaded", [
     () =>
-      notifyCoachStudentVideoUploaded({
-        studentName: details.studentName,
+      notifyCoachAlumnoVideoUploaded({
+        alumnoName: details.alumnoName,
         videoTitle: details.videoTitle,
-        studentId: details.studentId,
+        alumnoId: details.alumnoId,
       }),
     () =>
       sendCoachVideoUploadedEmail({
-        studentName: details.studentName,
-        studentEmail: details.studentEmail,
+        alumnoName: details.alumnoName,
+        alumnoEmail: details.alumnoEmail,
         videoTitle: details.videoTitle,
         panelUrl,
       }),
     () =>
       sendCoachWhatsAppMessage(
         buildCoachVideoUploadedWhatsApp({
-          studentName: details.studentName,
+          alumnoName: details.alumnoName,
           videoTitle: details.videoTitle,
-          studentId: details.studentId,
+          alumnoId: details.alumnoId,
         }),
       ),
   ]);

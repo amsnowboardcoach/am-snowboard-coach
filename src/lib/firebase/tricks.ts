@@ -61,22 +61,22 @@ export async function fetchTricksCatalog(): Promise<TrickCatalogDoc[]> {
   }
 }
 
-export async function fetchStudentTrickProgress(
-  studentId: string,
+export async function fetchAlumnoTrickProgress(
+  alumnoId: string,
 ): Promise<TrickProgressDoc[]> {
   const snap = await getDocs(
-    collection(getFirebaseDb(), "users", studentId, "trick_progress"),
+    collection(getFirebaseDb(), "users", alumnoId, "trick_progress"),
   );
   return snap.docs.map((d) => d.data() as TrickProgressDoc);
 }
 
 export async function mergeTricksWithProgress(
-  studentId: string,
+  alumnoId: string,
 ): Promise<TrickWithProgress[]> {
   const catalog = await fetchTricksCatalog();
   let progressList: TrickProgressDoc[];
   try {
-    progressList = await fetchStudentTrickProgress(studentId);
+    progressList = await fetchAlumnoTrickProgress(alumnoId);
   } catch (err) {
     const code =
       err && typeof err === "object" && "code" in err
@@ -103,8 +103,8 @@ export function resolveTrickStatus(
   return progress?.status ?? "locked";
 }
 
-export async function setStudentTrickStatus(
-  studentId: string,
+export async function setAlumnoTrickStatus(
+  alumnoId: string,
   trick: Pick<TrickCatalogDoc, "id" | "category" | "sortOrder">,
   status: TrickStatus,
   coachId: string,
@@ -113,7 +113,7 @@ export async function setStudentTrickStatus(
   const ref = doc(
     getFirebaseDb(),
     "users",
-    studentId,
+    alumnoId,
     "trick_progress",
     trick.id,
   );

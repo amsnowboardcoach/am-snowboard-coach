@@ -14,7 +14,7 @@ export const CALENDAR_EVENT_TITLE_PREFIX = "Ale snow";
  * Etiqueta del alumno en el título del calendario.
  * «Marco Casini» → «Casini»; un solo nombre se usa tal cual.
  */
-export function studentLabelForCalendarTitle(displayName: string): string {
+export function alumnoLabelForCalendarTitle(displayName: string): string {
   const trimmed = displayName.trim();
   if (!trimmed) return "Alumno";
   const parts = trimmed.split(/\s+/).filter(Boolean);
@@ -22,8 +22,8 @@ export function studentLabelForCalendarTitle(displayName: string): string {
   return parts.length > 1 ? parts[parts.length - 1]! : parts[0]!;
 }
 
-export function buildSessionCalendarEventTitle(studentDisplayName: string): string {
-  return `${CALENDAR_EVENT_TITLE_PREFIX} ${studentLabelForCalendarTitle(studentDisplayName)}`;
+export function buildSessionCalendarEventTitle(alumnoDisplayName: string): string {
+  return `${CALENDAR_EVENT_TITLE_PREFIX} ${alumnoLabelForCalendarTitle(alumnoDisplayName)}`;
 }
 
 export const BOOKING_NOT_INCLUDED =

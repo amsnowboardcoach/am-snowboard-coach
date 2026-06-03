@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { CoachWhatsAppCard } from "@/components/contact/CoachWhatsAppCard";
 import { DeleteAccountSection } from "@/components/perfil/DeleteAccountSection";
-import { StudentNoticesPanel } from "@/components/perfil/StudentNoticesPanel";
-import { StudentNoticesUnreadBadge } from "@/components/perfil/StudentNoticesUnreadBadge";
+import { ProfilePhotoUpload } from "@/components/perfil/ProfilePhotoUpload";
+import { AlumnoNoticesPanel } from "@/components/perfil/AlumnoNoticesPanel";
+import { AlumnoNoticesUnreadBadge } from "@/components/perfil/AlumnoNoticesUnreadBadge";
 import { useAuth } from "@/contexts/AuthProvider";
 import { roleDisplayLabel } from "@/constants/roles";
-import { isStudentProfile } from "@/lib/auth/coach-role";
-import { studentLevelLabel } from "@/lib/booking/contact-notes";
+import { isAlumnoProfile } from "@/lib/auth/coach-role";
+import { alumnoLevelLabel } from "@/lib/booking/contact-notes";
 
 type PerfilLink = {
   href: string;
@@ -51,10 +52,10 @@ const links: PerfilLink[] = [
 export default function PerfilPage() {
   const { user, profile } = useAuth();
   const router = useRouter();
-  const isStudent = profile ? isStudentProfile(profile) : false;
+  const isAlumno = profile ? isAlumnoProfile(profile) : false;
 
   useEffect(() => {
-    if (profile && !isStudentProfile(profile)) {
+    if (profile && !isAlumnoProfile(profile)) {
       router.replace("/coach");
     }
   }, [profile, router]);
@@ -70,7 +71,9 @@ export default function PerfilPage() {
         </p>
       </header>
 
-      {isStudent && user?.uid && (
+      {isAlumno && <ProfilePhotoUpload />}
+
+      {isAlumno && user?.uid && (
         <section className="glass-panel rounded-2xl p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-base font-semibold text-zinc-100">
@@ -84,12 +87,12 @@ export default function PerfilPage() {
             </Link>
           </div>
           <div className="mt-4">
-            <StudentNoticesPanel studentId={user.uid} compact />
+            <AlumnoNoticesPanel alumnoId={user.uid} compact />
           </div>
         </section>
       )}
 
-      {isStudent && (
+      {isAlumno && (
         <CoachWhatsAppCard
           className=""
           prefill={`Hola Alejandro, soy ${profile?.displayName ?? "alumno AM"}. `}
@@ -103,7 +106,7 @@ export default function PerfilPage() {
         </div>
         <div>
           <dt className="text-zinc-500">Nivel</dt>
-          <dd>{studentLevelLabel(profile?.level)}</dd>
+          <dd>{alumnoLevelLabel(profile?.level)}</dd>
         </div>
         <div>
           <dt className="text-zinc-500">Rol</dt>
@@ -119,8 +122,8 @@ export default function PerfilPage() {
             className="relative rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 transition hover:border-sky-500/40"
           >
             {item.showUnreadBadge && user?.uid && (
-              <StudentNoticesUnreadBadge
-                studentId={user.uid}
+              <AlumnoNoticesUnreadBadge
+                alumnoId={user.uid}
                 className="absolute right-4 top-4"
               />
             )}
@@ -131,7 +134,7 @@ export default function PerfilPage() {
         ))}
       </div>
 
-      {isStudent && <DeleteAccountSection />}
+      {isAlumno && <DeleteAccountSection />}
     </div>
   );
 }

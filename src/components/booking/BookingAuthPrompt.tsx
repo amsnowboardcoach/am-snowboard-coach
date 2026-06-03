@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
-import { studentAreaHref } from "@/constants/student-area";
+import { alumnoAreaHref } from "@/constants/alumno-area";
 import { useAuth } from "@/contexts/AuthProvider";
 export type BookingContact = {
   name: string;
@@ -84,7 +84,7 @@ export function BookingAuthPrompt({
       />
       <p className="text-sm text-zinc-500">
         <Link
-          href={studentAreaHref({ next: returnPath })}
+          href={alumnoAreaHref({ next: returnPath })}
           className="link-accent underline-offset-2 hover:underline"
         >
           Área de alumno

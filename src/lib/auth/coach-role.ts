@@ -7,6 +7,8 @@ import {
 import { isCoachEmail } from "@/lib/auth/config";
 import type { UserProfile } from "@/types/firestore";
 
+export { isAlumnoRole };
+
 /** El monitor nunca debe tener rol alumno en Firestore. */
 export function roleForRegistration(
   email: string,
@@ -14,17 +16,13 @@ export function roleForRegistration(
 ): UserRole {
   if (isCoachEmail(email)) return ROLES.COACH;
   if (requested && COACH_ROLES.includes(requested)) return requested;
-  return requested ?? ROLES.STUDENT;
-}
-
-export function isStudentRole(role: UserRole | string): boolean {
-  return isAlumnoRole(role);
+  return requested ?? ROLES.ALUMNO;
 }
 
 /** Perfil que debe tratarse como alumno (listados, Tribu, pasaporte alumno). */
-export function isStudentProfile(
+export function isAlumnoProfile(
   profile: Pick<UserProfile, "role" | "email">,
 ): boolean {
   if (isCoachEmail(profile.email)) return false;
-  return isStudentRole(profile.role);
+  return isAlumnoRole(profile.role);
 }

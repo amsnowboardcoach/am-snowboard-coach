@@ -40,23 +40,23 @@ export async function POST(request: NextRequest) {
   }
 
   const video = videoSnap.data()!;
-  if (video.studentId !== auth.uid) {
+  if (video.alumnoId !== auth.uid) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
   const userSnap = await getAdminDb().collection("users").doc(auth.uid).get();
-  const studentName =
+  const alumnoName =
     (userSnap.data()?.displayName as string) ||
     auth.email.split("@")[0] ||
     "Alumno";
-  const studentEmail = (userSnap.data()?.email as string) || auth.email;
+  const alumnoEmail = (userSnap.data()?.email as string) || auth.email;
 
   try {
     await coachNotifyVideoUploaded({
-      studentName,
-      studentEmail,
+      alumnoName,
+      alumnoEmail,
       videoTitle: (video.title as string) || "Vídeo sin título",
-      studentId: auth.uid,
+      alumnoId: auth.uid,
     });
   } catch (err) {
     console.error("[push/video-uploaded]", err);

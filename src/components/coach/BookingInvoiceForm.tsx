@@ -66,7 +66,7 @@ export function BookingInvoiceForm({
     existing.documentType ?? "simplified",
   );
   const [legalName, setLegalName] = useState(
-    existing.recipient?.legalName ?? booking.studentDisplayName ?? "",
+    existing.recipient?.legalName ?? booking.alumnoDisplayName ?? "",
   );
   const [taxId, setTaxId] = useState(existing.recipient?.taxId ?? "");
   const [address, setAddress] = useState(existing.recipient?.address ?? "");
@@ -77,7 +77,7 @@ export function BookingInvoiceForm({
   const [province, setProvince] = useState(existing.recipient?.province ?? "");
   const [country, setCountry] = useState(existing.recipient?.country ?? "ES");
   const [recipientEmail, setRecipientEmail] = useState(
-    existing.recipient?.email ?? booking.studentEmail ?? "",
+    existing.recipient?.email ?? booking.alumnoEmail ?? "",
   );
 
   const [vatRate, setVatRate] = useState<VatRateId>(

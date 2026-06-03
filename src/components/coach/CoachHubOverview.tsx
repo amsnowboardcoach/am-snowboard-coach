@@ -84,7 +84,7 @@ export function CoachHubOverview({ coachId, onNavigate }: CoachHubOverviewProps)
         {
           tab: "alumnos",
           label: "Alumnos",
-          value: stats.studentCount,
+          value: stats.alumnoCount,
           hint: "Registrados en la app",
         },
         {

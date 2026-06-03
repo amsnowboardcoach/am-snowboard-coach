@@ -159,7 +159,7 @@ export async function sendPushToUser(
 
 /** Coach: nueva solicitud de clase en pista */
 export async function notifyCoachNewSessionRequest(details: {
-  studentName: string;
+  alumnoName: string;
   slotLabel: string;
   startAt: Date;
   endAt: Date;
@@ -168,7 +168,7 @@ export async function notifyCoachNewSessionRequest(details: {
   const when = formatBookingWhen(details.startAt, details.endAt);
   await sendPushToCoach({
     title: "Nueva solicitud de clase",
-    body: `${details.studentName} · ${when}`,
+    body: `${details.alumnoName} · ${when}`,
     url: "/coach?tab=reservas",
     tag: `booking-${details.bookingId}`,
   });
@@ -176,7 +176,7 @@ export async function notifyCoachNewSessionRequest(details: {
 
 /** Coach: nueva solicitud de video corrección (reserva) */
 export async function notifyCoachNewVideoCorrectionRequest(details: {
-  studentName: string;
+  alumnoName: string;
   videoCount: number;
   bookingId: string;
 }): Promise<void> {
@@ -184,42 +184,42 @@ export async function notifyCoachNewVideoCorrectionRequest(details: {
   const label = `${n} vídeo${n > 1 ? "s" : ""} a corregir`;
   await sendPushToCoach({
     title: "Nueva solicitud de video corrección",
-    body: `${details.studentName} · ${label}`,
+    body: `${details.alumnoName} · ${label}`,
     url: "/coach?tab=reservas",
     tag: `booking-${details.bookingId}`,
   });
 }
 
 /** Coach: nuevo alumno en el área de alumno (registro Google o email) */
-export async function notifyCoachNewStudentRegistered(details: {
-  studentName: string;
-  studentEmail: string;
-  studentId: string;
+export async function notifyCoachNewAlumnoRegistered(details: {
+  alumnoName: string;
+  alumnoEmail: string;
+  alumnoId: string;
 }): Promise<void> {
   await sendPushToCoach({
     title: "Nuevo alumno registrado",
-    body: `${details.studentName} · ${details.studentEmail}`,
+    body: `${details.alumnoName} · ${details.alumnoEmail}`,
     url: "/coach?tab=alumnos",
-    tag: `student-reg-${details.studentId}`,
+    tag: `alumno-reg-${details.alumnoId}`,
   });
 }
 
 /** Coach: alumno subió vídeo en su área */
-export async function notifyCoachStudentVideoUploaded(details: {
-  studentName: string;
+export async function notifyCoachAlumnoVideoUploaded(details: {
+  alumnoName: string;
   videoTitle: string;
-  studentId: string;
+  alumnoId: string;
 }): Promise<void> {
   await sendPushToCoach({
     title: "Vídeo nuevo de un alumno",
-    body: `${details.studentName}: «${details.videoTitle}» — pendiente de revisión`,
-    url: `/coach/alumnos/${details.studentId}`,
-    tag: `video-upload-${details.studentId}`,
+    body: `${details.alumnoName}: «${details.videoTitle}» — pendiente de revisión`,
+    url: `/coach/alumnos/${details.alumnoId}`,
+    tag: `video-upload-${details.alumnoId}`,
   });
 }
 
 /** Alumno: clase en pista confirmada */
-export async function notifyStudentSessionConfirmed(details: {
+export async function notifyAlumnoSessionConfirmed(details: {
   userId: string;
   startAt: Date;
   endAt: Date;
@@ -248,7 +248,7 @@ export async function notifyStudentSessionConfirmed(details: {
 }
 
 /** Alumno: video corrección (reserva) confirmada */
-export async function notifyStudentVideoCorrectionConfirmed(details: {
+export async function notifyAlumnoVideoCorrectionConfirmed(details: {
   userId: string;
   videoCount: number;
   paymentUrl?: string;
@@ -277,7 +277,7 @@ export async function notifyStudentVideoCorrectionConfirmed(details: {
 }
 
 /** Alumno: clase no confirmada */
-export async function notifyStudentSessionRejected(details: {
+export async function notifyAlumnoSessionRejected(details: {
   userId: string;
   startAt: Date;
   endAt: Date;
@@ -298,7 +298,7 @@ export async function notifyStudentSessionRejected(details: {
 }
 
 /** Alumno: video corrección (reserva) no confirmada */
-export async function notifyStudentVideoCorrectionRejected(details: {
+export async function notifyAlumnoVideoCorrectionRejected(details: {
   userId: string;
   paymentRefunded?: boolean;
 }): Promise<void> {
@@ -317,7 +317,7 @@ export async function notifyStudentVideoCorrectionRejected(details: {
 }
 
 /** Alumno: pago de video corrección completado — puede subir vídeos */
-export async function notifyStudentVideoCorrectionPaid(details: {
+export async function notifyAlumnoVideoCorrectionPaid(details: {
   userId: string;
   amountEuros: number;
   videoCount: number;
@@ -337,7 +337,7 @@ export async function notifyStudentVideoCorrectionPaid(details: {
 
 /** Coach: alumno pagó video corrección (ya confirmada antes) */
 export async function notifyCoachVideoCorrectionPaid(details: {
-  studentName: string;
+  alumnoName: string;
   amountEuros: number;
   videoCount: number;
   bookingId: string;
@@ -347,14 +347,14 @@ export async function notifyCoachVideoCorrectionPaid(details: {
 
   await sendPushToCoach({
     title: "Video corrección pagada",
-    body: `${details.studentName} · ${label} · ${details.amountEuros} € — avisaré cuando suba el material`,
+    body: `${details.alumnoName} · ${label} · ${details.amountEuros} € — avisaré cuando suba el material`,
     url: "/coach?tab=reservas",
     tag: `video-paid-${details.bookingId}`,
   });
 }
 
 /** Alumno: pago recibido correctamente */
-export async function notifyStudentPaymentReceived(details: {
+export async function notifyAlumnoPaymentReceived(details: {
   userId: string;
   amountEuros: number;
   productLabel: string;
@@ -378,21 +378,21 @@ export async function notifyStudentPaymentReceived(details: {
 
 /** Coach: alumno ha pagado una reserva */
 export async function notifyCoachPaymentReceived(details: {
-  studentName: string;
+  alumnoName: string;
   amountEuros: number;
   productLabel: string;
   bookingId: string;
 }): Promise<void> {
   await sendPushToCoach({
     title: "Pago recibido — acepta la reserva",
-    body: `${details.studentName} · ${details.productLabel} · ${details.amountEuros} €`,
+    body: `${details.alumnoName} · ${details.productLabel} · ${details.amountEuros} €`,
     url: "/coach?tab=reservas",
     tag: `paid-${details.bookingId}`,
   });
 }
 
 /** Alumno: el coach publicó cambios en el pasaporte de trucos */
-export async function notifyStudentPassportUpdated(details: {
+export async function notifyAlumnoPassportUpdated(details: {
   userId: string;
   updateCount: number;
   highlightTrickName?: string;
@@ -413,7 +413,7 @@ export async function notifyStudentPassportUpdated(details: {
 }
 
 /** Alumno: el coach publicó apuntes en un vídeo */
-export async function notifyStudentVideoReviewReady(details: {
+export async function notifyAlumnoVideoReviewReady(details: {
   userId: string;
   videoTitle: string;
 }): Promise<void> {
@@ -429,7 +429,7 @@ export async function notifyStudentVideoReviewReady(details: {
 
 /** Compat: reserva genérica → delega según tipo */
 export async function notifyCoachNewBookingRequest(details: {
-  studentName: string;
+  alumnoName: string;
   slotLabel: string;
   dateLabel: string;
   bookingId: string;
@@ -440,7 +440,7 @@ export async function notifyCoachNewBookingRequest(details: {
 }): Promise<void> {
   if (details.kind === "video_correction") {
     await notifyCoachNewVideoCorrectionRequest({
-      studentName: details.studentName,
+      alumnoName: details.alumnoName,
       videoCount: details.videoCount ?? 1,
       bookingId: details.bookingId,
     });
@@ -449,7 +449,7 @@ export async function notifyCoachNewBookingRequest(details: {
 
   if (details.startAt && details.endAt) {
     await notifyCoachNewSessionRequest({
-      studentName: details.studentName,
+      alumnoName: details.alumnoName,
       slotLabel: details.slotLabel,
       startAt: details.startAt,
       endAt: details.endAt,
@@ -460,14 +460,14 @@ export async function notifyCoachNewBookingRequest(details: {
 
   await sendPushToCoach({
     title: "Nueva solicitud de reserva",
-    body: `${details.studentName} · ${details.dateLabel} · ${details.slotLabel}`,
+    body: `${details.alumnoName} · ${details.dateLabel} · ${details.slotLabel}`,
     url: "/coach?tab=reservas",
     tag: `booking-${details.bookingId}`,
   });
 }
 
 /** Compat: confirmación genérica */
-export async function notifyStudentBookingConfirmed(details: {
+export async function notifyAlumnoBookingConfirmed(details: {
   userId: string;
   dateLabel: string;
   slotLabel: string;
@@ -478,7 +478,7 @@ export async function notifyStudentBookingConfirmed(details: {
   videoCount?: number;
 }): Promise<void> {
   if (details.isVideoCorrection) {
-    await notifyStudentVideoCorrectionConfirmed({
+    await notifyAlumnoVideoCorrectionConfirmed({
       userId: details.userId,
       videoCount: details.videoCount ?? 1,
       paymentUrl: details.paymentUrl,
@@ -487,7 +487,7 @@ export async function notifyStudentBookingConfirmed(details: {
   }
 
   if (details.startAt && details.endAt) {
-    await notifyStudentSessionConfirmed({
+    await notifyAlumnoSessionConfirmed({
       userId: details.userId,
       startAt: details.startAt,
       endAt: details.endAt,
@@ -508,7 +508,7 @@ export async function notifyStudentBookingConfirmed(details: {
 }
 
 /** Compat: rechazo genérico */
-export async function notifyStudentBookingRejected(details: {
+export async function notifyAlumnoBookingRejected(details: {
   userId: string;
   dateLabel: string;
   isVideoCorrection?: boolean;
@@ -517,7 +517,7 @@ export async function notifyStudentBookingRejected(details: {
   paymentRefunded?: boolean;
 }): Promise<void> {
   if (details.isVideoCorrection) {
-    await notifyStudentVideoCorrectionRejected({
+    await notifyAlumnoVideoCorrectionRejected({
       userId: details.userId,
       paymentRefunded: details.paymentRefunded,
     });
@@ -525,7 +525,7 @@ export async function notifyStudentBookingRejected(details: {
   }
 
   if (details.startAt && details.endAt) {
-    await notifyStudentSessionRejected({
+    await notifyAlumnoSessionRejected({
       userId: details.userId,
       startAt: details.startAt,
       endAt: details.endAt,
@@ -545,7 +545,11 @@ export async function notifyStudentBookingRejected(details: {
 export async function notifyAfterBookingPaid(booking: {
   id: string;
   userId: string;
+  alumnoDisplayName?: string;
+  alumnoEmail?: string;
+  /** @deprecated legacy Firestore */
   studentDisplayName?: string;
+  /** @deprecated legacy Firestore */
   studentEmail?: string;
   lessonTypeId: string;
   lessonTypeName: string;
@@ -558,22 +562,26 @@ export async function notifyAfterBookingPaid(booking: {
   amountCents: number;
 }): Promise<void> {
   const amountEuros = Math.round(booking.amountCents / 100);
-  const studentName =
-    booking.studentDisplayName || booking.studentEmail || "Alumno";
+  const alumnoName =
+    booking.alumnoDisplayName ||
+    booking.studentDisplayName ||
+    booking.alumnoEmail ||
+    booking.studentEmail ||
+    "Alumno";
   const isVideo =
     booking.productKind === "video_correction" ||
     isVideoCorrectionProduct(booking.lessonTypeId);
 
   if (isVideo) {
     if (booking.userId) {
-      await notifyStudentPaymentReceived({
+      await notifyAlumnoPaymentReceived({
         userId: booking.userId,
         amountEuros,
         productLabel: "Video corrección",
       });
     }
     await notifyCoachPaymentReceived({
-      studentName,
+      alumnoName,
       amountEuros,
       productLabel: "Video corrección",
       bookingId: booking.id,
@@ -585,7 +593,7 @@ export async function notifyAfterBookingPaid(booking: {
     booking.sessionSlotLabel || booking.lessonTypeName;
 
   if (booking.userId) {
-    await notifyStudentPaymentReceived({
+    await notifyAlumnoPaymentReceived({
       userId: booking.userId,
       amountEuros,
       productLabel,
@@ -594,7 +602,7 @@ export async function notifyAfterBookingPaid(booking: {
   }
 
   await notifyCoachPaymentReceived({
-    studentName,
+    alumnoName,
     amountEuros,
     productLabel,
     bookingId: booking.id,

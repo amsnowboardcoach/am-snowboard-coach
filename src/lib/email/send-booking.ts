@@ -53,8 +53,8 @@ export interface BookingEmailSessionLine {
 }
 
 export interface BookingEmailDetails {
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   session: SessionDuration;
   slotLabel: string;
   startAt: Date;
@@ -71,7 +71,7 @@ export interface BookingEmailDetails {
   /** Enlace a /pagar/{id} tras confirmación del coach */
   paymentUrl?: string;
   /** Reserva vinculada a cuenta Firebase (alumno registrado) */
-  isRegisteredStudent?: boolean;
+  isRegisteredAlumno?: boolean;
   paymentOption?: BookingPaymentOption;
   /** Importe cobrado ya con tarjeta (señal o total) */
   chargeEuros?: number;
@@ -115,9 +115,9 @@ export async function sendBookingRequestEmails(
     ? `<li><strong>${details.session.name}</strong> · ${details.sessions!.length} clases</li>`
     : `<li><strong>${details.session.name}</strong> (${details.slotLabel})</li>`;
 
-  const studentHtml = `
+  const alumnoHtml = `
     <h2>Solicitud de reserva recibida — AM Snowboard Coach</h2>
-    <p>Hola ${details.studentName},</p>
+    <p>Hola ${details.alumnoName},</p>
     <p>Hemos recibido tu solicitud en Sierra Nevada:</p>
     <ul>
       ${classCountLine}
@@ -129,7 +129,7 @@ export async function sendBookingRequestEmails(
     </ul>
     ${details.notes ? `<p>Notas: ${details.notes}</p>` : ""}
     ${bookingPracticalInfoHtml()}
-    ${details.isRegisteredStudent ? coachWhatsAppHtmlForEmail() : ""}
+    ${details.isRegisteredAlumno ? coachWhatsAppHtmlForEmail() : ""}
     ${
       details.paymentOption === "deposit_30" && details.chargeEuros != null
         ? `<p><strong>Señal del ${BOOKING_DEPOSIT_PERCENT}% (${details.chargeEuros} €)</strong> pendiente de completar con tarjeta en la web. Tras el pago, <strong>Alejandro aceptará tu plaza</strong> y te avisará por email. Resto previsto: <strong>${details.balanceEuros ?? 0} €</strong> en ${BOOKING_BALANCE_ON_CLASS_DAY}.</p>`
@@ -145,7 +145,7 @@ export async function sendBookingRequestEmails(
     <p>Acepta o rechaza desde el panel del coach. Para reservas web con pago online, acepta cuando el alumno haya pagado la señal o el total; entonces se bloquea el calendario:</p>
     <p><a href="${coachPanelUrl}">${coachPanelUrl}</a></p>
     <ul>
-      <li>Alumno: ${details.studentName} &lt;${details.studentEmail}&gt;</li>
+      <li>Alumno: ${details.alumnoName} &lt;${details.alumnoEmail}&gt;</li>
       ${classCountLine}
       ${planLine}
       ${when}
@@ -170,17 +170,17 @@ export async function sendBookingRequestEmails(
 
   await transport.sendMail({
     from: `"AM Snowboard Coach" <${from}>`,
-    to: details.studentEmail,
+    to: details.alumnoEmail,
     replyTo: COACH_EMAIL,
     subject: `Solicitud recibida — ${subjectSuffix}`,
-    html: studentHtml,
+    html: alumnoHtml,
   });
 
   if (notifyCoach) {
     await transport.sendMail({
       from: `"AM Snowboard Coach" <${from}>`,
       to: process.env.BOOKING_NOTIFY_EMAIL?.trim() || COACH_EMAIL,
-      subject: `Confirmar reserva: ${details.studentName} — ${subjectSuffix}`,
+      subject: `Confirmar reserva: ${details.alumnoName} — ${subjectSuffix}`,
       html: coachHtml,
     });
   }
@@ -224,7 +224,7 @@ export async function sendCoachBookingPaidAwaitingApprovalEmail(
     <p>El alumno ha completado el pago con tarjeta. Revisa la solicitud en el panel del coach:</p>
     <p><a href="${coachPanelUrl}">${coachPanelUrl}</a></p>
     <ul>
-      <li>Alumno: ${details.studentName} &lt;${details.studentEmail}&gt;</li>
+      <li>Alumno: ${details.alumnoName} &lt;${details.alumnoEmail}&gt;</li>
       <li><strong>${details.session.name}</strong>${multi ? ` · ${details.sessions!.length} clases` : ` (${details.slotLabel})`}</li>
       ${planLine}
       ${when}
@@ -245,7 +245,7 @@ export async function sendCoachBookingPaidAwaitingApprovalEmail(
   await transport.sendMail({
     from: `"AM Snowboard Coach" <${from}>`,
     to: process.env.BOOKING_NOTIFY_EMAIL?.trim() || COACH_EMAIL,
-    subject: `Pago recibido — confirmar: ${details.studentName} — ${subjectSuffix}`,
+    subject: `Pago recibido — confirmar: ${details.alumnoName} — ${subjectSuffix}`,
     html,
   });
 }
@@ -268,9 +268,9 @@ export async function sendBookingConfirmedEmails(
       ? `<li>Personas en pista: <strong>${details.participantCount}</strong></li>`
       : "";
 
-  const studentHtml = `
+  const alumnoHtml = `
     <h2>Reserva confirmada — AM Snowboard Coach</h2>
-    <p>Hola ${details.studentName},</p>
+    <p>Hola ${details.alumnoName},</p>
     <p>Alejandro ha confirmado tu clase en Sierra Nevada:</p>
     <ul>
       <li><strong>${details.session.name}</strong> (${details.slotLabel})</li>
@@ -282,7 +282,7 @@ export async function sendBookingConfirmedEmails(
     </ul>
     ${details.notes ? `<p>Notas: ${details.notes}</p>` : ""}
     ${bookingPracticalInfoHtml()}
-    ${details.isRegisteredStudent ? coachWhatsAppHtmlForEmail() : ""}
+    ${details.isRegisteredAlumno ? coachWhatsAppHtmlForEmail() : ""}
     ${
       details.paymentOption === "deposit_30" && details.paidWithCard
         ? `<p><strong>Señal del ${BOOKING_DEPOSIT_PERCENT}% ya pagada</strong> con tarjeta. Resto en pista: <strong>${details.balanceEuros ?? 0} €</strong> en ${BOOKING_BALANCE_PAYMENT_LABEL}.</p>`
@@ -300,7 +300,7 @@ export async function sendBookingConfirmedEmails(
   const coachHtml = `
     <h2>Reserva confirmada</h2>
     <ul>
-      <li>Alumno: ${details.studentName} &lt;${details.studentEmail}&gt;</li>
+      <li>Alumno: ${details.alumnoName} &lt;${details.alumnoEmail}&gt;</li>
       <li>${details.session.name} · ${details.slotLabel}</li>
       <li>${when}</li>
       ${peopleLine}
@@ -313,23 +313,23 @@ export async function sendBookingConfirmedEmails(
 
   await transport.sendMail({
     from: `"AM Snowboard Coach" <${from}>`,
-    to: details.studentEmail,
+    to: details.alumnoEmail,
     replyTo: COACH_EMAIL,
     subject: `Clase confirmada — ${details.slotLabel} · ${formatBookingInTimeZone(details.startAt, "d/M/yyyy")}`,
-    html: studentHtml,
+    html: alumnoHtml,
   });
 
   await transport.sendMail({
     from: `"AM Snowboard Coach" <${from}>`,
     to: process.env.BOOKING_NOTIFY_EMAIL?.trim() || COACH_EMAIL,
-    subject: `Confirmada: ${details.studentName} — ${details.slotLabel}`,
+    subject: `Confirmada: ${details.alumnoName} — ${details.slotLabel}`,
     html: coachHtml,
   });
 }
 
 export interface VideoCorrectionEmailDetails {
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   videoCount: number;
   totalEuros: number;
   notes?: string;
@@ -350,9 +350,9 @@ export async function sendVideoCorrectionRequestEmails(
   const from = fromAddress();
   const label = `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`;
 
-  const studentHtml = `
+  const alumnoHtml = `
     <h2>Solicitud de video corrección — AM Snowboard Coach</h2>
-    <p>Hola ${details.studentName},</p>
+    <p>Hola ${details.alumnoName},</p>
     <p>Hemos recibido tu solicitud:</p>
     <ul>
       <li><strong>Video corrección</strong> — ${label}</li>
@@ -364,10 +364,10 @@ export async function sendVideoCorrectionRequestEmails(
 
   await transport.sendMail({
     from: `"AM Snowboard Coach" <${from}>`,
-    to: details.studentEmail,
+    to: details.alumnoEmail,
     replyTo: COACH_EMAIL,
     subject: `Solicitud video corrección — ${label}`,
-    html: studentHtml,
+    html: alumnoHtml,
   });
 }
 
@@ -382,9 +382,9 @@ export async function sendVideoCorrectionConfirmedEmails(
   const label = `${details.videoCount} vídeo${details.videoCount > 1 ? "s" : ""}`;
   const total = details.totalEuros;
 
-  const studentHtml = `
+  const alumnoHtml = `
     <h2>Video corrección confirmada</h2>
-    <p>Hola ${details.studentName},</p>
+    <p>Hola ${details.alumnoName},</p>
     <p>Alejandro ha aceptado corregir <strong>${label}</strong> (total ${total} €).</p>
     ${details.notes ? `<p>Tus notas: ${details.notes}</p>` : ""}
     ${
@@ -401,10 +401,10 @@ export async function sendVideoCorrectionConfirmedEmails(
 
   await transport.sendMail({
     from: `"AM Snowboard Coach" <${from}>`,
-    to: details.studentEmail,
+    to: details.alumnoEmail,
     replyTo: COACH_EMAIL,
     subject: `Video corrección confirmada — ${label}`,
-    html: studentHtml,
+    html: alumnoHtml,
   });
 }
 
@@ -420,12 +420,12 @@ export async function sendVideoCorrectionPaymentReceivedEmail(
 
   await transport.sendMail({
     from: `"AM Snowboard Coach" <${from}>`,
-    to: details.studentEmail,
+    to: details.alumnoEmail,
     replyTo: COACH_EMAIL,
     subject: `Pago recibido — ${label}`,
     html: `
       <h2>Pago confirmado</h2>
-      <p>Hola ${details.studentName},</p>
+      <p>Hola ${details.alumnoName},</p>
       <p>Hemos recibido <strong>${details.totalEuros} €</strong> por la corrección de <strong>${label}</strong>.</p>
       <p><strong>Alejandro revisará tu solicitud</strong> y te avisará por email y notificación cuando puedas subir el material en <a href="${getAppBaseUrl()}/perfil/videos">Mis vídeos</a>.</p>
     `,
@@ -446,13 +446,13 @@ export async function sendCoachVideoBookingPaidAwaitingApprovalEmail(
   await transport.sendMail({
     from: `"AM Snowboard Coach" <${from}>`,
     to: process.env.BOOKING_NOTIFY_EMAIL?.trim() || COACH_EMAIL,
-    subject: `Pago recibido — video corrección: ${details.studentName} — ${label}`,
+    subject: `Pago recibido — video corrección: ${details.alumnoName} — ${label}`,
     html: `
       <h2>Pago recibido — acepta o rechaza la solicitud</h2>
       <p>El alumno ha pagado con tarjeta. Revisa en el panel del coach:</p>
       <p><a href="${coachPanelUrl}">${coachPanelUrl}</a></p>
       <ul>
-        <li>Alumno: ${details.studentName} &lt;${details.studentEmail}&gt;</li>
+        <li>Alumno: ${details.alumnoName} &lt;${details.alumnoEmail}&gt;</li>
         <li><strong>Video corrección</strong> — ${label}</li>
         <li>Pago recibido: <strong>${details.totalEuros} €</strong> (tarjeta)</li>
       </ul>
@@ -473,11 +473,11 @@ export async function sendVideoCorrectionRejectedEmail(
 
   await transport.sendMail({
     from: `"AM Snowboard Coach" <${from}>`,
-    to: details.studentEmail,
+    to: details.alumnoEmail,
     replyTo: COACH_EMAIL,
     subject: `Solicitud no confirmada — video corrección`,
     html: `
-      <p>Hola ${details.studentName},</p>
+      <p>Hola ${details.alumnoName},</p>
       <p>No hemos podido aceptar tu solicitud de corrección (${label}).</p>
       <p>Puedes intentarlo de nuevo en <a href="${getAppBaseUrl()}/reservar?tipo=video">reservar video corrección</a>.</p>
     `,
@@ -493,9 +493,9 @@ export async function sendBookingRejectedEmail(
   const from = fromAddress();
   const when = formatBookingWhen(details.startAt, details.endAt);
 
-  const studentHtml = `
+  const alumnoHtml = `
     <h2>Solicitud no disponible — AM Snowboard Coach</h2>
-    <p>Hola ${details.studentName},</p>
+    <p>Hola ${details.alumnoName},</p>
     <p>Lo sentimos: no hemos podido confirmar la clase solicitada:</p>
     <ul>
       <li>${details.session.name} (${details.slotLabel})</li>
@@ -512,9 +512,9 @@ export async function sendBookingRejectedEmail(
 
   await transport.sendMail({
     from: `"AM Snowboard Coach" <${from}>`,
-    to: details.studentEmail,
+    to: details.alumnoEmail,
     replyTo: COACH_EMAIL,
     subject: `Solicitud no confirmada — ${formatBookingInTimeZone(details.startAt, "d/M/yyyy")}`,
-    html: studentHtml,
+    html: alumnoHtml,
   });
 }

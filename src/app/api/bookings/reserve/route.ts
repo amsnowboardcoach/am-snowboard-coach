@@ -27,7 +27,7 @@ import { createBookingFromWeb } from "@/lib/firebase/bookings-admin";
 import { isGoogleCalendarConfigured } from "@/lib/google/calendar";
 import { sendBookingRequestEmails } from "@/lib/email/send-booking";
 import { coachNotifyNewSessionBooking } from "@/lib/notify/coach";
-import { requireBookingStudent } from "@/lib/auth/resolve-booking-student";
+import { requireBookingAlumno } from "@/lib/auth/resolve-booking-alumno";
 import { addDays } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { formatBookingInTimeZone } from "@/lib/booking/format-datetime";
@@ -162,14 +162,14 @@ export async function POST(request: NextRequest) {
     ? LESSON_TYPES.find((l) => l.id === lessonTypeId)
     : null;
 
-  const studentResult = await requireBookingStudent(request, name);
-  if ("error" in studentResult) {
+  const alumnoResult = await requireBookingAlumno(request, name);
+  if ("error" in alumnoResult) {
     return NextResponse.json(
-      { error: studentResult.error },
-      { status: studentResult.status },
+      { error: alumnoResult.error },
+      { status: alumnoResult.status },
     );
   }
-  const { studentName, studentEmail, authUserId } = studentResult;
+  const { alumnoName, alumnoEmail, authUserId } = alumnoResult;
 
   const perClassEuros = sessionTotalEuros(session, participantCount);
   const groupId = randomUUID();
@@ -243,8 +243,8 @@ export async function POST(request: NextRequest) {
           slotLabel: slot.label,
           lessonTypeId: lesson?.id ?? session.id,
           lessonTypeName,
-          studentDisplayName: studentName,
-          studentEmail,
+          alumnoDisplayName: alumnoName,
+          alumnoEmail,
           startAt,
           endAt,
           participantCount,
@@ -291,8 +291,8 @@ export async function POST(request: NextRequest) {
           totalAmountCents: paymentBreakdown.totalAmountCents,
           session,
           lessonTypeName: lesson ? lessonPublicName(lesson) : session.name,
-          studentName,
-          studentEmail,
+          alumnoName,
+          alumnoEmail,
           firstStartAt: first.startAt,
           firstSlotLabel: first.slotLabel,
           participantCount,
@@ -322,8 +322,8 @@ export async function POST(request: NextRequest) {
 
     try {
       await sendBookingRequestEmails({
-        studentName,
-        studentEmail,
+        alumnoName,
+        alumnoEmail,
         session,
         slotLabel: first.slotLabel,
         startAt: first.startAt,
@@ -332,7 +332,7 @@ export async function POST(request: NextRequest) {
         notes: contactNotes,
         participantCount,
         totalEuros,
-        isRegisteredStudent: true,
+        isRegisteredAlumno: true,
         sessions: emailSessions.length > 1 ? emailSessions : undefined,
         daysPlanLabel,
         paymentOption,
@@ -348,8 +348,8 @@ export async function POST(request: NextRequest) {
     if (!isOnlinePaymentOption(paymentOption)) {
       try {
         await coachNotifyNewSessionBooking({
-          studentName,
-          studentEmail,
+          alumnoName,
+          alumnoEmail,
           lessonTypeName: lesson ? lessonPublicName(lesson) : session.name,
           sessionLabel: session.name,
           slotLabel: first.slotLabel,

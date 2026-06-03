@@ -8,7 +8,7 @@ export interface PassportSectionNoteInput {
 }
 
 export async function applyPassportSectionNotes(
-  studentId: string,
+  alumnoId: string,
   coachId: string,
   notes: PassportSectionNoteInput[],
 ): Promise<void> {
@@ -20,7 +20,7 @@ export async function applyPassportSectionNotes(
   for (const item of notes) {
     const ref = db
       .collection("users")
-      .doc(studentId)
+      .doc(alumnoId)
       .collection("passport_section_notes")
       .doc(item.category);
 

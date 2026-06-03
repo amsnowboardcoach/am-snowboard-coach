@@ -13,8 +13,8 @@ export interface ParsedCalBooking {
   sessionDurationId: SessionDurationId | null;
   lessonTypeId: string;
   lessonTypeName: string;
-  studentDisplayName: string;
-  studentEmail: string;
+  alumnoDisplayName: string;
+  alumnoEmail: string;
   startAt: Date;
   endAt: Date;
   status: BookingStatus;
@@ -93,8 +93,8 @@ export function parseCalBookingPayload(
     sessionDurationId: session?.id ?? null,
     lessonTypeId: session?.id ?? "reserva-cal",
     lessonTypeName,
-    studentDisplayName: name,
-    studentEmail: email,
+    alumnoDisplayName: name,
+    alumnoEmail: email,
     startAt,
     endAt,
     status: resolveStatus(trigger, payload),

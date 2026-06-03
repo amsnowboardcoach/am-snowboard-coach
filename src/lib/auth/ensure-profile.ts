@@ -2,8 +2,8 @@ import type { User } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase/client";
 import { createUserProfile } from "@/lib/firebase/users";
-import { requestCoachNotifyStudentRegistered } from "@/lib/push/request-coach-student-registered";
-import { isAlumnoRole, LEGACY_STUDENT_ROLE, ROLES } from "@/constants/roles";
+import { requestCoachNotifyAlumnoRegistered } from "@/lib/push/request-coach-alumno-registered";
+import { isAlumnoRole, LEGACY_ALUMNO_ROLE, ROLES } from "@/constants/roles";
 import { isCoachEmail } from "@/lib/auth/config";
 import type { UserProfile } from "@/types/firestore";
 
@@ -35,8 +35,8 @@ export async function ensureUserProfile(user: User): Promise<UserProfile> {
       if (fixed) return fixed;
     }
     if (user.email && !isCoachEmail(user.email)) {
-      if (existing.role === LEGACY_STUDENT_ROLE) {
-        const fixed = await tryPatchUserRole(ref, { role: ROLES.STUDENT });
+      if (existing.role === LEGACY_ALUMNO_ROLE) {
+        const fixed = await tryPatchUserRole(ref, { role: ROLES.ALUMNO });
         if (fixed) return fixed;
       }
     }
@@ -52,18 +52,19 @@ export async function ensureUserProfile(user: User): Promise<UserProfile> {
     user.email.split("@")[0] ||
     "Alumno";
 
-  const isStudent = !isCoachEmail(user.email);
+  const isAlumno = !isCoachEmail(user.email);
 
   await createUserProfile({
     uid: user.uid,
     email: user.email,
     displayName,
     photoURL: user.photoURL ?? undefined,
-    role: isStudent ? ROLES.STUDENT : ROLES.COACH,
+    role: isAlumno ? ROLES.ALUMNO : ROLES.COACH,
   });
 
-  if (isStudent) {
-    await requestCoachNotifyStudentRegistered();
+  if (isAlumno) {
+    await new Promise((r) => setTimeout(r, 500));
+    await requestCoachNotifyAlumnoRegistered();
   }
 
   const created = await getDoc(ref);

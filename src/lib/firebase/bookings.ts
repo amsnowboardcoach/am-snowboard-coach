@@ -23,6 +23,7 @@ import type {
 } from "@/types/firestore";
 import type { InvoiceDocumentType } from "@/constants/invoicing";
 import type { IssuerConfig } from "@/types/issuer";
+import { bookingAlumnoWriteFields } from "@/lib/firebase/booking-alumno-fields";
 
 const BOOKINGS = "bookings";
 
@@ -39,8 +40,8 @@ export async function fetchCoachBookings(coachId: string): Promise<Booking[]> {
 
 export interface CreateBookingInput {
   coachId: string;
-  studentDisplayName: string;
-  studentEmail?: string;
+  alumnoDisplayName: string;
+  alumnoEmail?: string;
   userId?: string;
   lessonTypeId: string;
   startAt: Date;
@@ -57,11 +58,14 @@ export async function createBooking(input: CreateBookingInput): Promise<string> 
   );
   const amountCents = Math.round(input.amountEuros * 100);
 
+  const alumnoFields = bookingAlumnoWriteFields(
+    input.alumnoDisplayName,
+    input.alumnoEmail?.trim() ?? "",
+  );
   const docRef = await addDoc(collection(getFirebaseDb(), BOOKINGS), {
     coachId: input.coachId,
     userId: input.userId ?? "",
-    studentDisplayName: input.studentDisplayName.trim(),
-    studentEmail: input.studentEmail?.trim() ?? "",
+    ...alumnoFields,
     lessonTypeId: input.lessonTypeId,
     lessonTypeName: lesson ? lessonPublicName(lesson) : input.lessonTypeId,
     startAt: Timestamp.fromDate(input.startAt),

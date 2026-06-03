@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthProvider";
 import { COACH_ROLES } from "@/constants/roles";
-import { isStudentProfile } from "@/lib/auth/coach-role";
+import { isAlumnoProfile } from "@/lib/auth/coach-role";
 
 /** En el feed público no se sube: redirige al panel del alumno o al login. */
 export function TribeFeedUploadBanner() {
@@ -11,10 +11,10 @@ export function TribeFeedUploadBanner() {
 
   if (loading) return null;
 
-  const isStudent =
-    Boolean(user && !user.isAnonymous && profile && isStudentProfile(profile));
+  const isAlumno =
+    Boolean(user && !user.isAnonymous && profile && isAlumnoProfile(profile));
 
-  if (isStudent) {
+  if (isAlumno) {
     return (
       <div className="glass-panel flex flex-col items-center gap-4 rounded-2xl p-5 text-center sm:flex-row sm:items-center sm:justify-between sm:p-6 sm:text-left">
         <div>

@@ -5,6 +5,7 @@ import {
   marketplaceWhatsAppUrl,
   normalizeMarketplacePhone,
 } from "@/constants/marketplace";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import type { MarketplaceListing } from "@/types/marketplace";
 
 interface MarketplaceContactActionsProps {
@@ -30,10 +31,17 @@ export function MarketplaceContactActions({
           {formatMarketplacePrice(listing.priceEuros)}
         </p>
       )}
-      <p className="text-sm text-zinc-500">
-        Vendedor:{" "}
-        <span className="text-zinc-300">{listing.sellerDisplayName}</span>
-      </p>
+      <div className="flex items-center gap-2">
+        <UserAvatar
+          photoURL={listing.sellerPhotoURL}
+          displayName={listing.sellerDisplayName}
+          size="sm"
+        />
+        <p className="text-sm text-zinc-500">
+          Vendedor:{" "}
+          <span className="text-zinc-300">{listing.sellerDisplayName}</span>
+        </p>
+      </div>
       <div className="btn-row">
         {digits.length >= 9 && (
           <a

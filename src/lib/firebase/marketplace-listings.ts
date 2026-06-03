@@ -68,6 +68,7 @@ export function validateMarketplaceImages(files: File[]): string | null {
 export async function createMarketplaceListing(input: {
   sellerId: string;
   sellerDisplayName: string;
+  sellerPhotoURL?: string;
   title: string;
   description: string;
   priceEuros: number;
@@ -118,6 +119,7 @@ export async function createMarketplaceListing(input: {
     await setDoc(refDoc, {
       sellerId: input.sellerId,
       sellerDisplayName: input.sellerDisplayName.trim() || "Usuario AM",
+      ...(input.sellerPhotoURL ? { sellerPhotoURL: input.sellerPhotoURL } : {}),
       title,
       description,
       priceEuros,

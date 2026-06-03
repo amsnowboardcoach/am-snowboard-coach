@@ -16,7 +16,10 @@ import {
   onAuthStateChanged,
   signOut as firebaseSignOut,
 } from "firebase/auth";
-import { isFirebaseConfigured } from "@/lib/auth/config";
+import { isAlumnoRole } from "@/constants/roles";
+import { isCoachEmail, isFirebaseConfigured } from "@/lib/auth/config";
+import { requestCoachNotifyAlumnoRegistered } from "@/lib/push/request-coach-alumno-registered";
+import { isRecentAlumnoRegistration } from "@/lib/push/alumno-registration-window";
 import { finishGoogleRedirectSignInOnce } from "@/lib/auth/google-redirect-bootstrap";
 import {
   consumeGoogleAuthError,
@@ -176,6 +179,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!isPrivateAppPath(pathname)) return;
     router.replace(loginPathWithNext(pathname));
   }, [user, loading, pathname, router]);
+
+  /** Segundo intento si el primero falló (perfil aún no visible en servidor / token). */
+  useEffect(() => {
+    if (loading || !user || !profile) return;
+    if (!isAlumnoRole(profile.role) || isCoachEmail(profile.email)) return;
+    if (profile.registrationCoachNotified === true) return;
+    if (!isRecentAlumnoRegistration(user, profile)) return;
+
+    const timer = window.setTimeout(() => {
+      void requestCoachNotifyAlumnoRegistered();
+    }, 2500);
+
+    return () => window.clearTimeout(timer);
+  }, [user, profile, loading]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

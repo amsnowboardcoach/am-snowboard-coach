@@ -7,11 +7,11 @@ import { getCoachWhatsAppUrl } from "@/constants/coach-contact";
 import { LEGAL_PATHS } from "@/constants/legal-site";
 import { COACH_ROLES } from "@/constants/roles";
 import { SignOutButton } from "@/components/auth/SignOutButton";
-import { STUDENT_AREA_PATH } from "@/constants/student-area";
+import { ALUMNO_AREA_PATH } from "@/constants/alumno-area";
 import { useClientHydrated } from "@/hooks/use-client-hydrated";
 
 const GUEST_ACCOUNT_LINKS = [
-  { href: STUDENT_AREA_PATH, label: "Área de alumno" },
+  { href: ALUMNO_AREA_PATH, label: "Área de alumno" },
   { href: "/reservar", label: "Reservar" },
 ] as const;
 

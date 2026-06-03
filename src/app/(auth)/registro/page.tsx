@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { STUDENT_AREA_PATH } from "@/constants/student-area";
+import { ALUMNO_AREA_PATH } from "@/constants/alumno-area";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -14,5 +14,5 @@ export default async function RegistroRedirectPage({ searchParams }: PageProps) 
   if (typeof next === "string" && next.startsWith("/") && !next.startsWith("//")) {
     params.set("next", next);
   }
-  redirect(`${STUDENT_AREA_PATH}?${params.toString()}`);
+  redirect(`${ALUMNO_AREA_PATH}?${params.toString()}`);
 }

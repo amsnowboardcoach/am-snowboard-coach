@@ -35,9 +35,9 @@ function coachNotifyTo(): string {
 }
 
 /** Email al coach cuando un alumno crea cuenta */
-export async function sendCoachNewStudentRegisteredEmail(details: {
-  studentName: string;
-  studentEmail: string;
+export async function sendCoachNewAlumnoRegisteredEmail(details: {
+  alumnoName: string;
+  alumnoEmail: string;
 }): Promise<void> {
   if (!isEmailConfigured()) return;
 
@@ -47,23 +47,23 @@ export async function sendCoachNewStudentRegisteredEmail(details: {
   await getTransport().sendMail({
     from: fromAddress(),
     to: coachNotifyTo(),
-    subject: `Nuevo alumno: ${details.studentName}`,
+    subject: `Nuevo alumno: ${details.alumnoName}`,
     html: `
       <p>Se ha registrado un alumno en <strong>AM Snowboard Coach</strong>.</p>
       <ul>
-        <li><strong>Nombre:</strong> ${details.studentName}</li>
-        <li><strong>Email:</strong> ${details.studentEmail}</li>
+        <li><strong>Nombre:</strong> ${details.alumnoName}</li>
+        <li><strong>Email:</strong> ${details.alumnoEmail}</li>
       </ul>
       <p><a href="${panelUrl}">Ver alumnos en el panel</a></p>
     `,
-    text: `Nuevo alumno: ${details.studentName} (${details.studentEmail}). Panel: ${panelUrl}`,
+    text: `Nuevo alumno: ${details.alumnoName} (${details.alumnoEmail}). Panel: ${panelUrl}`,
   });
 }
 
 /** Email al coach: nueva solicitud de clase en pista */
 export async function sendCoachNewSessionBookingEmail(details: {
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   lessonTypeName: string;
   sessionLabel: string;
   when: string;
@@ -86,11 +86,11 @@ export async function sendCoachNewSessionBookingEmail(details: {
   await getTransport().sendMail({
     from: fromAddress(),
     to: coachNotifyTo(),
-    subject: `Nueva reserva: ${details.studentName} — ${details.when}`,
+    subject: `Nueva reserva: ${details.alumnoName} — ${details.when}`,
     html: `
       <p>Nueva solicitud de clase en <strong>AM Snowboard Coach</strong>.</p>
       <ul>
-        <li><strong>Alumno:</strong> ${details.studentName} &lt;${details.studentEmail}&gt;</li>
+        <li><strong>Alumno:</strong> ${details.alumnoName} &lt;${details.alumnoEmail}&gt;</li>
         <li><strong>Estilo:</strong> ${details.lessonTypeName}</li>
         <li><strong>Modalidad:</strong> ${details.sessionLabel}</li>
         <li><strong>Cuándo:</strong> ${details.when}</li>
@@ -101,14 +101,14 @@ export async function sendCoachNewSessionBookingEmail(details: {
       ${details.bookingNotes ? `<p>Notas: ${details.bookingNotes}</p>` : ""}
       <p><a href="${details.panelUrl}">Abrir panel de reservas</a></p>
     `,
-    text: `Nueva reserva de ${details.studentName}. ${details.when}. Panel: ${details.panelUrl}`,
+    text: `Nueva reserva de ${details.alumnoName}. ${details.when}. Panel: ${details.panelUrl}`,
   });
 }
 
 /** Email al coach: solicitud de video corrección (sin duplicar mail al alumno) */
 export async function sendCoachVideoCorrectionRequestEmail(details: {
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   videoCount: number;
   totalEuros: number;
   notes?: string;
@@ -121,24 +121,24 @@ export async function sendCoachVideoCorrectionRequestEmail(details: {
   await getTransport().sendMail({
     from: fromAddress(),
     to: coachNotifyTo(),
-    subject: `Video corrección: ${details.studentName} — ${label}`,
+    subject: `Video corrección: ${details.alumnoName} — ${label}`,
     html: `
       <p>Nueva solicitud de <strong>video corrección</strong>.</p>
       <ul>
-        <li><strong>Alumno:</strong> ${details.studentName} &lt;${details.studentEmail}&gt;</li>
+        <li><strong>Alumno:</strong> ${details.alumnoName} &lt;${details.alumnoEmail}&gt;</li>
         <li><strong>Paquete:</strong> ${label} · ${details.totalEuros} €</li>
       </ul>
       ${details.notes ? `<p>Notas: ${details.notes}</p>` : ""}
       <p><a href="${details.panelUrl}">Abrir panel de reservas</a></p>
     `,
-    text: `Video corrección: ${details.studentName}, ${label}. Panel: ${details.panelUrl}`,
+    text: `Video corrección: ${details.alumnoName}, ${label}. Panel: ${details.panelUrl}`,
   });
 }
 
 /** Email al coach: alumno subió vídeo para revisar */
 export async function sendCoachVideoUploadedEmail(details: {
-  studentName: string;
-  studentEmail: string;
+  alumnoName: string;
+  alumnoEmail: string;
   videoTitle: string;
   panelUrl: string;
 }): Promise<void> {
@@ -147,15 +147,15 @@ export async function sendCoachVideoUploadedEmail(details: {
   await getTransport().sendMail({
     from: fromAddress(),
     to: coachNotifyTo(),
-    subject: `Vídeo nuevo: ${details.studentName}`,
+    subject: `Vídeo nuevo: ${details.alumnoName}`,
     html: `
       <p>Un alumno ha subido un vídeo pendiente de revisión.</p>
       <ul>
-        <li><strong>Alumno:</strong> ${details.studentName} &lt;${details.studentEmail}&gt;</li>
+        <li><strong>Alumno:</strong> ${details.alumnoName} &lt;${details.alumnoEmail}&gt;</li>
         <li><strong>Título:</strong> ${details.videoTitle}</li>
       </ul>
       <p><a href="${details.panelUrl}">Revisar en el panel</a></p>
     `,
-    text: `Vídeo de ${details.studentName}: ${details.videoTitle}. ${details.panelUrl}`,
+    text: `Vídeo de ${details.alumnoName}: ${details.videoTitle}. ${details.panelUrl}`,
   });
 }

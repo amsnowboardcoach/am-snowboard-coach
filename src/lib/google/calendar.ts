@@ -140,8 +140,8 @@ export interface CreateCalendarEventInput {
   description?: string;
   start: Date;
   end: Date;
-  studentEmail: string;
-  studentName: string;
+  alumnoEmail: string;
+  alumnoName: string;
   location?: string;
 }
 
@@ -162,7 +162,7 @@ export async function createCalendarEvent(
       dateTime: toCalendarDateTimeLocal(input.end),
       timeZone: BOOKING_TIMEZONE,
     },
-    attendees: [{ email: input.studentEmail, displayName: input.studentName }],
+    attendees: [{ email: input.alumnoEmail, displayName: input.alumnoName }],
     reminders: {
       useDefault: false,
       overrides: [

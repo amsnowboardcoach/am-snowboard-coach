@@ -36,7 +36,7 @@ export function getCoachWhatsAppUrl(prefill?: string): string {
 export const COACH_WHATSAPP_PREFILL_DEFAULT =
   "Hola Alejandro, me gustaría información para reservar una clase de snowboard en Sierra Nevada.";
 
-export const COACH_WHATSAPP_STUDENT_INTRO =
+export const COACH_WHATSAPP_ALUMNO_INTRO =
   "Escríbeme por WhatsApp para reservar, cambiar fechas o resolver dudas. Tras confirmar tu plaza, puedes pagar con tarjeta en la web o acordar el pago conmigo.";
 
 /** Texto breve para formularios y pies de reserva */

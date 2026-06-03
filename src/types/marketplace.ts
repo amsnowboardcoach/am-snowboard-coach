@@ -20,6 +20,7 @@ export interface MarketplaceListing {
   id: string;
   sellerId: string;
   sellerDisplayName: string;
+  sellerPhotoURL?: string;
   title: string;
   description: string;
   priceEuros: number;
