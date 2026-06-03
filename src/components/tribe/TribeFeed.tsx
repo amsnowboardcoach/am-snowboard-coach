@@ -12,7 +12,6 @@ import {
 import type { TribeMediaType, TribePost } from "@/types/tribe-post";
 import { TribePostCard } from "@/components/tribe/TribePostCard";
 import { TribeFeedSkeleton } from "@/components/tribe/TribeFeedSkeleton";
-import { TribeFeedUploadBanner } from "@/components/tribe/TribeFeedUploadBanner";
 import { cn } from "@/lib/utils/cn";
 
 type FeedFilter = "all" | TribeMediaType;
@@ -108,8 +107,6 @@ export function TribeFeed() {
 
   return (
     <div className="content-align-start stack-page w-full">
-      <TribeFeedUploadBanner />
-
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-xl font-semibold text-zinc-50">Feed</h2>
@@ -217,19 +214,6 @@ export function TribeFeed() {
         ))}
       </div>
 
-      {!loading && posts.length > 0 && (
-        <p className="text-center text-xs text-zinc-500">
-          En la{" "}
-          <Link href="/" className="link-accent underline-offset-2 hover:underline">
-            home
-          </Link>{" "}
-          y en{" "}
-          <Link href="/clases" className="link-accent underline-offset-2 hover:underline">
-            clases
-          </Link>{" "}
-          verás las mismas publicaciones en carrusel lateral.
-        </p>
-      )}
     </div>
   );
 }
