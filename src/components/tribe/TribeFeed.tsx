@@ -219,9 +219,13 @@ export function TribeFeed() {
 
       {!loading && posts.length > 0 && (
         <p className="text-center text-xs text-zinc-500">
-          También verás fotos destacadas en la{" "}
+          También hay una vista previa del feed en la{" "}
           <Link href="/" className="link-accent underline-offset-2 hover:underline">
             página de inicio
+          </Link>{" "}
+          y en{" "}
+          <Link href="/clases" className="link-accent underline-offset-2 hover:underline">
+            clases
           </Link>
           .
         </p>

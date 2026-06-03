@@ -8,7 +8,7 @@ import { getAllPosts } from "@/content/blog/posts";
 import { HomeHeroBookingSection } from "@/components/home/HomeHeroBookingSection";
 import { PageHero } from "@/components/layout/PageHero";
 import { SectionHeading } from "@/components/layout/SectionHeading";
-import { TribePhotoGrid } from "@/components/tribe/TribePhotoGrid";
+import { TribeFeedPreview } from "@/components/tribe/TribeFeedPreview";
 import { LessonTypeCardMedia } from "@/components/lessons/LessonTypeCardMedia";
 import { getSiteMedia } from "@/lib/pexels/site-media";
 
@@ -93,7 +93,11 @@ export default async function HomePage() {
         <VideoCorrectionCard />
       </section>
 
-      <TribePhotoGrid />
+      <TribeFeedPreview
+        title="Ambiente en la nieve"
+        subtitle="Fotos y vídeos de la comunidad. Reacciona, comenta y comparte sin salir de la página — o abre el feed completo."
+        maxPosts={3}
+      />
 
       <section className="page-container py-12 sm:py-20">
         <SectionHeading

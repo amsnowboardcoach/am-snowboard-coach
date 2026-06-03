@@ -15,7 +15,7 @@ import {
 import { ClasesBookingSteps } from "@/components/clases/ClasesBookingSteps";
 import { VideoCorrectionCard } from "@/components/products/VideoCorrectionCard";
 import { PageHero } from "@/components/layout/PageHero";
-import { TribeVideoStrip } from "@/components/tribe/TribeVideoStrip";
+import { TribeFeedPreview } from "@/components/tribe/TribeFeedPreview";
 import { SectionHeading } from "@/components/layout/SectionHeading";
 import { LessonTypeCardMedia } from "@/components/lessons/LessonTypeCardMedia";
 import { getSiteMedia } from "@/lib/pexels/site-media";
@@ -237,9 +237,12 @@ export default async function ClasesPage() {
 
         <VideoCorrectionCard className="mt-10" />
 
-        <div className="mt-12">
-          <TribeVideoStrip title="Vídeos de la comunidad" />
-        </div>
+        <TribeFeedPreview
+          className="mt-12"
+          title="La Tribu"
+          subtitle="Fotos y vídeos de alumnos y del coach. Mismo feed: me gusta, comentarios y compartir."
+          maxPosts={2}
+        />
 
         <div className="mt-14 rounded-2xl border border-sky-500/25 bg-sky-500/10 px-6 py-10 text-center sm:px-10">
           <h2 className="text-balance text-2xl font-semibold text-zinc-50">
