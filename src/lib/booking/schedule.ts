@@ -8,9 +8,10 @@ import type {
 } from "@/lib/booking/calendar-availability";
 import { buildSlotCandidates } from "@/lib/booking/slot-instances";
 import {
-  intervalsOverlap,
   isIntervalFreeOfBusy,
+  mergeBusyWithShortGaps,
 } from "@/lib/booking/interval-overlap";
+import { SESSION_DURATIONS } from "@/constants/session-schedules";
 import {
   fetchBusyIntervals,
   isGoogleCalendarConfigured,
@@ -19,26 +20,17 @@ import { findOverlappingBookings } from "@/lib/firebase/bookings-admin";
 
 function isSlotFree(
   option: AvailableSlotOption,
-  busy: { start: Date; end: Date }[],
-  firestoreBusy: Awaited<ReturnType<typeof findOverlappingBookings>>,
+  schedulingBusy: { start: Date; end: Date }[],
   calendarCheckFailed: boolean,
 ): boolean {
   const start = new Date(option.startUtc);
   const end = new Date(option.endUtc);
 
-  let freeCal = true;
-  if (isGoogleCalendarConfigured()) {
-    if (calendarCheckFailed) {
-      freeCal = false;
-    } else {
-      freeCal = isIntervalFreeOfBusy(start, end, busy);
-    }
+  if (isGoogleCalendarConfigured() && calendarCheckFailed) {
+    return false;
   }
 
-  const freeDb = !firestoreBusy.some((b) =>
-    intervalsOverlap(start, end, b.startAt.toDate(), b.endAt.toDate()),
-  );
-  return freeCal && freeDb;
+  return isIntervalFreeOfBusy(start, end, schedulingBusy);
 }
 
 export async function getBookingCalendarAvailability(
@@ -86,6 +78,19 @@ export async function getBookingCalendarAvailability(
     firestoreBusy = [];
   }
 
+  const minClassMs =
+    Math.min(...SESSION_DURATIONS.map((s) => s.durationMinutes)) * 60 * 1000;
+  const schedulingBusy = mergeBusyWithShortGaps(
+    [
+      ...busy,
+      ...firestoreBusy.map((b) => ({
+        start: b.startAt.toDate(),
+        end: b.endAt.toDate(),
+      })),
+    ],
+    minClassMs,
+  );
+
   const slotsByDate = new Map<
     string,
     { option: AvailableSlotOption; available: boolean }[]
@@ -96,8 +101,7 @@ export async function getBookingCalendarAvailability(
   for (const option of candidates) {
     const availableSlot = isSlotFree(
       option,
-      busy,
-      firestoreBusy,
+      schedulingBusy,
       calendarCheckFailed,
     );
     const list = slotsByDate.get(option.date) ?? [];

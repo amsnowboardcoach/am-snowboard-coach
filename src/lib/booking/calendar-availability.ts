@@ -63,13 +63,29 @@ export function mergeCalendarDaysAcrossDurations(
       const template = days.reduce((best, d) =>
         DAY_STATUS_RANK[d.status] > DAY_STATUS_RANK[best.status] ? d : best,
       );
-      const freeCount = Math.max(...days.map((d) => d.freeCount));
-      const totalCount = Math.max(...days.map((d) => d.totalCount));
-      let status: CalendarDayStatus = template.status;
+      const bookable = days.filter(
+        (d) => d.freeCount > 0 && d.slots.some((s) => s.available),
+      );
+      if (bookable.length === 0) {
+        return {
+          ...template,
+          date,
+          status: "full" as CalendarDayStatus,
+          freeCount: 0,
+          totalCount: Math.max(...days.map((d) => d.totalCount), 0),
+          slots: template.slots,
+        };
+      }
+      const best = bookable.reduce((a, b) =>
+        DAY_STATUS_RANK[a.status] > DAY_STATUS_RANK[b.status] ? a : b,
+      );
+      const freeCount = Math.max(...bookable.map((d) => d.freeCount));
+      const totalCount = best.totalCount;
+      let status: CalendarDayStatus = best.status;
       if (freeCount <= 0) status = "full";
       else if (freeCount >= totalCount) status = "available";
       else status = "partial";
-      return { ...template, date, freeCount, totalCount, status };
+      return { ...best, date, freeCount, totalCount, status };
     })
     .sort((a, b) => a.date.localeCompare(b.date));
 }
