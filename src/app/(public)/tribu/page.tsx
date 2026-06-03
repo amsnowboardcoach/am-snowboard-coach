@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { PageHero } from "@/components/layout/PageHero";
 import { TribeFeed } from "@/components/tribe/TribeFeed";
 import { TribeFeedSkeleton } from "@/components/tribe/TribeFeedSkeleton";
-import { TribeHowItWorks } from "@/components/tribe/TribeHowItWorks";
 import { getSiteMedia } from "@/lib/pexels/site-media";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
@@ -23,20 +22,16 @@ export default async function TribuPage() {
   return (
     <div>
       <PageHero
-        eyebrow="Comunidad AM"
+        eyebrow="Comunidad"
         title="La Tribu"
         subtitle="Momentos reales en pista: mira el feed sin cuenta, reacciona, comenta y comparte. Los alumnos suben solo desde su panel."
         imageSrc={heroImage}
         imageAlt="Comunidad de snowboard en Sierra Nevada"
       />
 
-      <section className="page-container page-pad-y-tight">
-        <TribeHowItWorks />
-      </section>
-
       <section
         id="feed"
-        className="page-container max-w-2xl scroll-mt-header pb-12 sm:pb-16 lg:pb-20"
+        className="page-container max-w-2xl scroll-mt-header page-pad-y-tight pb-12 sm:pb-16 lg:pb-20"
       >
         <Suspense fallback={<TribeFeedSkeleton count={3} />}>
           <TribeFeed />

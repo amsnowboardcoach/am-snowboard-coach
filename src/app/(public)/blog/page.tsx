@@ -26,7 +26,7 @@ export default async function BlogIndexPage() {
     <div>
       <JsonLd data={blogIndexJsonLd(posts.length)} />
       <PageHero
-        eyebrow="Blog AM"
+        eyebrow="Blog"
         title="Snowboard en Sierra Nevada"
         subtitle="Consejos de técnica, Snowpark Sulayr, tarifas y temporada: todo para planificar tu clase en Sierra Nevada."
         imageSrc={media.sierra.image.src}
