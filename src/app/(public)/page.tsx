@@ -95,8 +95,8 @@ export default async function HomePage() {
 
       <TribeFeedPreview
         title="Ambiente en la nieve"
-        subtitle="Fotos y vídeos de la comunidad. Reacciona, comenta y comparte sin salir de la página — o abre el feed completo."
-        maxPosts={3}
+        subtitle="Fotos y vídeos de la comunidad. Reacciona, comenta y comparte."
+        maxPosts={4}
       />
 
       <section className="page-container py-12 sm:py-20">

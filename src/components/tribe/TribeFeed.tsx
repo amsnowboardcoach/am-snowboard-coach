@@ -219,15 +219,15 @@ export function TribeFeed() {
 
       {!loading && posts.length > 0 && (
         <p className="text-center text-xs text-zinc-500">
-          También hay una vista previa del feed en la{" "}
+          En la{" "}
           <Link href="/" className="link-accent underline-offset-2 hover:underline">
-            página de inicio
+            home
           </Link>{" "}
           y en{" "}
           <Link href="/clases" className="link-accent underline-offset-2 hover:underline">
             clases
-          </Link>
-          .
+          </Link>{" "}
+          verás las mismas publicaciones en carrusel lateral.
         </p>
       )}
     </div>

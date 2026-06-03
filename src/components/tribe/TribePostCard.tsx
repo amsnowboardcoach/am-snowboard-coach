@@ -1,12 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { useAuth } from "@/contexts/AuthProvider";
 import { isCoachProfile } from "@/lib/auth/coach-role";
-import { loginPathWithNext } from "@/lib/auth/paths";
 import { tribeCommentAuthorName } from "@/lib/auth/tribe-comment-author";
 import {
   canInteractOnTribeFeed,
@@ -54,6 +52,10 @@ export function TribePostCard({
   const [commentText, setCommentText] = useState("");
   const [loadingComments, setLoadingComments] = useState(false);
   const [shareHint, setShareHint] = useState<string | null>(null);
+  const [interactNotice, setInteractNotice] = useState<string | null>(null);
+  const interactNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const [acting, setActing] = useState(false);
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
     null,
@@ -62,8 +64,26 @@ export function TribePostCard({
 
   const isCoach = Boolean(profile && isCoachProfile(profile));
   const canInteract = canInteractOnTribeFeed(user, profile);
-  const loginHref = loginPathWithNext(`/tribu?post=${post.id}`);
   const commentAsName = tribeCommentAuthorName(profile, user);
+
+  useEffect(() => {
+    return () => {
+      if (interactNoticeTimerRef.current) {
+        clearTimeout(interactNoticeTimerRef.current);
+      }
+    };
+  }, []);
+
+  function showInteractNotice() {
+    if (interactNoticeTimerRef.current) {
+      clearTimeout(interactNoticeTimerRef.current);
+    }
+    setInteractNotice(tribeInteractBlockedMessage(user, profile));
+    interactNoticeTimerRef.current = setTimeout(() => {
+      setInteractNotice(null);
+      interactNoticeTimerRef.current = null;
+    }, 3500);
+  }
 
   function commentDisplayName(comment: TribeComment): string {
     if (user && comment.authorId === user.uid) {
@@ -123,7 +143,7 @@ export function TribePostCard({
   function blockInteract(): boolean {
     if (authLoading) return true;
     if (canInteract && user) return false;
-    setActionError(tribeInteractBlockedMessage(user, profile));
+    showInteractNotice();
     return true;
   }
 
@@ -411,54 +431,43 @@ export function TribePostCard({
           </div>
         )}
 
-        {canInteract ? (
-          <form
-            onSubmit={(e) => void handleComment(e)}
-            className="mt-3 space-y-2 rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3 sm:p-4"
-          >
+        <form
+          onSubmit={(e) => void handleComment(e)}
+          className="mt-3 space-y-2 rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3 sm:p-4"
+        >
+          {canInteract && (
             <p className="text-sm font-semibold text-zinc-100">{commentAsName}</p>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <input
-                ref={commentInputRef}
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Escribe un comentario…"
-                maxLength={500}
-                disabled={acting || authLoading}
-                className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-100"
-              />
-              <button
-                type="submit"
-                disabled={acting || authLoading || !commentText.trim()}
-                className="btn-primary-md btn-inline shrink-0 rounded-xl disabled:opacity-40 sm:min-w-[6.5rem]"
-              >
-                Enviar
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="mt-3 rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3 text-center sm:p-4">
-            <p className="text-sm text-zinc-400">
-              {authLoading
-                ? "Comprobando tu sesión…"
-                : tribeInteractBlockedMessage(user, profile)}
-            </p>
-            {!authLoading && (
-              <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
-                <Link href={loginHref} className="btn-primary-md text-sm">
-                  Entrar como alumno
-                </Link>
-                <Link
-                  href="/registro"
-                  className="text-sm link-accent underline-offset-2 hover:underline"
-                >
-                  Crear cuenta
-                </Link>
-              </div>
-            )}
+          )}
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              ref={commentInputRef}
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Escribe un comentario…"
+              maxLength={500}
+              disabled={acting || authLoading}
+              className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-100"
+            />
+            <button
+              type="submit"
+              disabled={acting || authLoading || !commentText.trim()}
+              className="btn-primary-md btn-inline shrink-0 rounded-xl disabled:opacity-40 sm:min-w-[6.5rem]"
+            >
+              Enviar
+            </button>
           </div>
-        )}
+        </form>
       </div>
+
+      {interactNotice && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="pointer-events-none fixed bottom-20 left-1/2 z-[100] max-w-[min(90vw,22rem)] -translate-x-1/2 rounded-xl border border-amber-500/40 bg-zinc-900/95 px-4 py-3 text-center text-sm text-amber-100 shadow-lg backdrop-blur-sm"
+        >
+          {interactNotice}
+        </div>
+      )}
     </article>
   );
 }

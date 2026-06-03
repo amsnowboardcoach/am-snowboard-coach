@@ -240,8 +240,8 @@ export default async function ClasesPage() {
         <TribeFeedPreview
           className="mt-12"
           title="La Tribu"
-          subtitle="Fotos y vídeos de alumnos y del coach. Mismo feed: me gusta, comentarios y compartir."
-          maxPosts={2}
+          subtitle="Fotos y vídeos de la comunidad. Reacciona, comenta y comparte."
+          maxPosts={4}
         />
 
         <div className="mt-14 rounded-2xl border border-sky-500/25 bg-sky-500/10 px-6 py-10 text-center sm:px-10">
