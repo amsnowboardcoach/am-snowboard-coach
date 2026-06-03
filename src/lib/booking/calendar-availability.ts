@@ -39,6 +39,41 @@ export function mergeCalendarDays(
   return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
+const DAY_STATUS_RANK: Record<CalendarDayStatus, number> = {
+  available: 3,
+  partial: 2,
+  full: 1,
+  past: 0,
+};
+
+/** Vista home: el mejor estado entre 2 h, 3 h y día completo (ocupación en vivo). */
+export function mergeCalendarDaysAcrossDurations(
+  ...sets: CalendarDayInfo[][]
+): CalendarDayInfo[] {
+  const byDate = new Map<string, CalendarDayInfo[]>();
+  for (const set of sets) {
+    for (const day of set) {
+      const list = byDate.get(day.date) ?? [];
+      list.push(day);
+      byDate.set(day.date, list);
+    }
+  }
+  return [...byDate.entries()]
+    .map(([date, days]) => {
+      const template = days.reduce((best, d) =>
+        DAY_STATUS_RANK[d.status] > DAY_STATUS_RANK[best.status] ? d : best,
+      );
+      const freeCount = Math.max(...days.map((d) => d.freeCount));
+      const totalCount = Math.max(...days.map((d) => d.totalCount));
+      let status: CalendarDayStatus = template.status;
+      if (freeCount <= 0) status = "full";
+      else if (freeCount >= totalCount) status = "available";
+      else status = "partial";
+      return { ...template, date, freeCount, totalCount, status };
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
 export function mergeAvailableSlots(
   existing: AvailableSlotOption[],
   incoming: AvailableSlotOption[],

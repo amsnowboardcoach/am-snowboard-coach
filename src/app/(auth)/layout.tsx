@@ -14,7 +14,7 @@ export default function AuthLayout({
       <SiteHeader />
       <SiteChrome />
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-10 sm:px-6 sm:py-14">
-        <div className="w-full max-w-md">{children}</div>
+        <div className="content-narrow w-full">{children}</div>
       </main>
       <CookieBanner />
     </div>

@@ -1000,7 +1000,7 @@ export function BookingForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-7 sm:space-y-8">
       <FieldBlock title="1. Duración en pista">
         <div className="grid gap-2 sm:grid-cols-3">
           {SESSION_DURATIONS.map((d) => {

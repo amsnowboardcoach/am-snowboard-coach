@@ -299,7 +299,6 @@ export function BookingAvailabilityCalendar({
   className,
   slotSection = "always",
   emptySlotHint,
-  previewDurationLabel,
   mode = "availability",
 }: {
   calendarDays: CalendarDayInfo[];
@@ -324,8 +323,6 @@ export function BookingAvailabilityCalendar({
   className?: string;
   slotSection?: "always" | "when-picked";
   emptySlotHint?: string;
-  /** Home colorsOnly: etiqueta de duración (2 h, 3 h, día completo) */
-  previewDurationLabel?: string;
   /**
    * - availability: colores, fracciones y turnos (reservar)
    * - colorsOnly: colores en vivo sin fracciones ni turnos (home)
@@ -447,7 +444,7 @@ export function BookingAvailabilityCalendar({
           <span className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-zinc-600 border-t-sky-400" />
         </div>
       )}
-      <div className="mx-auto w-full max-w-sm">
+      <div className="mx-auto w-full max-w-[min(100%,20.5rem)] sm:max-w-md">
         <div
           className="grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-1"
           role="group"
@@ -484,7 +481,7 @@ export function BookingAvailabilityCalendar({
           {datesOnly
             ? `Temporada ${BOOKING_SEASON_LABEL} · elige uno o varios días`
             : colorsOnly
-              ? `Temporada ${BOOKING_SEASON_LABEL} · huecos para ${previewDurationLabel ?? "2 h"}`
+              ? `Temporada ${BOOKING_SEASON_LABEL} · verde con hueco, ámbar parcialmente ocupado`
               : `Temporada ${BOOKING_SEASON_LABEL} · elige turno en cada día marcado`}
         </p>
 
@@ -571,7 +568,7 @@ export function BookingAvailabilityCalendar({
         </div>
       </div>
 
-      <div className="mt-4 flex w-full max-w-sm flex-col items-center gap-3 px-1">
+      <div className="mt-4 flex w-full max-w-[min(100%,20.5rem)] flex-col items-center gap-3 px-1 sm:max-w-md">
         {emptySlotHint && !showSlotPicker && (
           <p className="w-full text-xs leading-relaxed text-zinc-500">
             {emptySlotHint}

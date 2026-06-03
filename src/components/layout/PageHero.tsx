@@ -36,7 +36,11 @@ export function PageHero({
     <section
       className={cn(
         "relative overflow-hidden",
-        tall ? "min-h-[min(72dvh,720px)]" : "min-h-[min(42dvh,420px)]",
+        tall
+          ? afterSubtitle
+            ? "min-h-0 sm:min-h-[min(76dvh,740px)]"
+            : "min-h-[min(68dvh,680px)] sm:min-h-[min(72dvh,720px)]"
+          : "min-h-[min(38dvh,380px)] sm:min-h-[min(42dvh,420px)]",
       )}
     >
       {videoSrc ? (
@@ -69,7 +73,8 @@ export function PageHero({
       />
       <div
         className={cn(
-          "page-container relative flex max-w-6xl flex-col justify-end pb-12 pt-[max(5.5rem,calc(3.25rem+env(safe-area-inset-top)))] sm:pb-16 sm:pt-28 lg:pb-20 lg:pt-32",
+          "page-container relative flex max-w-6xl flex-col justify-end pb-8 pt-[max(4.75rem,calc(2.75rem+env(safe-area-inset-top)))] sm:pb-14 sm:pt-24 lg:pb-20 lg:pt-28",
+          afterSubtitle && "justify-start pb-6 sm:justify-end sm:pb-14",
           centered && "items-center text-center",
         )}
       >
@@ -80,7 +85,7 @@ export function PageHero({
         )}
         <h1
           className={cn(
-            "max-w-3xl text-balance text-3xl font-bold tracking-tight sm:text-5xl lg:text-6xl",
+            "max-w-3xl text-balance text-[clamp(1.625rem,4.2vw+0.85rem,3.75rem)] font-bold leading-[1.12] tracking-tight sm:leading-[1.1]",
             centered && "mx-auto",
           )}
         >
@@ -89,7 +94,7 @@ export function PageHero({
         {subtitle && (
           <p
             className={cn(
-              "mt-4 max-w-2xl text-base leading-relaxed text-zinc-300 sm:mt-5 sm:text-lg",
+              "mt-3 max-w-2xl text-[0.9375rem] leading-relaxed text-zinc-300 sm:mt-4 sm:text-lg",
               centered && "mx-auto",
             )}
           >
@@ -99,8 +104,10 @@ export function PageHero({
         {afterSubtitle && (
           <div
             className={cn(
-              "mt-5 w-full sm:mt-6",
-              centered ? "mx-auto max-w-xl lg:max-w-2xl" : "max-w-xl lg:max-w-2xl",
+              "mt-4 w-full sm:mt-5",
+              centered
+                ? "mx-auto w-full max-w-[min(100%,22rem)] sm:max-w-md lg:max-w-lg"
+                : "max-w-[min(100%,22rem)] sm:max-w-md lg:max-w-lg",
             )}
           >
             {afterSubtitle}

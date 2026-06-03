@@ -29,8 +29,8 @@ export default async function ReservarPage() {
         tall={false}
       />
 
-      <section className="page-container max-w-4xl section-pad-tight">
-        <div className="content-align-start glass-panel rounded-2xl p-6 sm:p-8 lg:p-10">
+      <section className="page-container section-pad-tight">
+        <div className="content-form content-align-start glass-panel panel-pad rounded-2xl">
           <Suspense
             fallback={
               <p className="py-12 text-center text-zinc-500">Cargando reservas…</p>

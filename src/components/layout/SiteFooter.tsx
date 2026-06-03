@@ -44,7 +44,7 @@ export function SiteFooter() {
 
   return (
     <footer className="border-t border-zinc-800 bg-zinc-950 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
-      <div className="page-container grid grid-cols-1 gap-10 py-12 sm:grid-cols-2 sm:gap-12 lg:gap-14 lg:py-14">
+      <div className="page-container grid grid-cols-1 gap-8 py-10 sm:grid-cols-2 sm:gap-10 sm:py-12 lg:gap-12 lg:py-14">
         <div>
           <Link
             href="/"

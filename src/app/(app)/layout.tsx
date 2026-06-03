@@ -45,8 +45,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <main
         id="main-content"
         className={cn(
-          "page-container flex-1 overflow-x-hidden py-6 sm:py-10 lg:py-12",
-          isCoachHub ? "py-4 text-left sm:py-10" : "text-center",
+          "page-container flex-1 overflow-x-hidden py-6 sm:py-9 lg:py-11",
+          isCoachHub
+            ? "py-4 text-left sm:py-9"
+            : "content-form text-center sm:text-left",
         )}
       >
         {children}

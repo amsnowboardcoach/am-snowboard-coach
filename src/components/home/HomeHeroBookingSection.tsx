@@ -22,7 +22,6 @@ import {
   DEFAULT_SESSION_DURATION_ID,
   getSessionDuration,
   SESSION_DURATIONS,
-  type SessionDurationId,
 } from "@/constants/session-schedules";
 import type { AvailableSlotOption } from "@/lib/booking/availability";
 import { saveBookingDraft } from "@/lib/booking/booking-draft";
@@ -30,6 +29,7 @@ import {
   countDaysWithFreeSlots,
   mergeAvailableSlots,
   mergeCalendarDays,
+  mergeCalendarDaysAcrossDurations,
   type CalendarDayInfo,
 } from "@/lib/booking/calendar-availability";
 import type { DurationAvailabilityStatus } from "@/lib/booking/duration-availability";
@@ -52,12 +52,10 @@ function defaultAvailabilityFetchRange(): { start: string; end: string } {
   return { start, end };
 }
 
+const defaultSession = getSessionDuration(DEFAULT_SESSION_DURATION_ID)!;
+
 export function HomeHeroBookingSection() {
   const router = useRouter();
-  const [durationId, setDurationId] = useState<SessionDurationId>(
-    DEFAULT_SESSION_DURATION_ID,
-  );
-  const session = getSessionDuration(durationId) ?? SESSION_DURATIONS[0]!;
 
   const [calendarDays, setCalendarDays] = useState<CalendarDayInfo[]>([]);
   const [availableSlots, setAvailableSlots] = useState<AvailableSlotOption[]>(
@@ -74,7 +72,6 @@ export function HomeHeroBookingSection() {
   const fetchRef = useRef<string | null>(null);
   const genRef = useRef(0);
   const rangeEndRef = useRef("");
-  const durationMountRef = useRef(true);
 
   const fetchAvailability = useCallback(
     async (
@@ -95,7 +92,7 @@ export function HomeHeroBookingSection() {
         return;
       }
       const { start, end } = clamped;
-      const fetchKey = `${durationId}:${start}:${end}:${merge}`;
+      const fetchKey = `all:${start}:${end}:${merge}`;
       if (!force && fetchRef.current === fetchKey) return;
       fetchRef.current = fetchKey;
       const gen = ++genRef.current;
@@ -104,18 +101,37 @@ export function HomeHeroBookingSection() {
       setLoadError(null);
 
       try {
-        const params = new URLSearchParams({
-          durationId,
-          start,
-          end,
-        });
-        const res = await fetch(`/api/bookings/availability?${params}`);
-        const data = await res.json();
+        const results = await Promise.all(
+          SESSION_DURATIONS.map(async (d) => {
+            const params = new URLSearchParams({
+              durationId: d.id,
+              start,
+              end,
+            });
+            const res = await fetch(`/api/bookings/availability?${params}`);
+            const data = await res.json();
+            if (!res.ok) {
+              throw new Error(data.error ?? "Error de disponibilidad");
+            }
+            return {
+              slots: (data.slots ?? []) as AvailableSlotOption[],
+              days: (data.days ?? []) as CalendarDayInfo[],
+              rangeStart: data.rangeStart as string | undefined,
+            };
+          }),
+        );
         if (gen !== genRef.current) return;
-        if (!res.ok) throw new Error(data.error ?? "Error de disponibilidad");
 
-        const incomingSlots: AvailableSlotOption[] = data.slots ?? [];
-        const incomingDays: CalendarDayInfo[] = data.days ?? [];
+        const incomingDays = mergeCalendarDaysAcrossDurations(
+          ...results.map((r) => r.days),
+        );
+        const incomingSlots = results
+          .map((r) => r.slots)
+          .reduce(
+            (acc, slots) => mergeAvailableSlots(acc, slots),
+            [] as AvailableSlotOption[],
+          );
+        const firstRangeStart = results.find((r) => r.rangeStart)?.rangeStart;
 
         setAvailableSlots((prior) =>
           merge ? mergeAvailableSlots(prior, incomingSlots) : incomingSlots,
@@ -130,7 +146,7 @@ export function HomeHeroBookingSection() {
           return days;
         });
         setRangeStart((prev) =>
-          merge ? prev || data.rangeStart || start : (data.rangeStart ?? start),
+          merge ? prev || firstRangeStart || start : (firstRangeStart ?? start),
         );
         setRangeEnd(end);
         rangeEndRef.current = end;
@@ -149,18 +165,12 @@ export function HomeHeroBookingSection() {
         if (fetchRef.current === fetchKey) fetchRef.current = null;
       }
     },
-    [durationId],
+    [],
   );
 
   useEffect(() => {
-    fetchRef.current = null;
-    if (!durationMountRef.current) {
-      setPickedDateKeys([]);
-    } else {
-      durationMountRef.current = false;
-    }
     void fetchAvailability(undefined, false, true);
-  }, [durationId, fetchAvailability]);
+  }, [fetchAvailability]);
 
   const navigationRangeEnd = getBookingSeasonBounds().end;
 
@@ -219,7 +229,7 @@ export function HomeHeroBookingSection() {
       participantCount: 1,
       daysPlan,
       consecutiveCount: pickedDateKeys.length,
-      durationId,
+      durationId: DEFAULT_SESSION_DURATION_ID,
       slotId: null,
       pickedDateKeys,
       selectedDays: [],
@@ -227,41 +237,23 @@ export function HomeHeroBookingSection() {
       paymentOption: BOOKING_PAYMENT_OPTIONS[0]!.id,
       homeDatePicker: true,
     });
-    router.push(reservarHref({ duracion: durationId }));
+    router.push(reservarHref());
   }
 
   return (
     <>
-      <div className="rounded-2xl border border-white/15 bg-zinc-950/80 p-3 shadow-xl shadow-black/30 backdrop-blur-md sm:p-4">
-        <p className="mb-2 text-xs font-medium text-zinc-400">
+      <div className="rounded-2xl border border-white/15 bg-zinc-950/80 p-3.5 shadow-xl shadow-black/30 backdrop-blur-md sm:p-4">
+        <p className="mb-3 text-xs font-medium text-zinc-400">
           Disponibilidad en vivo
         </p>
-        <div className="mb-3 grid grid-cols-3 gap-2">
-          {SESSION_DURATIONS.map((d) => (
-            <button
-              key={d.id}
-              type="button"
-              onClick={() => setDurationId(d.id)}
-              className={cn(
-                "min-h-11 rounded-xl border px-2 py-2 text-center text-sm transition",
-                durationId === d.id
-                  ? "chip-toggle-active"
-                  : "border-zinc-700/80 bg-zinc-900/50 text-zinc-300 hover:border-zinc-500",
-              )}
-            >
-              <span className="block font-semibold">{d.shortLabel}</span>
-            </button>
-          ))}
-        </div>
         <BookingAvailabilityCalendar
           mode="colorsOnly"
-          previewDurationLabel={session.shortLabel}
           className="border-zinc-700/60 bg-zinc-900/50"
           calendarDays={calendarDays}
           rangeStart={rangeStart}
           rangeEnd={rangeEnd}
           availableSlots={availableSlots}
-          sessionSlots={session.slots}
+          sessionSlots={defaultSession.slots}
           selectedDates={pickedDateKeys}
           selectedSlotByDate={new Map()}
           onSelectDate={pickDateKey}
@@ -273,7 +265,7 @@ export function HomeHeroBookingSection() {
           onRefresh={refreshCalendar}
           onVisibleMonthChange={handleVisibleMonth}
           navigationRangeEnd={navigationRangeEnd}
-          emptySlotHint={`Toca días verdes o ámbar con hueco para ${session.shortLabel}. En reservar eliges el turno (mañana o tarde).`}
+          emptySlotHint="Toca días verdes o ámbar con hueco. En reservar eliges duración (2 h, 3 h o día completo) y turno."
         />
         {pickedDateKeys.length > 0 && (
           <p className="mt-3 text-center text-xs text-emerald-300/90">

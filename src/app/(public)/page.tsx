@@ -45,11 +45,11 @@ export default async function HomePage() {
                 key={lesson.id}
                 className="glass-panel group overflow-hidden rounded-2xl transition duration-300 hover:border-sky-500/40"
               >
-                <div className="relative h-40 overflow-hidden">
+                <div className="relative aspect-[16/10] max-h-44 overflow-hidden sm:max-h-48">
                   <LessonTypeCardMedia lessonId={lesson.id} priority={i === 0} />
                   <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 to-transparent" />
                 </div>
-                <div className="p-6">
+                <div className="p-5 sm:p-6">
                   <h3 className="text-lg font-semibold text-sky-400">
                     {lessonPublicName(lesson)}
                   </h3>
@@ -121,8 +121,8 @@ export default async function HomePage() {
           sizes="100vw"
         />
         <div className="page-container relative max-w-3xl text-center">
-          <h2 className="text-3xl font-bold">¿Tu próxima sesión en la nieve?</h2>
-          <p className="mt-4 text-zinc-300">
+          <h2 className="page-title">¿Tu próxima sesión en la nieve?</h2>
+          <p className="page-lead mt-0 text-zinc-300">
             Reserva en la web o por WhatsApp. Te confirmo por email; pagas con tarjeta o lo acordamos al aceptar tu plaza.
           </p>
           <Link
