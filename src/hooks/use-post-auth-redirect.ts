@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthProvider";
-import { resolvePostLoginPath } from "@/lib/auth/paths";
+import { resolvePostLoginPathForProfile } from "@/lib/auth/paths";
 
 /** En /login o /registro: si ya hay sesión, ir al panel correspondiente. */
 export function usePostAuthRedirect(enabled = true): void {
@@ -22,6 +22,6 @@ export function usePostAuthRedirect(enabled = true): void {
     }
     redirectedRef.current = true;
     const next = searchParams.get("next");
-    router.replace(resolvePostLoginPath(profile.role, next));
+    router.replace(resolvePostLoginPathForProfile(profile, next));
   }, [enabled, loading, user, profile, pathname, searchParams, router]);
 }

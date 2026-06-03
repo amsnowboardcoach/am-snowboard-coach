@@ -7,22 +7,15 @@ import { useAuth } from "@/contexts/AuthProvider";
 import { CoachHubShell } from "@/components/coach/CoachHubShell";
 import { CoachProfileSetup } from "@/components/coach/CoachProfileSetup";
 import { isCoachEmail } from "@/lib/auth/config";
+import { isCoachProfile } from "@/lib/auth/coach-role";
 import { roleDisplayLabel } from "@/constants/roles";
-import { isCoachRole } from "@/lib/auth/paths";
 
 export default function CoachDashboardPage() {
   const { user, profile, loading, refreshProfile } = useAuth();
   const router = useRouter();
 
   const isCoachByEmail = user?.email ? isCoachEmail(user.email) : false;
-  const isCoach = profile ? isCoachRole(profile.role) : false;
-
-  useEffect(() => {
-    if (loading || !user || !profile) return;
-    if (!isCoach && !isCoachByEmail) {
-      router.replace("/perfil");
-    }
-  }, [loading, user, profile, isCoach, isCoachByEmail, router]);
+  const isCoach = profile ? isCoachProfile(profile) : isCoachByEmail;
 
   if (loading) {
     return (

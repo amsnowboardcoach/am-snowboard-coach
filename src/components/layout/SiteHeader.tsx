@@ -6,7 +6,7 @@ import { useClientHydrated } from "@/hooks/use-client-hydrated";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { SiteHeaderLogo } from "@/components/layout/SiteHeaderLogo";
 import { MobileNavDrawer, type MobileNavLink } from "@/components/layout/MobileNavDrawer";
-import { COACH_ROLES } from "@/constants/roles";
+import { isCoachProfile } from "@/lib/auth/coach-role";
 import { useSignOut } from "@/hooks/use-sign-out";
 import {
   SITE_HEADER_CTA,
@@ -25,7 +25,7 @@ export function SiteHeader({ className }: SiteHeaderProps) {
   const hydrated = useClientHydrated();
   const signOut = useSignOut();
   const authReady = hydrated && !loading;
-  const isCoach = profile && COACH_ROLES.includes(profile.role);
+  const isCoach = profile ? isCoachProfile(profile) : false;
   const privateHref = isCoach ? "/coach" : "/perfil";
   const privateLabel = isCoach ? "Panel coach" : "Mi perfil";
 

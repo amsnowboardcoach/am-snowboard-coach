@@ -8,7 +8,7 @@ import {
 } from "firebase/auth";
 import { isFirebaseConfigured } from "@/lib/auth/config";
 import { resetGoogleRedirectBootstrap } from "@/lib/auth/google-redirect-bootstrap";
-import { resolvePostLoginPath, safeNextPath } from "@/lib/auth/paths";
+import { resolvePostLoginPathForProfile, safeNextPath } from "@/lib/auth/paths";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import { ensureUserProfile } from "@/lib/auth/ensure-profile";
 import type { UserProfile } from "@/types/firestore";
@@ -123,7 +123,7 @@ async function completeGoogleSignIn(
   clearGoogleAuthFlow();
   return {
     profile,
-    redirectPath: resolvePostLoginPath(profile.role, stashed),
+    redirectPath: resolvePostLoginPathForProfile(profile, stashed),
   };
 }
 

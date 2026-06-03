@@ -17,6 +17,7 @@ import {
   signOut as firebaseSignOut,
 } from "firebase/auth";
 import { isAlumnoRole } from "@/constants/roles";
+import { isCoachProfile } from "@/lib/auth/coach-role";
 import { isCoachEmail, isFirebaseConfigured } from "@/lib/auth/config";
 import { requestCoachNotifyAlumnoRegistered } from "@/lib/push/request-coach-alumno-registered";
 import { isRecentAlumnoRegistration } from "@/lib/push/alumno-registration-window";
@@ -179,6 +180,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!isPrivateAppPath(pathname)) return;
     router.replace(loginPathWithNext(pathname));
   }, [user, loading, pathname, router]);
+
+  /** Monitor: nunca permanecer en /perfil (área alumno). */
+  useEffect(() => {
+    if (loading || !user || !profile) return;
+    if (!isCoachProfile(profile)) return;
+    if (!pathname.startsWith("/perfil")) return;
+    router.replace("/coach");
+  }, [loading, user, profile, pathname, router]);
 
   /** Segundo intento si el primero falló (perfil aún no visible en servidor / token). */
   useEffect(() => {

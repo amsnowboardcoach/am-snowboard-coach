@@ -10,7 +10,7 @@ import { AlumnoNoticesPanel } from "@/components/perfil/AlumnoNoticesPanel";
 import { AlumnoNoticesUnreadBadge } from "@/components/perfil/AlumnoNoticesUnreadBadge";
 import { useAuth } from "@/contexts/AuthProvider";
 import { roleDisplayLabel } from "@/constants/roles";
-import { isAlumnoProfile } from "@/lib/auth/coach-role";
+import { isAlumnoProfile, isCoachProfile } from "@/lib/auth/coach-role";
 import { alumnoLevelLabel } from "@/lib/booking/contact-notes";
 
 type PerfilLink = {
@@ -55,7 +55,7 @@ export default function PerfilPage() {
   const isAlumno = profile ? isAlumnoProfile(profile) : false;
 
   useEffect(() => {
-    if (profile && !isAlumnoProfile(profile)) {
+    if (profile && isCoachProfile(profile)) {
       router.replace("/coach");
     }
   }, [profile, router]);

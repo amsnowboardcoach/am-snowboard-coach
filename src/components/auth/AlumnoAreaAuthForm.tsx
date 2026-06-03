@@ -16,7 +16,7 @@ import { LEGAL_PATHS } from "@/constants/legal-site";
 import { isCoachEmail, isFirebaseConfigured } from "@/lib/auth/config";
 import { consumeGoogleAuthError } from "@/lib/auth/google-sign-in";
 import { mapEmailAuthError } from "@/lib/auth/map-email-auth-error";
-import { resolvePostLoginPath, safeNextPath } from "@/lib/auth/paths";
+import { resolvePostLoginPathForProfile, safeNextPath } from "@/lib/auth/paths";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import { createUserProfile } from "@/lib/firebase/users";
 import { requestCoachNotifyAlumnoRegistered } from "@/lib/push/request-coach-alumno-registered";
@@ -83,7 +83,7 @@ export function AlumnoAreaAuthForm() {
         return;
       }
 
-      router.replace(resolvePostLoginPath(profile.role, nextPath));
+      router.replace(resolvePostLoginPathForProfile(profile, nextPath));
     } catch (err) {
       setError(mapEmailAuthError(err));
     } finally {
@@ -148,7 +148,7 @@ export function AlumnoAreaAuthForm() {
         return;
       }
 
-      router.replace(resolvePostLoginPath(profile.role, nextPath));
+      router.replace(resolvePostLoginPathForProfile(profile, nextPath));
     } catch (err) {
       setError(mapEmailAuthError(err));
     } finally {

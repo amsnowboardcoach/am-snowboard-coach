@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { scrollToTop } from "@/lib/navigation/scroll";
-import { COACH_ROLES } from "@/constants/roles";
+import { isCoachProfile } from "@/lib/auth/coach-role";
 import { useAuth } from "@/contexts/AuthProvider";
 import { useSignOut } from "@/hooks/use-sign-out";
 import { MobileNavDrawer, type MobileNavLink } from "@/components/layout/MobileNavDrawer";
@@ -11,7 +11,7 @@ import { MobileNavDrawer, type MobileNavLink } from "@/components/layout/MobileN
 export function AppHeader() {
   const { profile } = useAuth();
   const signOut = useSignOut();
-  const isCoach = profile && COACH_ROLES.includes(profile.role);
+  const isCoach = profile ? isCoachProfile(profile) : false;
 
   const homeHref = isCoach ? "/coach?tab=reservas" : "/perfil";
 

@@ -1,6 +1,11 @@
 import { COACH_ROLES } from "@/constants/roles";
 import type { UserRole } from "@/constants/roles";
-import { getAuthRedirectPath } from "@/lib/auth/redirect";
+import { isCoachProfile } from "@/lib/auth/coach-role";
+import {
+  getAuthRedirectPath,
+  getAuthRedirectPathForProfile,
+} from "@/lib/auth/redirect";
+import type { UserProfile } from "@/types/firestore";
 
 /** Rutas internas permitidas tras login (evita open redirect). */
 const ALLOWED_NEXT_PREFIXES = [
@@ -27,8 +32,30 @@ export function safeNextPath(next: string | null | undefined): string | null {
 export function resolvePostLoginPath(
   role: UserRole,
   next: string | null | undefined,
+  email?: string | null,
 ): string {
-  return safeNextPath(next) ?? getAuthRedirectPath(role);
+  const defaultPath = getAuthRedirectPath(role, email);
+  const safe = safeNextPath(next);
+  if (!safe) return defaultPath;
+  const pathOnly = safe.split("?")[0]?.split("#")[0] ?? safe;
+  if (pathOnly.startsWith("/coach") && !getAuthRedirectPath(role, email).startsWith("/coach")) {
+    return "/perfil";
+  }
+  return safe;
+}
+
+export function resolvePostLoginPathForProfile(
+  profile: Pick<UserProfile, "role" | "email">,
+  next: string | null | undefined,
+): string {
+  const defaultPath = getAuthRedirectPathForProfile(profile);
+  const safe = safeNextPath(next);
+  if (!safe) return defaultPath;
+  const pathOnly = safe.split("?")[0]?.split("#")[0] ?? safe;
+  if (pathOnly.startsWith("/coach") && !isCoachProfile(profile)) {
+    return "/perfil";
+  }
+  return safe;
 }
 
 export function isCoachRole(role: UserRole): boolean {

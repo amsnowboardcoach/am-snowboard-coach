@@ -11,7 +11,7 @@ import { AlumnoLevelSelect } from "@/components/coach/AlumnoLevelSelect";
 import { AlumnoTrickManager } from "@/components/coach/AlumnoTrickManager";
 import { alumnoLevelLabel } from "@/lib/booking/contact-notes";
 import { useAuth } from "@/contexts/AuthProvider";
-import { COACH_ROLES } from "@/constants/roles";
+import { isCoachProfile } from "@/lib/auth/coach-role";
 import { coachHubHref } from "@/constants/coach-hub";
 import { getFirebaseDb } from "@/lib/firebase/client";
 import { cn } from "@/lib/utils/cn";
@@ -36,7 +36,7 @@ export default function CoachAlumnoDetailPage() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!profile || !COACH_ROLES.includes(profile.role) || !user) {
+    if (!profile || !user || !isCoachProfile(profile)) {
       router.replace("/perfil");
       return;
     }
