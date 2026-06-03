@@ -37,3 +37,35 @@ export function scrollToId(
   const el = document.getElementById(id);
   scrollToElement(el, options);
 }
+
+const AUTH_GATE_ID = "booking-auth-gate";
+
+/** Tras abrir el acceso en reservar: espera al montaje del panel y evita quedarse arriba. */
+export function scrollToAuthGate(options?: {
+  behavior?: ScrollBehavior;
+  block?: ScrollLogicalPosition;
+  maxAttempts?: number;
+  intervalMs?: number;
+}) {
+  if (typeof window === "undefined") return;
+  const maxAttempts = options?.maxAttempts ?? 16;
+  const intervalMs = options?.intervalMs ?? 50;
+  let attempts = 0;
+
+  const tryScroll = () => {
+    const el = document.getElementById(AUTH_GATE_ID);
+    if (el) {
+      scrollToElement(el, {
+        behavior: options?.behavior,
+        block: options?.block ?? "start",
+      });
+      return;
+    }
+    attempts += 1;
+    if (attempts < maxAttempts) {
+      window.setTimeout(tryScroll, intervalMs);
+    }
+  };
+
+  requestAnimationFrame(tryScroll);
+}

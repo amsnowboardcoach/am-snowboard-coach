@@ -11,7 +11,7 @@ import {
   formatVideoCorrectionPrice,
   videoCorrectionTotalEuros,
 } from "@/constants/video-correction";
-import { scrollToId, scrollToTop } from "@/lib/navigation/scroll";
+import { scrollToAuthGate, scrollToTop } from "@/lib/navigation/scroll";
 import { cn } from "@/lib/utils/cn";
 
 export function VideoCorrectionBookingHub() {
@@ -107,9 +107,7 @@ export function VideoCorrectionBookingHub() {
     if (!canBook) {
       setShowAuthGate(true);
       setSubmitError(null);
-      requestAnimationFrame(() => {
-        scrollToId("booking-auth-gate", { block: "start" });
-      });
+      scrollToAuthGate();
       return;
     }
     await submitRequest();

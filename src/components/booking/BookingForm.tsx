@@ -64,7 +64,7 @@ import {
   isValidBookingPhone,
 } from "@/lib/booking/contact-notes";
 import { formatReservationSummaryLines } from "@/lib/booking/format-reservation";
-import { scrollToId, scrollToTop } from "@/lib/navigation/scroll";
+import { scrollToAuthGate, scrollToTop } from "@/lib/navigation/scroll";
 import {
   countDaysWithFreeSlots,
   mergeAvailableSlots,
@@ -873,15 +873,15 @@ export function BookingForm() {
     setSubmitError(null);
     const params = new URLSearchParams(searchParams.toString());
     params.set("book", "1");
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    const qs = params.toString();
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    window.history.replaceState(null, "", url);
+    scrollToAuthGate();
   }
 
   useEffect(() => {
     if (!showAuthGate || !formReady || canBook) return;
-    const timer = window.setTimeout(() => {
-      scrollToId("booking-auth-gate", { block: "start" });
-    }, 80);
-    return () => window.clearTimeout(timer);
+    scrollToAuthGate();
   }, [showAuthGate, formReady, canBook]);
 
   useEffect(() => {
@@ -1167,13 +1167,36 @@ export function BookingForm() {
         </div>
       </FieldBlock>
 
+      {showAuthGate && formReady && !canBook && (
+        <BookingAuthGate
+          className="scroll-mt-header"
+          totalEuros={totalEuros}
+          summary={bookingSummary}
+          onError={setAuthError}
+          onGoogleSuccess={async () => {
+            setShowAuthGate(true);
+            setBookingPendingSubmit(true);
+            const loadedProfile = await syncSessionAfterLogin();
+            const authUser = getFirebaseAuth().currentUser;
+            if (authUser?.email) {
+              const displayName =
+                loadedProfile?.displayName?.trim() ||
+                authUser.displayName?.trim() ||
+                authUser.email.split("@")[0] ||
+                "Alumno";
+              setName(displayName);
+              setEmail(authUser.email);
+            }
+          }}
+        />
+      )}
+
       <div
         id="booking-summary"
         className={cn(
           "z-10 -mx-2 space-y-4 rounded-2xl border border-zinc-800 p-4 sm:mx-0 sm:border-zinc-800/80 sm:p-0",
-          showAuthGate
-            ? "static bg-transparent shadow-none sm:bg-transparent"
-            : "sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] bg-zinc-950/95 shadow-xl backdrop-blur-md sm:static sm:bg-transparent sm:shadow-none",
+          !showAuthGate &&
+            "sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] bg-zinc-950/95 shadow-xl backdrop-blur-md sm:static sm:bg-transparent sm:shadow-none",
         )}
       >
         <div>
@@ -1232,29 +1255,6 @@ export function BookingForm() {
         </p>
       )}
 
-      {showAuthGate && formReady && !canBook && (
-        <BookingAuthGate
-          className="scroll-mt-header"
-          totalEuros={totalEuros}
-          summary={bookingSummary}
-          onError={setAuthError}
-          onGoogleSuccess={async () => {
-            setShowAuthGate(true);
-            setBookingPendingSubmit(true);
-            const loadedProfile = await syncSessionAfterLogin();
-            const authUser = getFirebaseAuth().currentUser;
-            if (authUser?.email) {
-              const displayName =
-                loadedProfile?.displayName?.trim() ||
-                authUser.displayName?.trim() ||
-                authUser.email.split("@")[0] ||
-                "Alumno";
-              setName(displayName);
-              setEmail(authUser.email);
-            }
-          }}
-        />
-      )}
     </form>
   );
 }
