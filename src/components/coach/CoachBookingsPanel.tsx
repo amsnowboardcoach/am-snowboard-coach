@@ -17,12 +17,14 @@ interface CoachBookingsPanelProps {
   coachId: string;
   initialFilter?: Filter;
   showCreateForm?: boolean;
+  onPendingChange?: () => void;
 }
 
 export function CoachBookingsPanel({
   coachId,
   initialFilter = "all",
   showCreateForm = true,
+  onPendingChange,
 }: CoachBookingsPanelProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,8 +43,9 @@ export function CoachBookingsPanel({
       setError(msg);
     } finally {
       setLoading(false);
+      onPendingChange?.();
     }
-  }, [coachId]);
+  }, [coachId, onPendingChange]);
 
   useEffect(() => {
     let active = true;
@@ -58,14 +61,17 @@ export function CoachBookingsPanel({
           err instanceof Error ? err.message : "Error al cargar reservas";
         setError(msg);
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+          onPendingChange?.();
+        }
       }
     })();
 
     return () => {
       active = false;
     };
-  }, [coachId]);
+  }, [coachId, onPendingChange]);
 
   const pendingInvoiceCount = useMemo(
     () => countPaidWithoutInvoice(bookings),

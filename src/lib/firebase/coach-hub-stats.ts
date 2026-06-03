@@ -14,6 +14,10 @@ import { getFirebaseDb } from "@/lib/firebase/client";
 import { fetchPendingMarketplaceListings } from "@/lib/firebase/marketplace-listings";
 import { fetchAlumnoProgressVideos } from "@/lib/firebase/progress-videos";
 import { fetchCoachAlumnos } from "@/lib/firebase/alumnos";
+import type { CoachHubTab } from "@/constants/coach-hub";
+
+/** Alumnos registrados en los últimos N días (aviso en pestaña Alumnos). */
+const RECENT_ALUMNO_DAYS = 7;
 
 export interface CoachHubStats {
   pendingBookings: number;
@@ -21,8 +25,42 @@ export interface CoachHubStats {
   pendingTribePosts: number;
   pendingMarketplaceListings: number;
   pendingVideos: number;
+  /** Registros recientes en la app (últimos 7 días). */
+  recentAlumnos: number;
   alumnoCount: number;
   upcomingBookings: number;
+}
+
+/** Número a mostrar en la pestaña del panel coach (0 = sin badge). */
+export function coachHubBadgeCount(
+  tab: CoachHubTab,
+  stats: CoachHubStats,
+): number {
+  switch (tab) {
+    case "reservas":
+      return stats.pendingBookings;
+    case "facturacion":
+      return stats.pendingInvoices;
+    case "alumnos":
+      return stats.pendingVideos + stats.recentAlumnos;
+    case "tribu":
+      return stats.pendingTribePosts;
+    case "mercadillo":
+      return stats.pendingMarketplaceListings;
+    default:
+      return 0;
+  }
+}
+
+export function coachHubHasPending(stats: CoachHubStats): boolean {
+  return (
+    stats.pendingBookings > 0 ||
+    stats.pendingInvoices > 0 ||
+    stats.pendingTribePosts > 0 ||
+    stats.pendingMarketplaceListings > 0 ||
+    stats.pendingVideos > 0 ||
+    stats.recentAlumnos > 0
+  );
 }
 
 export async function fetchCoachHubStats(
@@ -62,12 +100,19 @@ export async function fetchCoachHubStats(
     pendingVideos = videoCounts.reduce((a, b) => a + b, 0);
   }
 
+  const recentCutoff = now - RECENT_ALUMNO_DAYS * 24 * 60 * 60 * 1000;
+  const recentAlumnos = alumnos.filter((a) => {
+    const created = a.createdAt?.toMillis?.() ?? 0;
+    return created >= recentCutoff;
+  }).length;
+
   return {
     pendingBookings,
     pendingInvoices: countPaidWithoutInvoice(bookings),
     pendingTribePosts: tribeSnap.size,
     pendingMarketplaceListings: pendingListings.length,
     pendingVideos,
+    recentAlumnos,
     alumnoCount: alumnos.length,
     upcomingBookings,
   };

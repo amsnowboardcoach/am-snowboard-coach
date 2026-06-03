@@ -76,6 +76,13 @@ export function CoachHubOverview({ coachId, onNavigate }: CoachHubOverviewProps)
           urgent: stats.pendingVideos > 0,
         },
         {
+          tab: "alumnos",
+          label: "Alumnos nuevos",
+          value: stats.recentAlumnos,
+          hint: "Registro en los últimos 7 días",
+          urgent: stats.recentAlumnos > 0,
+        },
+        {
           tab: "reservas",
           label: "Próximas clases",
           value: stats.upcomingBookings,

@@ -18,7 +18,11 @@ function categoryLabel(id: MarketplaceListing["category"]): string {
   return MARKETPLACE_CATEGORIES.find((c) => c.id === id)?.label ?? id;
 }
 
-export function CoachHubMarketplacePanel() {
+export function CoachHubMarketplacePanel({
+  onPendingChange,
+}: {
+  onPendingChange?: () => void;
+}) {
   const [listings, setListings] = useState<MarketplaceListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +85,10 @@ export function CoachHubMarketplacePanel() {
       <MarketplaceModerationPanel
         key={moderationKey}
         hideWhenEmpty={false}
-        onModerated={() => void load()}
+        onModerated={() => {
+          void load();
+          onPendingChange?.();
+        }}
       />
 
       <section className="space-y-4">

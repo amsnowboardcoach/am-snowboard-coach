@@ -4,7 +4,7 @@ import { getStorage } from "firebase-admin/storage";
 import { ROLES } from "@/constants/roles";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { inferFileContentType } from "@/lib/utils/media-file";
-import type { TribeMediaType } from "@/types/tribe-post";
+import type { TribeMediaType, TribePassportShareMeta } from "@/types/tribe-post";
 
 function getBucket() {
   const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
@@ -24,6 +24,7 @@ export async function adminCreateTribePost(input: {
   fileName: string;
   mediaType: TribeMediaType;
   caption?: string;
+  passport?: TribePassportShareMeta;
 }): Promise<string> {
   const db = getAdminDb();
   const postRef = db.collection("tribe_posts").doc();
@@ -63,6 +64,14 @@ export async function adminCreateTribePost(input: {
     commentCount: 0,
     legalConsent: true,
     createdAt: FieldValue.serverTimestamp(),
+    ...(input.passport
+      ? {
+          postKind: "passport",
+          passportTrickId: input.passport.trickId,
+          passportTrickName: input.passport.trickName.slice(0, 120),
+          passportTrickStatus: input.passport.trickStatus,
+        }
+      : {}),
   });
 
   return postRef.id;

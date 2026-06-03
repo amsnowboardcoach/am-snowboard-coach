@@ -90,6 +90,20 @@ service cloud.firestore {
         || changed.hasOnly(['commentCount']);
     }
 
+    function tribePassportCreateValid() {
+      return !('passportTrickId' in request.resource.data)
+        || (
+          request.resource.data.postKind == 'passport'
+          && request.resource.data.passportTrickId is string
+          && request.resource.data.passportTrickId.size() >= 1
+          && request.resource.data.passportTrickId.size() <= 80
+          && request.resource.data.passportTrickName is string
+          && request.resource.data.passportTrickName.size() >= 1
+          && request.resource.data.passportTrickName.size() <= 120
+          && request.resource.data.passportTrickStatus in ['in_progress', 'unlocked', 'mastered']
+        );
+    }
+
     function isCoachSignupEmail() {
       return request.auth.token.email == 'amsnowboardcoach@gmail.com';
     }
@@ -199,26 +213,27 @@ service cloud.firestore {
         && request.resource.data.fireCount == 0
         && request.resource.data.commentCount == 0
         && request.resource.data.mediaType in ['photo', 'video']
-        && request.resource.data.moderationStatus == 'pending';
+        && request.resource.data.moderationStatus == 'pending'
+        && tribePassportCreateValid();
       allow update: if isCoach()
         || (isSignedIn()
           && resource.data.authorId == request.auth.uid
           && request.resource.data.authorId == resource.data.authorId)
-        || (isSignedIn() && tribeCountsOnlyUpdate());
+        || (isRegisteredStudent() && tribeCountsOnlyUpdate());
       allow delete: if isSignedIn()
         && (resource.data.authorId == request.auth.uid || isCoach());
 
       match /comments/{commentId} {
         allow read: if true;
-        allow create: if isSignedIn() && tribeCommentValidCreate();
+        allow create: if isRegisteredStudent() && tribeCommentValidCreate();
         allow delete: if isCoach()
           || resource.data.authorId == request.auth.uid;
       }
 
       match /fires/{userId} {
         allow read: if true;
-        allow create: if isOwner(userId);
-        allow delete: if isOwner(userId);
+        allow create: if isRegisteredStudent() && isOwner(userId);
+        allow delete: if isRegisteredStudent() && isOwner(userId);
       }
     }
 

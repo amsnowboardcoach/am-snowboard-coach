@@ -27,10 +27,20 @@ import {
 } from "@/lib/firebase/tribe-upload-api";
 import { isImageFile, isVideoFile } from "@/lib/utils/media-file";
 import type { UserRole } from "@/constants/roles";
+import { TRICK_CATEGORY_LABELS } from "@/constants/tricks-catalog";
+import {
+  isTribeShareableTrickStatus,
+  TRICK_STATUS_LABEL,
+} from "@/constants/trick-status";
+import { buildPassportTribeCaption } from "@/lib/tribe/passport-share-caption";
+import { renderPassportAchievementCardBlob } from "@/lib/tribe/passport-achievement-card";
+import type { TrickCategory } from "@/constants/tricks-catalog";
+import type { TrickStatus } from "@/types/tricks";
 import type {
   TribeComment,
   TribeMediaType,
   TribeModerationStatus,
+  TribePassportShareMeta,
   TribePost,
 } from "@/types/tribe-post";
 
@@ -44,6 +54,29 @@ function postsCol() {
 
 function moderationForRole(role: UserRole): TribeModerationStatus {
   return COACH_ROLES.includes(role) ? "approved" : "pending";
+}
+
+type TribePostUploadInput = {
+  authorId: string;
+  authorDisplayName: string;
+  authorPhotoURL?: string;
+  authorRole: UserRole;
+  file: File;
+  mediaType: TribeMediaType;
+  caption?: string;
+  legalConsent: boolean;
+  passport?: TribePassportShareMeta;
+  onUploadProgress?: (percent: number) => void;
+};
+
+function passportFieldsForDoc(passport?: TribePassportShareMeta) {
+  if (!passport) return {};
+  return {
+    postKind: "passport" as const,
+    passportTrickId: passport.trickId,
+    passportTrickName: passport.trickName.slice(0, 120),
+    passportTrickStatus: passport.trickStatus,
+  };
 }
 
 export function validateTribeMediaFile(
@@ -71,17 +104,7 @@ export function validateTribeMediaFile(
   return null;
 }
 
-export async function uploadTribePost(input: {
-  authorId: string;
-  authorDisplayName: string;
-  authorPhotoURL?: string;
-  authorRole: UserRole;
-  file: File;
-  mediaType: TribeMediaType;
-  caption?: string;
-  legalConsent: boolean;
-  onUploadProgress?: (percent: number) => void;
-}): Promise<string> {
+export async function uploadTribePost(input: TribePostUploadInput): Promise<string> {
   if (!input.legalConsent) {
     throw new Error("Debes aceptar las condiciones de publicación.");
   }
@@ -95,6 +118,7 @@ export async function uploadTribePost(input: {
       mediaType: input.mediaType,
       caption: input.caption,
       legalConsent: input.legalConsent,
+      passport: input.passport,
       onUploadProgress: input.onUploadProgress,
     });
   } catch (apiErr) {
@@ -108,17 +132,9 @@ export async function uploadTribePost(input: {
   return uploadTribePostViaClientStorage(input);
 }
 
-async function uploadTribePostViaClientStorage(input: {
-  authorId: string;
-  authorDisplayName: string;
-  authorPhotoURL?: string;
-  authorRole: UserRole;
-  file: File;
-  mediaType: TribeMediaType;
-  caption?: string;
-  legalConsent: boolean;
-  onUploadProgress?: (percent: number) => void;
-}): Promise<string> {
+async function uploadTribePostViaClientStorage(
+  input: TribePostUploadInput,
+): Promise<string> {
   const postRef = doc(postsCol());
   const safeName = input.file.name.replace(/[^\w.\-() ]/g, "_").slice(0, 120);
   const storagePath = `tribe/${postRef.id}/${safeName}`;
@@ -145,6 +161,7 @@ async function uploadTribePostViaClientStorage(input: {
       commentCount: 0,
       legalConsent: true,
       createdAt: serverTimestamp(),
+      ...passportFieldsForDoc(input.passport),
     });
   } catch (err) {
     try {
@@ -158,6 +175,67 @@ async function uploadTribePostViaClientStorage(input: {
   }
 
   return postRef.id;
+}
+
+/** Sube un logro del pasaporte (tarjeta generada o foto opcional) a La Tribu. */
+export async function uploadTribePassportAchievement(
+  input: Omit<TribePostUploadInput, "file" | "mediaType" | "passport"> & {
+    trickId: string;
+    trickName: string;
+    trickStatus: TrickStatus;
+    category: TrickCategory;
+    optionalPhoto?: File | null;
+    captionExtra?: string;
+  },
+): Promise<string> {
+  if (!isTribeShareableTrickStatus(input.trickStatus)) {
+    throw new Error("Solo puedes compartir maniobras desbloqueadas o en progreso.");
+  }
+
+  const passport: TribePassportShareMeta = {
+    trickId: input.trickId,
+    trickName: input.trickName,
+    trickStatus: input.trickStatus,
+  };
+
+  let file: File;
+  if (input.optionalPhoto) {
+    const err = validateTribeMediaFile(input.optionalPhoto, "photo");
+    if (err) throw new Error(err);
+    file = input.optionalPhoto;
+  } else {
+    const blob = await renderPassportAchievementCardBlob({
+      trickName: input.trickName,
+      statusLabel: TRICK_STATUS_LABEL[input.trickStatus],
+      categoryLabel: TRICK_CATEGORY_LABELS[input.category],
+      authorName: input.authorDisplayName.trim() || "Alumno AM",
+    });
+    file = new File([blob], `pasaporte-${input.trickId}.png`, {
+      type: "image/png",
+    });
+  }
+
+  const caption =
+    input.caption?.trim() ||
+    buildPassportTribeCaption({
+      trickName: input.trickName,
+      status: input.trickStatus,
+      category: input.category,
+      extra: input.captionExtra,
+    });
+
+  return uploadTribePost({
+    authorId: input.authorId,
+    authorDisplayName: input.authorDisplayName,
+    authorPhotoURL: input.authorPhotoURL,
+    authorRole: input.authorRole,
+    file,
+    mediaType: "photo",
+    caption,
+    legalConsent: input.legalConsent,
+    passport,
+    onUploadProgress: input.onUploadProgress,
+  });
 }
 
 export async function fetchTribePostById(

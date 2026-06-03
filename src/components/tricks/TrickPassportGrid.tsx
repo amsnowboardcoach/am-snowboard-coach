@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { TRICK_CATEGORY_LABELS } from "@/constants/tricks-catalog";
 import type { TrickCategory } from "@/constants/tricks-catalog";
+import { isTribeShareableTrickStatus } from "@/constants/trick-status";
+import { SharePassportToTribeDialog } from "@/components/tribe/SharePassportToTribeDialog";
 import type { PassportSectionNotesMap } from "@/lib/firebase/passport-section-notes";
 import type { TrickStatus, TrickWithProgress } from "@/types/tricks";
 
@@ -40,6 +43,8 @@ export function TrickPassportGrid({
   tricks,
   sectionNotes = {},
 }: TrickPassportGridProps) {
+  const [shareTrick, setShareTrick] = useState<TrickWithProgress | null>(null);
+
   const byCategory = tricks.reduce(
     (acc, trick) => {
       if (!acc[trick.category]) acc[trick.category] = [];
@@ -59,8 +64,18 @@ export function TrickPassportGrid({
   return (
     <div className="space-y-8">
       <p className="text-sm text-zinc-400">
-        {unlocked} de {tricks.length} maniobras desbloqueadas
+        {unlocked} de {tricks.length} maniobras desbloqueadas. Puedes{" "}
+        <strong className="font-medium text-zinc-300">
+          compartir tus logros en La Tribu
+        </strong>{" "}
+        desde cada maniobra desbloqueada o en progreso.
       </p>
+
+      <SharePassportToTribeDialog
+        trick={shareTrick}
+        open={shareTrick !== null}
+        onClose={() => setShareTrick(null)}
+      />
 
       {Object.entries(byCategory).map(([category, items]) => {
         const cat = category as TrickCategory;
@@ -80,6 +95,7 @@ export function TrickPassportGrid({
             {items.map((trick) => {
               const status = trick.progress?.status ?? "locked";
               const cfg = statusConfig[status];
+              const canShare = isTribeShareableTrickStatus(status);
               return (
                 <article
                   key={trick.id}
@@ -98,6 +114,15 @@ export function TrickPassportGrid({
                   <p className="mt-3 text-xs font-medium text-zinc-400">
                     {cfg.label}
                   </p>
+                  {canShare && (
+                    <button
+                      type="button"
+                      onClick={() => setShareTrick(trick)}
+                      className="mt-3 w-full rounded-lg border border-sky-500/35 bg-sky-500/10 px-3 py-2 text-xs font-medium text-sky-200 transition hover:bg-sky-500/20"
+                    >
+                      Compartir en La Tribu
+                    </button>
+                  )}
                 </article>
               );
             })}

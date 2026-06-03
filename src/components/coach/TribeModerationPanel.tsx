@@ -19,10 +19,12 @@ import { TribePostCard } from "@/components/tribe/TribePostCard";
 interface TribeModerationPanelProps {
   /** Si false, no oculta el panel cuando no hay pendientes */
   hideWhenEmpty?: boolean;
+  onModerated?: () => void;
 }
 
 export function TribeModerationPanel({
   hideWhenEmpty = true,
+  onModerated,
 }: TribeModerationPanelProps) {
   const [pending, setPending] = useState<TribePost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,6 +69,7 @@ export function TribeModerationPanel({
         moderationStatus: status,
       });
       await load();
+      onModerated?.();
     } catch (err) {
       setActionError(
         formatFirestoreClientError(err, "No se pudo actualizar la publicación"),

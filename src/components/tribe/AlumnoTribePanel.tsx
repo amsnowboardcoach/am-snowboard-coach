@@ -164,7 +164,11 @@ export function AlumnoTribePanel({ alumnoId }: AlumnoTribePanelProps) {
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-zinc-400">
           Solo desde aquí (tu panel de alumno). El contenido pasa por revisión
-          antes de salir en el feed público.
+          antes de salir en el feed público. También puedes compartir logros desde{" "}
+          <Link href="/perfil/pasaporte" className="link-accent underline-offset-2">
+            tu pasaporte de trucos
+          </Link>
+          .
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2">

@@ -7,7 +7,7 @@ const STEPS = [
   {
     title: "Reacciona y comenta",
     description:
-      "Dale al corazón, deja un comentario o comparte un enlace directo a una publicación.",
+      "Con tu cuenta de alumno puedes dar me gusta, comentar o compartir un enlace directo a una publicación.",
   },
   {
     title: "Publica si eres alumno",

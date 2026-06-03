@@ -17,9 +17,13 @@ interface AlumnoRow extends UserProfile {
 
 interface CoachHubAlumnosPanelProps {
   coachId: string;
+  onPendingChange?: () => void;
 }
 
-export function CoachHubAlumnosPanel({ coachId }: CoachHubAlumnosPanelProps) {
+export function CoachHubAlumnosPanel({
+  coachId,
+  onPendingChange,
+}: CoachHubAlumnosPanelProps) {
   const [alumnos, setAlumnos] = useState<AlumnoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,8 +62,9 @@ export function CoachHubAlumnosPanel({ coachId }: CoachHubAlumnosPanelProps) {
       }
     } finally {
       setLoading(false);
+      onPendingChange?.();
     }
-  }, [coachId]);
+  }, [coachId, onPendingChange]);
 
   useEffect(() => {
     void load();

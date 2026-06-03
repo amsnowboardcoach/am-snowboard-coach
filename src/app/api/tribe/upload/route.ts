@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAlumnoBearer } from "@/lib/auth/verify-alumno";
 import { adminCreateTribePost } from "@/lib/firebase/tribe-posts-admin";
 import { validateTribeMediaFile } from "@/lib/firebase/tribe-posts";
-import type { TribeMediaType } from "@/types/tribe-post";
+import { isTribeShareableTrickStatus } from "@/constants/trick-status";
+import type { TribeMediaType, TribePassportShareMeta } from "@/types/tribe-post";
+import type { TrickStatus } from "@/types/tricks";
 
 export const runtime = "nodejs";
 
@@ -69,6 +71,38 @@ export async function POST(request: NextRequest) {
   const captionStr =
     typeof caption === "string" ? caption.trim().slice(0, 500) : undefined;
 
+  let passport: TribePassportShareMeta | undefined;
+  const postKind = form.get("postKind");
+  if (postKind === "passport") {
+    const trickId = form.get("passportTrickId");
+    const trickName = form.get("passportTrickName");
+    const trickStatus = form.get("passportTrickStatus");
+    if (
+      typeof trickId !== "string" ||
+      !trickId.trim() ||
+      typeof trickName !== "string" ||
+      !trickName.trim() ||
+      typeof trickStatus !== "string" ||
+      !isTribeShareableTrickStatus(trickStatus as TrickStatus)
+    ) {
+      return NextResponse.json(
+        { error: "Datos del logro del pasaporte inválidos." },
+        { status: 400 },
+      );
+    }
+    passport = {
+      trickId: trickId.trim().slice(0, 80),
+      trickName: trickName.trim().slice(0, 120),
+      trickStatus: trickStatus as TrickStatus,
+    };
+    if (mediaType !== "photo") {
+      return NextResponse.json(
+        { error: "Los logros del pasaporte solo se publican como foto." },
+        { status: 400 },
+      );
+    }
+  }
+
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
     const postId = await adminCreateTribePost({
@@ -79,6 +113,7 @@ export async function POST(request: NextRequest) {
       fileName: file.name || (mediaType === "photo" ? "foto.jpg" : "video.mp4"),
       mediaType,
       caption: captionStr,
+      passport,
     });
     return NextResponse.json({ postId });
   } catch (err) {

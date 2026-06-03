@@ -15,12 +15,15 @@ import {
   parseCoachHubTab,
   type CoachHubTab,
 } from "@/constants/coach-hub";
+import { CoachHubTabBadge } from "@/components/coach/CoachHubTabBadge";
 import { CoachPushActivator } from "@/components/coach/CoachPushActivator";
 import { CoachBookingsPanel } from "@/components/coach/CoachBookingsPanel";
 import { CoachHubInvoicingPanel } from "@/components/coach/CoachHubInvoicingPanel";
 import { CoachHubMarketplacePanel } from "@/components/coach/CoachHubMarketplacePanel";
 import { CoachHubAlumnosPanel } from "@/components/coach/CoachHubAlumnosPanel";
 import { TribeModerationPanel } from "@/components/coach/TribeModerationPanel";
+import { coachHubBadgeCount } from "@/lib/firebase/coach-hub-stats";
+import { useCoachHubStats } from "@/hooks/useCoachHubStats";
 import { scrollToTop } from "@/lib/navigation/scroll";
 import { cn } from "@/lib/utils/cn";
 
@@ -66,6 +69,17 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
     [activeTab],
   );
 
+  const { stats, refresh: refreshStats } = useCoachHubStats(coachId);
+
+  useEffect(() => {
+    void refreshStats();
+  }, [activeTab, refreshStats]);
+
+  function badgeFor(tab: CoachHubTab): number {
+    if (!stats) return 0;
+    return coachHubBadgeCount(tab, stats);
+  }
+
   return (
     <div className="w-full text-left lg:flex lg:gap-10 xl:gap-12">
       <CoachPushActivator />
@@ -76,29 +90,39 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
           className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           aria-label="Secciones del panel coach"
         >
-          {COACH_HUB_TABS.map((tab) => (
-            <Link
-              key={tab.id}
-              href={coachHubHref(tab.id)}
-              scroll={false}
-              onClick={() => {
-                setActiveTab(tab.id);
-                scrollToTop({ behavior: "auto" });
-              }}
-              aria-current={activeTab === tab.id ? "page" : undefined}
-              className={cn(
-                "flex shrink-0 touch-manipulation items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition active:scale-[0.98] sm:text-sm",
-                activeTab === tab.id
-                  ? "chip-toggle-active shadow-md shadow-sky-950/30"
-                  : "chip-toggle-inactive border-zinc-700/90 bg-zinc-900/60",
-              )}
-            >
-              <span aria-hidden className="text-sm leading-none">
-                {TAB_ICONS[tab.id]}
-              </span>
-              {tab.label}
-            </Link>
-          ))}
+          {COACH_HUB_TABS.map((tab) => {
+            const pending = badgeFor(tab.id);
+            return (
+              <Link
+                key={tab.id}
+                href={coachHubHref(tab.id)}
+                scroll={false}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  scrollToTop({ behavior: "auto" });
+                }}
+                aria-current={activeTab === tab.id ? "page" : undefined}
+                className={cn(
+                  "flex shrink-0 touch-manipulation items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition active:scale-[0.98] sm:text-sm",
+                  activeTab === tab.id
+                    ? "chip-toggle-active shadow-md shadow-sky-950/30"
+                    : "chip-toggle-inactive border-zinc-700/90 bg-zinc-900/60",
+                  pending > 0 &&
+                    activeTab !== tab.id &&
+                    "ring-1 ring-amber-500/40",
+                )}
+              >
+                <span aria-hidden className="text-sm leading-none">
+                  {TAB_ICONS[tab.id]}
+                </span>
+                {tab.label}
+                <CoachHubTabBadge
+                  count={pending}
+                  pulse={tab.id === "reservas" && pending > 0}
+                />
+              </Link>
+            );
+          })}
         </nav>
       </div>
 
@@ -108,26 +132,38 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
           className="grid gap-2"
           aria-label="Secciones del panel coach"
         >
-          {COACH_HUB_TABS.map((tab) => (
-            <Link
-              key={tab.id}
-              href={coachHubHref(tab.id)}
-              scroll={false}
-              onClick={() => {
-                setActiveTab(tab.id);
-                scrollToTop({ behavior: "auto" });
-              }}
-              aria-current={activeTab === tab.id ? "page" : undefined}
-              className={cn(
-                "flex min-h-11 w-full touch-manipulation items-center rounded-xl px-3 py-2.5 text-sm font-medium transition",
-                activeTab === tab.id
-                  ? "chip-toggle-active"
-                  : "chip-toggle-inactive border-zinc-800 bg-transparent hover:border-zinc-600",
-              )}
-            >
-              {tab.label}
-            </Link>
-          ))}
+          {COACH_HUB_TABS.map((tab) => {
+            const pending = badgeFor(tab.id);
+            return (
+              <Link
+                key={tab.id}
+                href={coachHubHref(tab.id)}
+                scroll={false}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  scrollToTop({ behavior: "auto" });
+                }}
+                aria-current={activeTab === tab.id ? "page" : undefined}
+                className={cn(
+                  "flex min-h-11 w-full touch-manipulation items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+                  activeTab === tab.id
+                    ? "chip-toggle-active"
+                    : "chip-toggle-inactive border-zinc-800 bg-transparent hover:border-zinc-600",
+                  pending > 0 &&
+                    activeTab !== tab.id &&
+                    "border-amber-500/30",
+                )}
+              >
+                <span className="flex items-center gap-2">
+                  <span aria-hidden className="text-base leading-none">
+                    {TAB_ICONS[tab.id]}
+                  </span>
+                  {tab.label}
+                </span>
+                <CoachHubTabBadge count={pending} />
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="mt-6 space-y-2">
@@ -158,6 +194,12 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
               </h1>
               <p className="mt-1 truncate text-xs text-zinc-500 sm:text-sm">
                 {displayName}
+                {stats && badgeFor(activeTab) > 0 && (
+                  <span className="ml-2 text-amber-400/90">
+                    · {badgeFor(activeTab)} pendiente
+                    {badgeFor(activeTab) === 1 ? "" : "s"} en esta sección
+                  </span>
+                )}
               </p>
             </div>
             <Link
@@ -173,7 +215,11 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
         </header>
 
         {activeTab === "reservas" && (
-          <CoachBookingsPanel coachId={coachId} initialFilter="pending_requests" />
+          <CoachBookingsPanel
+            coachId={coachId}
+            initialFilter="pending_requests"
+            onPendingChange={refreshStats}
+          />
         )}
 
         {activeTab === "facturacion" && (
@@ -181,7 +227,10 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
         )}
 
         {activeTab === "alumnos" && (
-          <CoachHubAlumnosPanel coachId={coachId} />
+          <CoachHubAlumnosPanel
+            coachId={coachId}
+            onPendingChange={refreshStats}
+          />
         )}
 
         {activeTab === "tribu" && (
@@ -197,11 +246,16 @@ function CoachHubShellInner({ coachId, displayName }: CoachHubShellProps) {
                 Ver feed →
               </Link>
             </div>
-            <TribeModerationPanel hideWhenEmpty={false} />
+            <TribeModerationPanel
+              hideWhenEmpty={false}
+              onModerated={refreshStats}
+            />
           </div>
         )}
 
-        {activeTab === "mercadillo" && <CoachHubMarketplacePanel />}
+        {activeTab === "mercadillo" && (
+          <CoachHubMarketplacePanel onPendingChange={refreshStats} />
+        )}
       </div>
     </div>
   );

@@ -51,8 +51,8 @@ export function TribeFeedUploadBanner() {
       <p className="text-lg font-semibold text-zinc-100">Publicar en La Tribu</p>
       <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-zinc-400">
         Solo <strong className="font-medium text-zinc-200">alumnos registrados</strong>{" "}
-        pueden subir contenido, y lo hacen desde el área de alumno. Aquí puedes ver
-        el feed, reaccionar y comentar.
+        pueden subir contenido, reaccionar, comentar y compartir. Aquí puedes ver el
+        feed; para interactuar, entra con tu cuenta de alumno.
       </p>
       <Link
         href="/login"

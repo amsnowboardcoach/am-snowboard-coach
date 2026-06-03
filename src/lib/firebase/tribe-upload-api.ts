@@ -1,5 +1,5 @@
 import { getFirebaseAuthHeaders } from "@/lib/auth/firebase-auth-headers";
-import type { TribeMediaType } from "@/types/tribe-post";
+import type { TribeMediaType, TribePassportShareMeta } from "@/types/tribe-post";
 
 export class TribeUploadApiError extends Error {
   readonly status: number;
@@ -19,6 +19,7 @@ export async function uploadTribePostThroughApi(input: {
   mediaType: TribeMediaType;
   caption?: string;
   legalConsent: boolean;
+  passport?: TribePassportShareMeta;
   onUploadProgress?: (percent: number) => void;
 }): Promise<string> {
   const form = new FormData();
@@ -27,6 +28,12 @@ export async function uploadTribePostThroughApi(input: {
   form.append("legalConsent", input.legalConsent ? "true" : "false");
   if (input.caption?.trim()) {
     form.append("caption", input.caption.trim());
+  }
+  if (input.passport) {
+    form.append("postKind", "passport");
+    form.append("passportTrickId", input.passport.trickId);
+    form.append("passportTrickName", input.passport.trickName);
+    form.append("passportTrickStatus", input.passport.trickStatus);
   }
 
   const headers = await getFirebaseAuthHeaders();
