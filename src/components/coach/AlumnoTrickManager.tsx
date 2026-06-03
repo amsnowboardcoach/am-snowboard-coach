@@ -23,32 +23,20 @@ const STATUSES: { id: TrickStatus; label: string }[] = [
   { id: "mastered", label: "Dominado" },
 ];
 
-type TrickDraft = {
-  status: TrickStatus;
-  coachNotes: string;
-};
-
 interface AlumnoTrickManagerProps {
   alumno: UserProfile;
-}
-
-function savedNotes(trick: TrickWithProgress): string {
-  return trick.progress?.coachNotes ?? "";
 }
 
 function savedStatus(trick: TrickWithProgress): TrickStatus {
   return resolveTrickStatus(trick.progress);
 }
 
-function draftDiffers(
+function statusDraftDiffers(
   trick: TrickWithProgress,
-  draft: TrickDraft | undefined,
+  draftStatus: TrickStatus | undefined,
 ): boolean {
-  if (!draft) return false;
-  return (
-    draft.status !== savedStatus(trick) ||
-    draft.coachNotes.trim() !== savedNotes(trick).trim()
-  );
+  if (draftStatus === undefined) return false;
+  return draftStatus !== savedStatus(trick);
 }
 
 export function AlumnoTrickManager({ alumno }: AlumnoTrickManagerProps) {
@@ -56,7 +44,9 @@ export function AlumnoTrickManager({ alumno }: AlumnoTrickManagerProps) {
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [drafts, setDrafts] = useState<Record<string, TrickDraft>>({});
+  const [statusDrafts, setStatusDrafts] = useState<
+    Partial<Record<string, TrickStatus>>
+  >({});
   const [savedSectionNotes, setSavedSectionNotes] =
     useState<PassportSectionNotesMap>({});
   const [sectionDrafts, setSectionDrafts] = useState<
@@ -75,6 +65,7 @@ export function AlumnoTrickManager({ alumno }: AlumnoTrickManagerProps) {
       setTricks(data);
       setSavedSectionNotes(sectionNotes);
       setSectionDrafts({});
+      setStatusDrafts({});
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al cargar trucos");
     } finally {
@@ -87,14 +78,14 @@ export function AlumnoTrickManager({ alumno }: AlumnoTrickManagerProps) {
   }, [load]);
 
   const pendingTricks = useMemo(
-    () => tricks.filter((t) => draftDiffers(t, drafts[t.id])),
-    [tricks, drafts],
+    () =>
+      tricks.filter((t) => statusDraftDiffers(t, statusDrafts[t.id])),
+    [tricks, statusDrafts],
   );
 
   const pendingSectionCategories = useMemo(() => {
     const categories = new Set<TrickCategory>();
-    for (const trick of tricks) {
-      const cat = trick.category;
+    for (const cat of Object.keys(TRICK_CATEGORY_LABELS) as TrickCategory[]) {
       const saved = (savedSectionNotes[cat] ?? "").trim();
       const draft = sectionDrafts[cat];
       const effective = draft !== undefined ? draft.trim() : saved;
@@ -103,7 +94,7 @@ export function AlumnoTrickManager({ alumno }: AlumnoTrickManagerProps) {
       }
     }
     return categories;
-  }, [tricks, savedSectionNotes, sectionDrafts]);
+  }, [savedSectionNotes, sectionDrafts]);
 
   const hasPending =
     pendingTricks.length > 0 || pendingSectionCategories.size > 0;
@@ -127,37 +118,21 @@ export function AlumnoTrickManager({ alumno }: AlumnoTrickManagerProps) {
   }
 
   function effectiveStatus(trick: TrickWithProgress): TrickStatus {
-    return drafts[trick.id]?.status ?? savedStatus(trick);
+    return statusDrafts[trick.id] ?? savedStatus(trick);
   }
 
-  function effectiveNotes(trick: TrickWithProgress): string {
-    return drafts[trick.id]?.coachNotes ?? savedNotes(trick);
-  }
-
-  function setDraftForTrick(
-    trick: TrickWithProgress,
-    patch: Partial<TrickDraft>,
-  ) {
-    const next: TrickDraft = {
-      status: patch.status ?? drafts[trick.id]?.status ?? savedStatus(trick),
-      coachNotes:
-        patch.coachNotes !== undefined
-          ? patch.coachNotes
-          : (drafts[trick.id]?.coachNotes ?? savedNotes(trick)),
-    };
-
-    setDrafts((prev) => {
-      const updated = { ...prev, [trick.id]: next };
-      if (!draftDiffers(trick, updated[trick.id])) {
-        const { [trick.id]: _, ...rest } = updated;
+  function setStatusDraft(trick: TrickWithProgress, status: TrickStatus) {
+    setStatusDrafts((prev) => {
+      if (status === savedStatus(trick)) {
+        const { [trick.id]: _, ...rest } = prev;
         return rest;
       }
-      return updated;
+      return { ...prev, [trick.id]: status };
     });
   }
 
   function discardDrafts() {
-    setDrafts({});
+    setStatusDrafts({});
     setSectionDrafts({});
     setError(null);
   }
@@ -169,23 +144,19 @@ export function AlumnoTrickManager({ alumno }: AlumnoTrickManagerProps) {
     setError(null);
     try {
       await publishAlumnoPassportChanges(alumno.uid, {
-        trickUpdates: pendingTricks.map((trick) => {
-          const draft = drafts[trick.id]!;
-          return {
-            trickId: trick.id,
-            trickName: trick.name,
-            category: trick.category,
-            sortOrder: trick.sortOrder,
-            status: draft.status,
-            coachNotes: draft.coachNotes.trim() || undefined,
-          };
-        }),
+        trickUpdates: pendingTricks.map((trick) => ({
+          trickId: trick.id,
+          trickName: trick.name,
+          category: trick.category,
+          sortOrder: trick.sortOrder,
+          status: statusDrafts[trick.id]!,
+        })),
         sectionNotes: [...pendingSectionCategories].map((category) => ({
           category,
           notes: effectiveSectionNotes(category),
         })),
       });
-      setDrafts({});
+      setStatusDrafts({});
       setSectionDrafts({});
       await load();
     } catch (err) {
@@ -213,8 +184,9 @@ export function AlumnoTrickManager({ alumno }: AlumnoTrickManagerProps) {
   return (
     <div className="space-y-6">
       <p className="text-sm text-zinc-400">
-        Marca el progreso de cada truco. Los cambios no se guardan hasta que
-        pulses «Confirmar y notificar al alumno».
+        Marca el progreso de cada truco y escribe notas generales por sección.
+        Los cambios no se publican hasta que pulses «Confirmar y notificar al
+        alumno».
       </p>
 
       {error && (
@@ -227,96 +199,90 @@ export function AlumnoTrickManager({ alumno }: AlumnoTrickManagerProps) {
         const cat = category as TrickCategory;
         const sectionPending = pendingSectionCategories.has(cat);
         return (
-        <section
-          key={category}
-          className={
-            sectionPending
-              ? "rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4"
-              : ""
-          }
-        >
-          <h3 className="mb-3 text-sm font-semibold text-sky-400">
-            {TRICK_CATEGORY_LABELS[cat]}
-            {sectionPending && (
-              <span className="ml-2 text-xs font-normal text-amber-300">
-                · notas sin publicar
-              </span>
-            )}
-          </h3>
-          <label className="mb-4 block text-sm text-zinc-400">
-            Notas de la sección (visibles para el alumno)
-            <textarea
-              rows={3}
-              disabled={publishing}
-              value={effectiveSectionNotes(cat)}
-              onChange={(e) => setSectionNotesDraft(cat, e.target.value)}
-              placeholder={`Objetivos, feedback general de ${TRICK_CATEGORY_LABELS[cat]}…`}
-              className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 disabled:opacity-50"
-            />
-          </label>
-          <ul className="space-y-3">
-            {items.map((trick) => {
-              const current = effectiveStatus(trick);
-              const isPending = draftDiffers(trick, drafts[trick.id]);
-              return (
-                <li
-                  key={trick.id}
-                  className={`rounded-xl border p-4 ${
-                    isPending
-                      ? "border-amber-500/40 bg-amber-500/5"
-                      : "border-zinc-800 bg-zinc-900/40"
-                  }`}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <p className="font-medium">
-                        {trick.name}
-                        {isPending && (
-                          <span className="ml-2 text-xs font-normal text-amber-300">
-                            · sin publicar
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-xs text-zinc-500">{trick.description}</p>
+          <section
+            key={category}
+            className={
+              sectionPending
+                ? "rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4"
+                : ""
+            }
+          >
+            <h3 className="mb-3 text-sm font-semibold text-sky-400">
+              {TRICK_CATEGORY_LABELS[cat]}
+              {sectionPending && (
+                <span className="ml-2 text-xs font-normal text-amber-300">
+                  · notas sin publicar
+                </span>
+              )}
+            </h3>
+            <label className="mb-4 block text-sm text-zinc-400">
+              Notas de la sección (visibles para el alumno)
+              <textarea
+                rows={3}
+                disabled={publishing}
+                value={effectiveSectionNotes(cat)}
+                onChange={(e) => setSectionNotesDraft(cat, e.target.value)}
+                placeholder={`Objetivos, feedback general de ${TRICK_CATEGORY_LABELS[cat]}…`}
+                className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 disabled:opacity-50"
+              />
+            </label>
+            <ul className="space-y-3">
+              {items.map((trick) => {
+                const current = effectiveStatus(trick);
+                const isPending = statusDraftDiffers(
+                  trick,
+                  statusDrafts[trick.id],
+                );
+                return (
+                  <li
+                    key={trick.id}
+                    className={`rounded-xl border p-4 ${
+                      isPending
+                        ? "border-amber-500/40 bg-amber-500/5"
+                        : "border-zinc-800 bg-zinc-900/40"
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="font-medium">
+                          {trick.name}
+                          {isPending && (
+                            <span className="ml-2 text-xs font-normal text-amber-300">
+                              · sin publicar
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-xs text-zinc-500">
+                          {trick.description}
+                        </p>
+                      </div>
+                      <span className="text-xs text-zinc-500">
+                        Dificultad {trick.difficulty}/5
+                      </span>
                     </div>
-                    <span className="text-xs text-zinc-500">
-                      Dificultad {trick.difficulty}/5
-                    </span>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {STATUSES.map((s) => (
-                      <button
-                        key={s.id}
-                        type="button"
-                        disabled={publishing}
-                        onClick={() =>
-                          setDraftForTrick(trick, { status: s.id })
-                        }
-                        className={`rounded-full px-3 py-1 text-xs ${
-                          current === s.id
-                            ? "chip-toggle-active"
-                            : "border border-zinc-700 text-zinc-400 hover:border-zinc-500"
-                        }`}
-                      >
-                        {s.label}
-                      </button>
-                    ))}
-                  </div>
-                  <input
-                    placeholder="Nota del coach (opcional)"
-                    value={effectiveNotes(trick)}
-                    onChange={(e) =>
-                      setDraftForTrick(trick, { coachNotes: e.target.value })
-                    }
-                    disabled={publishing}
-                    className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-sm disabled:opacity-50"
-                  />
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      );
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {STATUSES.map((s) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          disabled={publishing}
+                          onClick={() => setStatusDraft(trick, s.id)}
+                          className={`rounded-full px-3 py-1 text-xs ${
+                            current === s.id
+                              ? "chip-toggle-active"
+                              : "border border-zinc-700 text-zinc-400 hover:border-zinc-500"
+                          }`}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        );
       })}
 
       {hasPending && (

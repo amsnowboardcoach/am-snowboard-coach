@@ -33,13 +33,11 @@ const statusConfig: Record<
 
 interface TrickPassportGridProps {
   tricks: TrickWithProgress[];
-  showCoachNotes?: boolean;
   sectionNotes?: PassportSectionNotesMap;
 }
 
 export function TrickPassportGrid({
   tricks,
-  showCoachNotes = true,
   sectionNotes = {},
 }: TrickPassportGridProps) {
   const byCategory = tricks.reduce(
@@ -100,11 +98,6 @@ export function TrickPassportGrid({
                   <p className="mt-3 text-xs font-medium text-zinc-400">
                     {cfg.label}
                   </p>
-                  {showCoachNotes && trick.progress?.coachNotes && (
-                    <p className="mt-2 text-xs italic text-sky-300/80">
-                      Coach: {trick.progress.coachNotes}
-                    </p>
-                  )}
                 </article>
               );
             })}

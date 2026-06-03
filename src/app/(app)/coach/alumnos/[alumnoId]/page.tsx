@@ -148,8 +148,8 @@ export default function CoachAlumnoDetailPage() {
         {activeTab === "pasaporte" && (
           <section>
             <p className="mb-4 text-sm text-zinc-400">
-              Notas por sección, progreso de trucos y notas por maniobra. Pulsa
-              confirmar para que el alumno lo vea en su pasaporte.
+              Progreso por truco y notas generales por sección. Pulsa confirmar
+              para que el alumno lo vea en su pasaporte.
             </p>
             <AlumnoTrickManager alumno={alumno} />
           </section>
