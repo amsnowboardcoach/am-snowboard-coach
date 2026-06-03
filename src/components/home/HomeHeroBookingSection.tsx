@@ -17,7 +17,11 @@ import {
   MAX_BOOKING_DAYS,
 } from "@/constants/booking-plan";
 import { LESSON_TYPES } from "@/constants/lesson-types";
-import { BOOKING_AVAILABILITY_FETCH_DAYS } from "@/constants/booking-availability";
+import {
+  BOOKING_AVAILABILITY_FETCH_DAYS,
+  LIVE_AVAILABILITY_POLL_MS,
+} from "@/constants/booking-availability";
+import { LiveAvailabilityIndicator } from "@/components/home/LiveAvailabilityIndicator";
 import {
   DEFAULT_SESSION_DURATION_ID,
   getSessionDuration,
@@ -72,6 +76,8 @@ export function HomeHeroBookingSection() {
   const fetchRef = useRef<string | null>(null);
   const genRef = useRef(0);
   const rangeEndRef = useRef("");
+  const fetchInFlightRef = useRef(0);
+  const [syncing, setSyncing] = useState(true);
 
   const fetchAvailability = useCallback(
     async (
@@ -99,6 +105,8 @@ export function HomeHeroBookingSection() {
 
       if (!merge) setLoadStatus("loading");
       setLoadError(null);
+      fetchInFlightRef.current += 1;
+      setSyncing(true);
 
       try {
         const results = await Promise.all(
@@ -163,6 +171,10 @@ export function HomeHeroBookingSection() {
         }
       } finally {
         if (fetchRef.current === fetchKey) fetchRef.current = null;
+        fetchInFlightRef.current = Math.max(0, fetchInFlightRef.current - 1);
+        if (fetchInFlightRef.current === 0) {
+          setSyncing(false);
+        }
       }
     },
     [],
@@ -182,6 +194,27 @@ export function HomeHeroBookingSection() {
     fetchRef.current = null;
     void fetchAvailability(range, false, true);
   }, [rangeEnd, rangeStart, fetchAvailability]);
+
+  useEffect(() => {
+    const poll = () => {
+      if (document.visibilityState !== "visible") return;
+      refreshCalendar();
+    };
+    const id = window.setInterval(poll, LIVE_AVAILABILITY_POLL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") poll();
+    };
+    const onFocus = () => {
+      if (document.visibilityState === "visible") refreshCalendar();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [refreshCalendar]);
 
   const handleVisibleMonth = useCallback(
     (month: Date) => {
@@ -243,9 +276,12 @@ export function HomeHeroBookingSection() {
   return (
     <>
       <div className="rounded-2xl border border-white/15 bg-zinc-950/80 p-3.5 shadow-xl shadow-black/30 backdrop-blur-md sm:p-4">
-        <p className="mb-3 text-xs font-medium text-zinc-400">
-          Disponibilidad en vivo
-        </p>
+        <div className="mb-3 flex justify-center">
+          <LiveAvailabilityIndicator
+            syncing={syncing}
+            error={loadStatus === "error"}
+          />
+        </div>
         <BookingAvailabilityCalendar
           mode="colorsOnly"
           className="border-zinc-700/60 bg-zinc-900/50"
