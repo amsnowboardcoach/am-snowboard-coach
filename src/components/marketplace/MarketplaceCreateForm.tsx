@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthProvider";
+import { resolvedProfilePhotoURL } from "@/lib/auth/auth-photo";
 import {
   MARKETPLACE_CATEGORIES,
   MARKETPLACE_CONDITIONS,
@@ -92,7 +93,7 @@ export function MarketplaceCreateForm({ onCreated }: MarketplaceCreateFormProps)
         sellerId: user.uid,
         sellerDisplayName:
           profile.displayName || user.displayName || "Usuario AM",
-        sellerPhotoURL: profile.photoURL || user.photoURL || undefined,
+        sellerPhotoURL: resolvedProfilePhotoURL(profile, user),
         title,
         description,
         priceEuros: price,

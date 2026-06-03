@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MobileFilePicker } from "@/components/ui/MobileFilePicker";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { useAuth } from "@/contexts/AuthProvider";
+import {
+  resolvedProfilePhotoURL,
+  usesGoogleSignIn,
+} from "@/lib/auth/auth-photo";
 import { uploadUserAvatar } from "@/lib/firebase/user-avatar";
 
 export function ProfilePhotoUpload() {
@@ -15,10 +19,18 @@ export function ProfilePhotoUpload() {
 
   const displayName =
     profile?.displayName || user?.displayName || "Alumno AM";
-  const photoURL = profile?.photoURL || user?.photoURL;
+  const googleAccount = Boolean(user && usesGoogleSignIn(user));
+  const photoURL = resolvedProfilePhotoURL(profile, user);
+
+  useEffect(() => {
+    if (!googleAccount || !user?.uid) return;
+    void refreshProfile();
+    // Sincroniza foto de Google en Firestore al abrir perfil
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar / cambiar cuenta
+  }, [googleAccount, user?.uid]);
 
   async function handleFileSelected(file: File) {
-    if (!user?.uid) return;
+    if (!user?.uid || googleAccount) return;
 
     setUploading(true);
     setProgress(0);
@@ -49,25 +61,36 @@ export function ProfilePhotoUpload() {
           <h2 className="text-base font-semibold text-zinc-100">
             Foto de perfil
           </h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            Aparece en tus publicaciones de La Tribu y en tus anuncios del
-            mercadillo.
-          </p>
-          <div className="mt-4">
-            <MobileFilePicker
-              accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-              disabled={!user?.uid}
-              loading={uploading}
-              label={photoURL ? "Cambiar foto" : "Subir foto"}
-              loadingLabel={
-                progress !== null && progress < 100
-                  ? `Subiendo… ${progress}%`
-                  : "Guardando…"
-              }
-              hint="JPG, PNG o WebP · máximo 5 MB"
-              onFileSelected={handleFileSelected}
-            />
-          </div>
+          {googleAccount ? (
+            <p className="mt-1 text-sm text-zinc-500">
+              Usamos la misma foto que tu cuenta de Google. Si la cambias en
+              Google, cierra sesión aquí y vuelve a entrar con Google para
+              actualizarla.
+            </p>
+          ) : (
+            <>
+              <p className="mt-1 text-sm text-zinc-500">
+                Aparece en tus publicaciones de La Tribu y en tus anuncios del
+                mercadillo. Si entras con Google, se usará automáticamente tu
+                foto de Google.
+              </p>
+              <div className="mt-4">
+                <MobileFilePicker
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                  disabled={!user?.uid}
+                  loading={uploading}
+                  label={photoURL ? "Cambiar foto" : "Subir foto"}
+                  loadingLabel={
+                    progress !== null && progress < 100
+                      ? `Subiendo… ${progress}%`
+                      : "Guardando…"
+                  }
+                  hint="JPG, PNG o WebP · máximo 5 MB"
+                  onFileSelected={handleFileSelected}
+                />
+              </div>
+            </>
+          )}
           {success && (
             <p className="mt-3 text-sm text-emerald-400" role="status">
               {success}

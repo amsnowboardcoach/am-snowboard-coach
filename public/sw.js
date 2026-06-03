@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-/* Service worker PWA + push — v6: sin interceptar fetch (evita Failed to fetch en Next.js) */
+/* Service worker PWA + push — v7: sin interceptar fetch (evita Failed to fetch en Next.js) */
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());

@@ -1,5 +1,6 @@
 import type { User } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { authPhotoURL, usesGoogleSignIn } from "@/lib/auth/auth-photo";
 import { getFirebaseDb } from "@/lib/firebase/client";
 import { createUserProfile } from "@/lib/firebase/users";
 import { requestCoachNotifyAlumnoRegistered } from "@/lib/push/request-coach-alumno-registered";
@@ -7,8 +8,8 @@ import { isAlumnoRole, LEGACY_ALUMNO_ROLE, ROLES } from "@/constants/roles";
 import { isCoachEmail } from "@/lib/auth/config";
 import type { UserProfile } from "@/types/firestore";
 
-/** Parches de rol en Firestore; si las reglas no lo permiten, se ignora el error. */
-async function tryPatchUserRole(
+/** Parches en Firestore; si las reglas no lo permiten, se ignora el error. */
+async function tryPatchUserDoc(
   ref: ReturnType<typeof doc>,
   patch: Record<string, unknown>,
 ): Promise<UserProfile | null> {
@@ -21,14 +22,39 @@ async function tryPatchUserRole(
   }
 }
 
+/** Alumnos con Google: mantener photoURL de la cuenta de Google en Firestore. */
+async function syncAlumnoGooglePhoto(
+  ref: ReturnType<typeof doc>,
+  existing: UserProfile,
+  user: User,
+): Promise<UserProfile | null> {
+  if (!isAlumnoRole(existing.role) || isCoachEmail(user.email ?? "")) {
+    return null;
+  }
+  if (!usesGoogleSignIn(user)) return null;
+
+  const photo = authPhotoURL(user);
+  if (!photo || existing.photoURL === photo) return null;
+
+  return tryPatchUserDoc(ref, { photoURL: photo });
+}
+
 export async function ensureUserProfile(user: User): Promise<UserProfile> {
+  if (usesGoogleSignIn(user)) {
+    try {
+      await user.reload();
+    } catch {
+      /* token / red; seguir con datos actuales */
+    }
+  }
+
   const ref = doc(getFirebaseDb(), "users", user.uid);
   const snap = await getDoc(ref);
 
   if (snap.exists()) {
     const existing = snap.data() as UserProfile;
     if (user.email && isCoachEmail(user.email) && isAlumnoRole(existing.role)) {
-      const fixed = await tryPatchUserRole(ref, {
+      const fixed = await tryPatchUserDoc(ref, {
         role: ROLES.COACH,
         assignedCoachId: user.uid,
       });
@@ -36,10 +62,13 @@ export async function ensureUserProfile(user: User): Promise<UserProfile> {
     }
     if (user.email && !isCoachEmail(user.email)) {
       if (existing.role === LEGACY_ALUMNO_ROLE) {
-        const fixed = await tryPatchUserRole(ref, { role: ROLES.ALUMNO });
+        const fixed = await tryPatchUserDoc(ref, { role: ROLES.ALUMNO });
         if (fixed) return fixed;
       }
     }
+    const withPhoto = await syncAlumnoGooglePhoto(ref, existing, user);
+    if (withPhoto) return withPhoto;
+
     return existing;
   }
 
@@ -58,7 +87,7 @@ export async function ensureUserProfile(user: User): Promise<UserProfile> {
     uid: user.uid,
     email: user.email,
     displayName,
-    photoURL: user.photoURL ?? undefined,
+    photoURL: authPhotoURL(user),
     role: isAlumno ? ROLES.ALUMNO : ROLES.COACH,
   });
 

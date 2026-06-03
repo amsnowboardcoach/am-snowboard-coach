@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthProvider";
+import { resolvedProfilePhotoURL } from "@/lib/auth/auth-photo";
 import { ROLES } from "@/constants/roles";
 import {
   TRIBE_UPLOAD_LEGAL_CHECKBOX,
@@ -119,7 +120,7 @@ export function AlumnoTribePanel({ alumnoId }: AlumnoTribePanelProps) {
       await uploadTribePost({
         authorId: user.uid,
         authorDisplayName: profile.displayName || user.displayName || "Alumno",
-        authorPhotoURL: profile.photoURL || user.photoURL || undefined,
+        authorPhotoURL: resolvedProfilePhotoURL(profile, user),
         authorRole: ROLES.ALUMNO,
         file: selectedFile,
         mediaType,

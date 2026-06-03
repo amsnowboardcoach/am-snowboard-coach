@@ -416,7 +416,7 @@ export function BookingAvailabilityCalendar({
   return (
     <div
       className={cn(
-        "relative rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4",
+        "relative flex flex-col items-center rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4 text-center",
         isLoading && "pointer-events-none opacity-70",
         className,
       )}
@@ -537,43 +537,47 @@ export function BookingAvailabilityCalendar({
         </div>
       </div>
 
-      {emptySlotHint && !showSlotPicker && (
-        <p className="mt-4 text-center text-xs text-zinc-500">{emptySlotHint}</p>
-      )}
-
-      <div
-        className="mt-4 flex w-full flex-col items-center justify-center gap-3"
-        aria-label="Leyenda del calendario"
-      >
-        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
-          {LEGEND.map((item) => (
-            <span
-              key={item.status}
-              className="inline-flex items-center gap-1.5 text-[11px] text-zinc-500"
-            >
-              <span
-                className={cn("h-3 w-3 rounded-sm", item.className)}
-                aria-hidden
-              />
-              {item.label}
-            </span>
-          ))}
-        </div>
-        {onRefresh && (
-          <button
-            type="button"
-            onClick={onRefresh}
-            disabled={isLoading || disabled}
-            className="rounded-lg border border-zinc-700 px-3 py-1.5 text-center text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800/80 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Actualizar disponibilidad del calendario"
-          >
-            {isLoading ? "Actualizando…" : "Actualizar calendario"}
-          </button>
+      <div className="mt-4 flex w-full max-w-sm flex-col items-center gap-3 px-1">
+        {emptySlotHint && !showSlotPicker && (
+          <p className="w-full text-xs leading-relaxed text-zinc-500">
+            {emptySlotHint}
+          </p>
         )}
+
+        <div
+          className="flex w-full flex-col items-center gap-2.5"
+          aria-label="Leyenda del calendario"
+        >
+          <div className="flex w-full flex-wrap items-center justify-center gap-x-2.5 gap-y-2 sm:gap-x-3">
+            {LEGEND.map((item) => (
+              <span
+                key={item.status}
+                className="inline-flex items-center justify-center gap-1.5 text-[11px] text-zinc-500"
+              >
+                <span
+                  className={cn("h-3 w-3 shrink-0 rounded-sm", item.className)}
+                  aria-hidden
+                />
+                {item.label}
+              </span>
+            ))}
+          </div>
+          {onRefresh && (
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={isLoading || disabled}
+              className="mx-auto w-full max-w-[220px] rounded-lg border border-zinc-700 px-3 py-2 text-center text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800/80 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 sm:max-w-none sm:w-auto sm:py-1.5"
+              aria-label="Actualizar disponibilidad del calendario"
+            >
+              {isLoading ? "Actualizando…" : "Actualizar calendario"}
+            </button>
+          )}
+        </div>
       </div>
 
       {showSlotPicker ? (
-        <div className="mt-6 border-t border-zinc-800/80 pt-5">
+        <div className="mt-6 w-full border-t border-zinc-800/80 pt-5 text-left">
           <BookingSlotSeatMap
             sessionSlots={sessionSlots}
             pickedDates={selectedDates}
