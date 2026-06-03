@@ -10,6 +10,7 @@ import {
   type BookingEmailSessionLine,
 } from "@/lib/email/send-booking";
 import {
+  sendCoachAlumnoDeletedEmail,
   sendCoachNewAlumnoRegisteredEmail,
   sendCoachNewSessionBookingEmail,
   sendCoachVideoCorrectionRequestEmail,
@@ -17,6 +18,7 @@ import {
 } from "@/lib/email/send-coach-alerts";
 import {
   notifyAfterBookingPaid,
+  notifyCoachAlumnoDeleted,
   notifyCoachNewBookingRequest,
   notifyCoachNewAlumnoRegistered,
   notifyCoachAlumnoVideoUploaded,
@@ -24,6 +26,7 @@ import {
 import type { SessionDuration } from "@/constants/session-schedules";
 import {
   buildCoachNewSessionBookingWhatsApp,
+  buildCoachAlumnoDeletedWhatsApp,
   buildCoachAlumnoRegisteredWhatsApp,
   buildCoachVideoBookingPaidWhatsApp,
   buildCoachVideoCorrectionRequestWhatsApp,
@@ -71,6 +74,43 @@ export async function coachNotifyAlumnoRegistered(details: {
         buildCoachAlumnoRegisteredWhatsApp({
           alumnoName: details.alumnoName,
           alumnoEmail: details.alumnoEmail,
+        }),
+      ),
+  ]);
+}
+
+export type AlumnoDeletionSource = "self" | "coach";
+
+/** Cuenta de alumno eliminada: push + email + WhatsApp al coach */
+export async function coachNotifyAlumnoDeleted(details: {
+  alumnoName: string;
+  alumnoEmail: string;
+  alumnoId: string;
+  source: AlumnoDeletionSource;
+  coachName?: string;
+}): Promise<boolean> {
+  return runCoachNotifications("alumno-deleted", [
+    () =>
+      notifyCoachAlumnoDeleted({
+        alumnoName: details.alumnoName,
+        alumnoEmail: details.alumnoEmail,
+        alumnoId: details.alumnoId,
+        source: details.source,
+      }),
+    () =>
+      sendCoachAlumnoDeletedEmail({
+        alumnoName: details.alumnoName,
+        alumnoEmail: details.alumnoEmail,
+        source: details.source,
+        coachName: details.coachName,
+      }),
+    () =>
+      sendCoachWhatsAppMessage(
+        buildCoachAlumnoDeletedWhatsApp({
+          alumnoName: details.alumnoName,
+          alumnoEmail: details.alumnoEmail,
+          source: details.source,
+          coachName: details.coachName,
         }),
       ),
   ]);

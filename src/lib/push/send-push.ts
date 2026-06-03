@@ -204,6 +204,25 @@ export async function notifyCoachNewAlumnoRegistered(details: {
   });
 }
 
+/** Coach: cuenta de alumno eliminada (baja propia o desde el panel) */
+export async function notifyCoachAlumnoDeleted(details: {
+  alumnoName: string;
+  alumnoEmail: string;
+  alumnoId: string;
+  source: "self" | "coach";
+}): Promise<void> {
+  const reason =
+    details.source === "self"
+      ? "Baja voluntaria del alumno"
+      : "Eliminado desde el panel coach";
+  await sendPushToCoach({
+    title: "Alumno eliminado",
+    body: `${details.alumnoName} · ${reason}`,
+    url: "/coach?tab=alumnos",
+    tag: `alumno-del-${details.alumnoId}`,
+  });
+}
+
 /** Coach: alumno subió vídeo en su área */
 export async function notifyCoachAlumnoVideoUploaded(details: {
   alumnoName: string;

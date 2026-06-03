@@ -2,6 +2,19 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { COACH_ROLES, isAlumnoRole } from "@/constants/roles";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
+import {
+  coachNotifyAlumnoDeleted,
+  type AlumnoDeletionSource,
+} from "@/lib/notify/coach";
+
+export type { AlumnoDeletionSource };
+
+export type DeleteUserAccountOptions = {
+  /** Origen de la baja; si se indica, avisa al coach antes de borrar datos */
+  deletionSource: AlumnoDeletionSource;
+  /** UID del coach que eliminó (solo si deletionSource === "coach") */
+  deletedByCoachUid?: string;
+};
 
 function getStorageBucket() {
   const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET?.trim();
@@ -229,6 +242,7 @@ export type DeleteUserAccountResult = {
 /** Elimina cuenta Firebase Auth, perfil y todo el contenido asociado al alumno. */
 export async function deleteUserAccountCompletely(
   userId: string,
+  options?: DeleteUserAccountOptions,
 ): Promise<DeleteUserAccountResult> {
   const db = getAdminDb();
   const userRef = db.collection("users").doc(userId);
@@ -251,6 +265,33 @@ export async function deleteUserAccountCompletely(
 
   const email = (data.email as string) || "";
   const displayName = (data.displayName as string) || "Alumno";
+
+  if (options?.deletionSource) {
+    let coachName: string | undefined;
+    if (
+      options.deletionSource === "coach" &&
+      options.deletedByCoachUid?.trim()
+    ) {
+      const coachSnap = await db
+        .collection("users")
+        .doc(options.deletedByCoachUid.trim())
+        .get();
+      coachName =
+        (coachSnap.data()?.displayName as string | undefined)?.trim() ||
+        undefined;
+    }
+    try {
+      await coachNotifyAlumnoDeleted({
+        alumnoId: userId,
+        alumnoName: displayName,
+        alumnoEmail: email,
+        source: options.deletionSource,
+        coachName,
+      });
+    } catch (err) {
+      console.error("[delete-user-account] coach notify:", err);
+    }
+  }
 
   await deleteUserSubcollections(userId);
   await deleteTribeContentByAuthor(userId);

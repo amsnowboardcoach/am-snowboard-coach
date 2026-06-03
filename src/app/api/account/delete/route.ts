@@ -64,7 +64,9 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await deleteUserAccountCompletely(auth.uid);
+    const result = await deleteUserAccountCompletely(auth.uid, {
+      deletionSource: "self",
+    });
     return NextResponse.json({
       ok: true,
       message: "Cuenta eliminada",

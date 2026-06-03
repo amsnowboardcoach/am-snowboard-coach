@@ -60,6 +60,42 @@ export async function sendCoachNewAlumnoRegisteredEmail(details: {
   });
 }
 
+/** Email al coach cuando un alumno elimina su cuenta o el coach la borra */
+export async function sendCoachAlumnoDeletedEmail(details: {
+  alumnoName: string;
+  alumnoEmail: string;
+  source: "self" | "coach";
+  coachName?: string;
+}): Promise<void> {
+  if (!isEmailConfigured()) return;
+
+  const base = getAppBaseUrl();
+  const panelUrl = `${base}/coach?tab=alumnos`;
+  const reason =
+    details.source === "self"
+      ? "El alumno ha dado de baja su cuenta desde el área privada."
+      : details.coachName
+        ? `Eliminado por ${details.coachName} desde el panel coach.`
+        : "Eliminado desde el panel coach.";
+
+  await getTransport().sendMail({
+    from: fromAddress(),
+    to: coachNotifyTo(),
+    subject: `Alumno eliminado: ${details.alumnoName}`,
+    html: `
+      <p>Se ha eliminado una cuenta de alumno en <strong>AM Snowboard Coach</strong>.</p>
+      <ul>
+        <li><strong>Nombre:</strong> ${details.alumnoName}</li>
+        <li><strong>Email:</strong> ${details.alumnoEmail}</li>
+        <li><strong>Motivo:</strong> ${reason}</li>
+      </ul>
+      <p>Se han borrado perfil, reservas, vídeos, Tribu y mercadillo asociados.</p>
+      <p><a href="${panelUrl}">Abrir panel de alumnos</a></p>
+    `,
+    text: `Alumno eliminado: ${details.alumnoName} (${details.alumnoEmail}). ${reason} Panel: ${panelUrl}`,
+  });
+}
+
 /** Email al coach: nueva solicitud de clase en pista */
 export async function sendCoachNewSessionBookingEmail(details: {
   alumnoName: string;

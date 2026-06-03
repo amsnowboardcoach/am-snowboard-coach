@@ -86,7 +86,10 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 
   try {
     await assertCoachCanDeleteAlumno(coachUid, alumnoId);
-    const result = await deleteUserAccountCompletely(alumnoId);
+    const result = await deleteUserAccountCompletely(alumnoId, {
+      deletionSource: "coach",
+      deletedByCoachUid: coachUid,
+    });
     return NextResponse.json({
       ok: true,
       message: "Alumno eliminado",

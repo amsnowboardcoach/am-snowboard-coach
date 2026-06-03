@@ -150,6 +150,31 @@ export function buildCoachAlumnoRegisteredWhatsApp(details: {
   ].join("\n");
 }
 
+export function buildCoachAlumnoDeletedWhatsApp(details: {
+  alumnoName: string;
+  alumnoEmail: string;
+  source: "self" | "coach";
+  coachName?: string;
+}): string {
+  const panelUrl = `${getAppBaseUrl()}/coach?tab=alumnos`;
+  const reason =
+    details.source === "self"
+      ? "Baja voluntaria (área de alumno)"
+      : details.coachName
+        ? `Eliminado por ${details.coachName} (panel coach)`
+        : "Eliminado desde el panel coach";
+  return [
+    "AM Snowboard Coach",
+    "Alumno eliminado",
+    "",
+    `Nombre: ${details.alumnoName}`,
+    `Email: ${details.alumnoEmail}`,
+    `Motivo: ${reason}`,
+    "",
+    `Panel: ${panelUrl}`,
+  ].join("\n");
+}
+
 export function buildCoachNewSessionBookingWhatsApp(details: {
   alumnoName: string;
   alumnoEmail: string;
