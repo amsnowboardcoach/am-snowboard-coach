@@ -23,7 +23,11 @@ import type {
 } from "@/types/firestore";
 import type { InvoiceDocumentType } from "@/constants/invoicing";
 import type { IssuerConfig } from "@/types/issuer";
-import { bookingAlumnoWriteFields } from "@/lib/firebase/booking-alumno-fields";
+import {
+  bookingAlumnoDisplayName,
+  bookingAlumnoEmail,
+  bookingAlumnoWriteFields,
+} from "@/lib/firebase/booking-alumno-fields";
 
 const BOOKINGS = "bookings";
 
@@ -34,7 +38,15 @@ export async function fetchCoachBookings(coachId: string): Promise<Booking[]> {
   );
   const snap = await getDocs(q);
   return snap.docs
-    .map((d) => ({ id: d.id, ...d.data() }) as Booking)
+    .map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        ...data,
+        alumnoDisplayName: bookingAlumnoDisplayName(data, ""),
+        alumnoEmail: bookingAlumnoEmail(data),
+      } as Booking;
+    })
     .sort((a, b) => b.startAt.toMillis() - a.startAt.toMillis());
 }
 

@@ -22,6 +22,10 @@ import {
 import { validateInvoiceForm } from "@/lib/invoicing/validate";
 import { centsToEuros, parseEurosInput } from "@/lib/utils/money";
 import { getIssuerConfig } from "@/lib/firebase/system-config";
+import {
+  bookingAlumnoDisplayName,
+  bookingAlumnoEmail,
+} from "@/lib/firebase/booking-alumno-fields";
 import type { Booking, InvoiceStatus } from "@/types/firestore";
 import type { IssuerConfig } from "@/types/issuer";
 import { InvoiceIssuerBlock } from "./InvoiceIssuerBlock";
@@ -66,7 +70,7 @@ export function BookingInvoiceForm({
     existing.documentType ?? "simplified",
   );
   const [legalName, setLegalName] = useState(
-    existing.recipient?.legalName ?? booking.alumnoDisplayName ?? "",
+    existing.recipient?.legalName ?? bookingAlumnoDisplayName(booking, ""),
   );
   const [taxId, setTaxId] = useState(existing.recipient?.taxId ?? "");
   const [address, setAddress] = useState(existing.recipient?.address ?? "");
@@ -77,7 +81,7 @@ export function BookingInvoiceForm({
   const [province, setProvince] = useState(existing.recipient?.province ?? "");
   const [country, setCountry] = useState(existing.recipient?.country ?? "ES");
   const [recipientEmail, setRecipientEmail] = useState(
-    existing.recipient?.email ?? booking.alumnoEmail ?? "",
+    existing.recipient?.email ?? bookingAlumnoEmail(booking),
   );
 
   const [vatRate, setVatRate] = useState<VatRateId>(

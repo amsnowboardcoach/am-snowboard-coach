@@ -14,6 +14,7 @@
     "verify:google-auth": "node scripts/verify-oauth-client.mjs",
     "fix:google-auth": "node scripts/fix-google-auth-provider.mjs",
     "push:vercel-env": "node scripts/push-vercel-env.mjs",
+    "deploy:prod": "node scripts/push-vercel-env.mjs && vercel deploy --prod --yes",
     "purge:test-data": "node scripts/purge-test-data.mjs --confirm"
   },
   "dependencies": {

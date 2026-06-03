@@ -410,27 +410,6 @@ export async function notifyCoachPaymentReceived(details: {
   });
 }
 
-/** Alumno: el coach publicó cambios en el pasaporte de trucos */
-export async function notifyAlumnoPassportUpdated(details: {
-  userId: string;
-  updateCount: number;
-  highlightTrickName?: string;
-}): Promise<void> {
-  if (!details.userId) return;
-
-  const body =
-    details.updateCount === 1 && details.highlightTrickName
-      ? `Alejandro ha actualizado «${details.highlightTrickName}». Míralo en tu pasaporte.`
-      : `Alejandro ha actualizado ${details.updateCount} trucos en tu pasaporte. Ábrelo en Perfil.`;
-
-  await sendPushToUser(details.userId, {
-    title: "¡Tu pasaporte de trucos ha cambiado!",
-    body,
-    url: "/perfil/pasaporte",
-    tag: "passport-updated",
-  });
-}
-
 /** Alumno: el coach publicó apuntes en un vídeo */
 export async function notifyAlumnoVideoReviewReady(details: {
   userId: string;

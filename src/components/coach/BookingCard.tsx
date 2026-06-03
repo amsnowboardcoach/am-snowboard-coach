@@ -14,6 +14,7 @@ import {
   BOOKING_DEPOSIT_PERCENT,
 } from "@/constants/booking-payment";
 import { bookingAwaitingCoachApproval } from "@/lib/booking/slot-hold";
+import { bookingAlumnoDisplayName } from "@/lib/firebase/booking-alumno-fields";
 import { isVideoCorrectionProduct } from "@/constants/video-correction";
 import type { Booking } from "@/types/firestore";
 import { BookingInvoiceForm } from "./BookingInvoiceForm";
@@ -72,10 +73,7 @@ export function BookingCard({ booking, coachId, onUpdated }: BookingCardProps) {
   const canAcceptSession = needsApproval && !isVideo && paymentReady;
   const canAcceptVideo = needsApproval && isVideo && paymentReady;
 
-  const alumnoName =
-    booking.alumnoDisplayName ||
-    booking.alumnoEmail ||
-    "Alumno sin nombre";
+  const alumnoName = bookingAlumnoDisplayName(booking, "Alumno sin nombre");
 
   async function confirmRequest() {
     setConfirming(true);

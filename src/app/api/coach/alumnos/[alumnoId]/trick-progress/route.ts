@@ -4,7 +4,7 @@ import { verifyCoachRequest } from "@/lib/auth/verify-coach";
 import { assertCoachCanManageAlumno } from "@/lib/firebase/coach-alumno-access";
 import { applyPassportSectionNotes } from "@/lib/firebase/passport-section-notes-admin";
 import { applyAlumnoTrickProgressUpdates } from "@/lib/firebase/tricks-admin";
-import { notifyAlumnoPassportUpdated } from "@/lib/push/send-push";
+import { notifyAlumnoPassportUpdated } from "@/lib/notify/alumno-passport-updated";
 
 export const runtime = "nodejs";
 
@@ -75,20 +75,21 @@ export async function POST(request: NextRequest, context: RouteContext) {
       );
     }
 
-    const changeCount =
-      parsed.data.updates.length + parsed.data.sectionNotes.length;
+    const trickUpdateCount = parsed.data.updates.length;
+    const sectionNoteCount = parsed.data.sectionNotes.length;
 
-    if (changeCount > 0) {
+    if (trickUpdateCount > 0 || sectionNoteCount > 0) {
       const first = parsed.data.updates[0];
       try {
         await notifyAlumnoPassportUpdated({
           userId: alumnoId,
-          updateCount: changeCount,
+          trickUpdateCount,
+          sectionNoteCount,
           highlightTrickName:
-            parsed.data.updates.length === 1 ? first?.trickName : undefined,
+            trickUpdateCount === 1 ? first?.trickName : undefined,
         });
-      } catch (pushErr) {
-        console.error("[trick-progress] push:", pushErr);
+      } catch (notifyErr) {
+        console.error("[trick-progress] notify:", notifyErr);
       }
     }
 

@@ -34,6 +34,7 @@ NEXT_PUBLIC_FIREBASE_VAPID_KEY=BNxxxx...
 | Coach rechaza solicitud | Alumno (con cuenta) | Invita a reservar otra fecha |
 | Pago Stripe completado | Alumno + coach | Importe y tipo de reserva |
 | Coach publica apuntes en un vídeo | Alumno | Enlace a Mis vídeos |
+| Coach publica cambios en el pasaporte | Alumno | Push + email → `/perfil/pasaporte` |
 
 Los invitados sin cuenta solo reciben email. Hace falta **Activar notificaciones** (o no haber pulsado «No, gracias» en el banner).
 

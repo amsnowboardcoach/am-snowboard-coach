@@ -12,6 +12,31 @@ export function readAlumnoEmail(data: Record<string, unknown>): string | undefin
   return typeof v === "string" ? v : undefined;
 }
 
+export type BookingAlumnoFields = {
+  alumnoDisplayName?: string;
+  alumnoEmail?: string;
+  studentDisplayName?: string;
+  studentEmail?: string;
+};
+
+/** Nombre para UI / emails (nuevo campo Firestore o legacy student*). */
+export function bookingAlumnoDisplayName(
+  booking: BookingAlumnoFields,
+  fallback = "Alumno",
+): string {
+  const data = booking as Record<string, unknown>;
+  return (
+    readAlumnoDisplayName(data)?.trim() ||
+    readAlumnoEmail(data)?.trim() ||
+    fallback
+  );
+}
+
+/** Email del alumno en reserva (nuevo o legacy). */
+export function bookingAlumnoEmail(booking: BookingAlumnoFields): string {
+  return readAlumnoEmail(booking as Record<string, unknown>)?.trim() ?? "";
+}
+
 /** Campos de alumno al escribir bookings (nuevo + legacy Firestore). */
 export function bookingAlumnoWriteFields(
   displayName: string,
